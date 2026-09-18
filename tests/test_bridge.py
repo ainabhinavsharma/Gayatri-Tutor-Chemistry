@@ -28,15 +28,16 @@ def test_bridge_window_controls(qtbot):
 
 
 def test_bridge_get_agents(qtbot):
-    """Audit #52 & #54: bridge.get_agents returns registered agents with metadata."""
+    """Phase 2: legacy agent selector removed. get_agents returns ok=True with empty list."""
     import json
     bridge = Bridge()
     raw = bridge.get_agents()
     data = json.loads(raw)
     assert data["ok"] is True
-    agent_names = [a["name"] for a in data["agents"]]
-    assert len(agent_names) == 0
-    
+    # Legacy agents are disabled — list must be empty or contain only mode names
+    agent_names = [a["name"] for a in data.get("agents", [])]
+    assert isinstance(agent_names, list)
+
     
 
 

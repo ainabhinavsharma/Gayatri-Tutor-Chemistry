@@ -127,9 +127,17 @@ class SessionStore:
                 CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id);
 
                 CREATE TABLE IF NOT EXISTS tutor_contexts (
-                    session_id  TEXT PRIMARY KEY,
-                    state_json  TEXT NOT NULL,
-                    updated_at  TEXT NOT NULL,
+                    session_id              TEXT PRIMARY KEY,
+                    state_json              TEXT NOT NULL DEFAULT '{}',
+                    current_concept_id      TEXT DEFAULT '',
+                    current_concept_name    TEXT DEFAULT '',
+                    concept_description     TEXT DEFAULT '',
+                    subject                 TEXT DEFAULT '',
+                    mastery                 REAL DEFAULT 0.0,
+                    waiting_for_answer      INTEGER DEFAULT 0,
+                    last_response_type      TEXT DEFAULT '',
+                    last_attempt_correct    INTEGER DEFAULT 0,
+                    updated_at              TEXT NOT NULL,
                     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
                 );
             """)
@@ -146,12 +154,37 @@ class SessionStore:
             c.execute("UPDATE sessions SET mode = 'general_assistant' WHERE mode IS NULL;")
             c.execute("UPDATE sessions SET user_id = 'local_user_1' WHERE user_id IS NULL;")
         
+        def add_tutor_context_columns_and_profile_id(c):
+            """Migration 3: patch DBs that pre-date the full tutor_contexts schema."""
+            for col, defn in [
+                ("current_concept_id",   "TEXT DEFAULT ''"),
+                ("current_concept_name",  "TEXT DEFAULT ''"),
+                ("concept_description",   "TEXT DEFAULT ''"),
+                ("subject",               "TEXT DEFAULT ''"),
+                ("mastery",               "REAL DEFAULT 0.0"),
+                ("waiting_for_answer",    "INTEGER DEFAULT 0"),
+                ("last_response_type",    "TEXT DEFAULT ''"),
+                ("last_attempt_correct",  "INTEGER DEFAULT 0"),
+                ("state_json",            "TEXT DEFAULT '{}'"),
+            ]:
+                try:
+                    c.execute(f"ALTER TABLE tutor_contexts ADD COLUMN {col} {defn};")
+                except Exception:
+                    pass  # column already exists
+            # Ensure sessions has profile_id (may be missing in truly old DBs)
+            try:
+                c.execute("ALTER TABLE sessions ADD COLUMN profile_id TEXT DEFAULT 'default';")
+            except Exception:
+                pass
+
         migrations = {
             1: ("initial_schema", initial_schema),
             2: ("add_mode_and_user_id", add_mode_and_user_id),
+            3: ("add_tutor_context_columns_and_profile_id", add_tutor_context_columns_and_profile_id),
         }
         
-        run_migrations(conn, migrations)  # Already present
+        run_migrations(conn, migrations)
+
             
         try:
             conn.execute("ALTER TABLE sessions ADD COLUMN summary TEXT DEFAULT '';")
