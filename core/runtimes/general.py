@@ -2,7 +2,7 @@
 
 Deterministic execution block for GENERAL_ASSISTANT mode.
 Provides general conversation, writing, drafting, summarization, brainstorming,
-and general reasoning capabilities without legacy agent routing or chemistry mastery side-effects.
+and general reasoning capabilities via prompt contracts and unified InferenceService.
 """
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ import re
 from typing import TYPE_CHECKING
 
 from core.settings import get_settings
+from core.prompts.loader import get_prompt_loader
+from core.inference.service import get_inference_service
 
 logger = logging.getLogger("gayatri.runtimes.general")
 
@@ -34,25 +36,10 @@ def _detect_chemistry_tutoring_request(user_message: str) -> bool:
 
 
 def _build_general_system_prompt(is_chemistry_redirect: bool = False) -> str:
-    """Build the General Assistant system prompt."""
-    base_prompt = get_settings().get(
-        "system_prompt",
-        "You are Gayatri AI, a helpful, versatile learning and general-purpose AI assistant."
-    )
+    """Build the General Assistant system prompt using versioned prompt contract."""
+    template = get_prompt_loader().load_prompt("general_assistant_system_v1.txt")
 
-    capabilities_block = """
-Your supported core capabilities include:
-- Conversation & General Reasoning: Answer questions thoughtfully and accurately.
-- Writing & Editing: Draft, rewrite, polish, shorten, expand, or professionalize text.
-- Summarization: Create bullet points, key takeaways, or concise executive summaries.
-- Brainstorming & Planning: Generate creative ideas, outlines, pros/cons lists, and step-by-step plans.
-
-Guidelines:
-- Remain helpful, clear, and local-first.
-- Do not pretend to be a specialized Chemistry Tutor.
-- Do not invoke legacy agents or hidden router modes.
-"""
-
+    redirect_block = ""
     if is_chemistry_redirect:
         redirect_block = (
             "\n[NOTICE: MODE BOUNDARY]\n"
@@ -61,18 +48,25 @@ Guidelines:
             "NCERT Chemistry tutoring, interactive quizzes, and topic mastery tracking, they should switch "
             "to 'Chemistry Tutor' mode."
         )
-        return f"{base_prompt}\n{capabilities_block}\n{redirect_block}"
 
-    return f"{base_prompt}\n{capabilities_block}"
+    if template:
+        return template.format(redirect_block=redirect_block)
+
+    # Fallback if contract template is unreadable
+    base_prompt = get_settings().get(
+        "system_prompt",
+        "You are Gayatri AI, a helpful, versatile learning and general-purpose AI assistant."
+    )
+    return f"{base_prompt}\n{redirect_block}"
 
 
 class GeneralAssistantRuntime:
-    """General Assistant runtime — general AI capabilities without agent routing."""
+    """General Assistant runtime — general AI capabilities with Prompt Contracts and InferenceService."""
 
     def stream(self, user_message: str, context):
         """Stream a response for a general assistant turn."""
         try:
-            from legacy.agents.default_agents import _build_messages, _local_chat_stream
+            from legacy.agents.default_agents import _build_messages
 
             is_chem_req = _detect_chemistry_tutoring_request(user_message)
             system = _build_general_system_prompt(is_chemistry_redirect=is_chem_req)
@@ -82,7 +76,7 @@ class GeneralAssistantRuntime:
                 user_message,
                 getattr(context, "history", None),
             )
-            return _local_chat_stream(msgs, max_tokens=400)
+            return get_inference_service().stream_chat(msgs, max_tokens=400)
         except Exception as exc:
             logger.error(f"GeneralAssistantRuntime.stream error: {exc}")
             raise

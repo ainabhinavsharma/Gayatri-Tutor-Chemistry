@@ -3,7 +3,7 @@
 Deterministic execution block for CHEMISTRY_TUTOR mode.
 Integrates Tutor State Machine, Intent Classifier, Student Adapter, Memory Manager,
 Pedagogical Policies (Explanation, Numerical, Reaction), Evaluator, Out-of-Domain Guard,
-and NCERT RAG context into local LLM prompt construction.
+versioned Prompt Contracts, and NCERT RAG context into unified local InferenceService.
 """
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ from core.tutor.policies.numerical import NumericalPolicy
 from core.tutor.policies.reaction import ReactionPolicy
 from core.tutor.evaluator import StudentAnswerEvaluator
 from core.tutor.difficulty import DifficultyManager
+from core.prompts.loader import get_prompt_loader
+from core.inference.service import get_inference_service
 
 logger = logging.getLogger("gayatri.runtimes.chemistry")
 
@@ -30,19 +32,28 @@ def _build_chemistry_system_prompt(
     policy_directive: str = "",
     memory_summary: str = "",
 ) -> str:
-    """Build the Chemistry Tutor system prompt, injecting live curriculum, RAG evidence, policy, and memory."""
+    """Build the Chemistry Tutor system prompt using versioned prompt contract."""
+    template = get_prompt_loader().load_prompt("chemistry_tutor_system_v1.txt")
+
     if topics:
-        topics_text = "\n".join(f"  - {t}" for t in topics[:20])  # cap at 20 for prompt length
+        topics_text = "\n".join(f"  - {t}" for t in topics[:20])
         curriculum_block = f"Supported NCERT topics in this session:\n{topics_text}"
     else:
-        curriculum_block = (
-            "Supported domains: Thermodynamics, Inorganic Chemistry (NCERT/CBSE)"
-        )
+        curriculum_block = "Supported domains: Thermodynamics, Inorganic Chemistry (NCERT/CBSE)"
 
     evidence_block = f"\n\n{rag_evidence}" if rag_evidence else ""
     directive_block = f"\n\n{policy_directive}" if policy_directive else ""
     memory_block = f"\n\n{memory_summary}" if memory_summary else ""
 
+    if template:
+        return template.format(
+            curriculum_block=curriculum_block,
+            evidence_block=evidence_block,
+            directive_block=directive_block,
+            memory_block=memory_block,
+        )
+
+    # Hardcoded fallback prompt if contract file is unreadable
     return f"""You are Gayatri Chemistry Tutor.
 You teach Chemistry in an NCERT/CBSE-oriented educational setting.
 {curriculum_block}
@@ -50,15 +61,11 @@ You teach Chemistry in an NCERT/CBSE-oriented educational setting.
 You are an adaptive teacher. Follow this cycle:
 Explain → Example → Ask → Evaluate → Adapt → Continue.
 
-Use supplied source context as the primary authority.
-Do not invent citations or source references.
-Do not pretend to know information that has not been verified.
-Do not act as a coding, mathematics, research, or general-purpose agent.
-For unsupported requests, clearly redirect the learner to a relevant chemistry topic.{memory_block}{directive_block}{evidence_block}"""
+Use supplied source context as the primary authority.{memory_block}{directive_block}{evidence_block}"""
 
 
 class ChemistryTutorRuntime:
-    """Chemistry Tutor runtime — strict NCERT/CBSE scope with State Machine and RAG retrieval."""
+    """Chemistry Tutor runtime — strict NCERT/CBSE scope with State Machine, RAG, and InferenceService."""
 
     def __init__(self):
         self._manifest = None
@@ -92,9 +99,9 @@ class ChemistryTutorRuntime:
         return ["Thermodynamics", "Inorganic Chemistry"]
 
     def stream(self, user_message: str, context):
-        """Stream a response for a chemistry tutoring turn with full state machine and policy routing."""
+        """Stream a response for a chemistry tutoring turn with prompt contract and InferenceService."""
         try:
-            from legacy.agents.default_agents import _build_messages, _local_chat_stream, _get_tutor_context
+            from legacy.agents.default_agents import _build_messages, _get_tutor_context
             from core.rag.retriever import get_ncert_retriever
 
             # 1. Check Out-of-Domain Guard
@@ -102,7 +109,7 @@ class ChemistryTutorRuntime:
                 policy_directive = OutOfDomainGuard.get_redirection_prompt(user_message)
                 system = _build_chemistry_system_prompt(self._topics or None, policy_directive=policy_directive)
                 msgs = _build_messages(system, user_message, getattr(context, "history", None))
-                return _local_chat_stream(msgs, max_tokens=300)
+                return get_inference_service().stream_chat(msgs, max_tokens=300)
 
             # 2. Intent Classification & State Machine Transition
             intent = TutorIntentClassifier.classify(user_message)
@@ -151,7 +158,7 @@ class ChemistryTutorRuntime:
                 getattr(context, "history", None),
                 dynamic_context=dynamic_ctx,
             )
-            return _local_chat_stream(msgs, max_tokens=400)
+            return get_inference_service().stream_chat(msgs, max_tokens=400)
         except Exception as exc:
             logger.error(f"ChemistryTutorRuntime.stream error: {exc}")
             raise
