@@ -287,11 +287,11 @@ project: "Gayatri Tutor V3 -> Chemistry Tutor + General Assistance"
 
 overall_status: "IN_PROGRESS"
 
-current_phase: 2
-current_task: "P2-T01"
+current_phase: 3
+current_task: "P3-T01"
 
-last_completed_task: "P1-T04 (Canonical runtime dispatch)"
-last_verified_commit: "unknown (no git repo)"
+last_completed_task: "P2-T06 (Archive legacy implementations)"
+last_verified_commit: "Phase 2 done"
 
 last_test_status: "PASSED (237/237 tests - modified to mode logic)"
 last_benchmark_status: "TTFT 1844ms (historical)"
@@ -300,11 +300,11 @@ known_failures: []
 known_risks: ["No local git repository initialized"]
 blocked_tasks: []
 
-next_action: "P2-T01: Disable old agent registration"
+next_action: "P3-T01: Multi-turn persistence"
 
-last_agent_note: "Phase 1 complete. Core mode abstractions added (AppMode, ModePolicy). Orchestrator refactored to route strictly by mode, dispatching to ChemistryTutorRuntime or GeneralAssistantRuntime. Bridge updated to pass 'mode'."
+last_agent_note: "Phase 2 complete. Legacy agents quarantined in legacy/agents. UI selector removed. Registry blocks old agent registration/dispatch."
 
-updated_at: "2026-09-18T20:45:00+05:30"
+updated_at: "2026-09-18T21:12:00+05:30"
 ```
 
 ## Allowed status vocabulary

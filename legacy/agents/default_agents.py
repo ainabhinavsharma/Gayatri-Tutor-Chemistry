@@ -117,7 +117,7 @@ def register_default_agents() -> None:
     """Idempotently register the four default agents plus all prompt-engineered agents."""
     # Register prompt-engineered agents first (idempotent)
     try:
-        from core.agents.prompt_agents import register_prompt_agents as _reg_prompts
+        from legacy.agents.prompt_agents import register_prompt_agents as _reg_prompts
         _reg_prompts()
     except Exception as exc:
         logger.warning(f"Failed to register prompt agents: {exc}")

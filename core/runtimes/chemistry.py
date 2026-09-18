@@ -1,5 +1,5 @@
 import logging
-from core.agents.default_agents import _build_tutor_system_prompt, _get_tutor_context, _build_messages, _local_chat_stream
+from legacy.agents.default_agents import _build_tutor_system_prompt, _get_tutor_context, _build_messages, _local_chat_stream
 
 logger = logging.getLogger("gayatri.runtimes.chemistry")
 

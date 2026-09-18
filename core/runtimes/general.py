@@ -1,5 +1,5 @@
 import logging
-from core.agents.default_agents import _build_messages, _local_chat_stream
+from legacy.agents.default_agents import _build_messages, _local_chat_stream
 from core.settings import get_settings
 
 logger = logging.getLogger("gayatri.runtimes.general")

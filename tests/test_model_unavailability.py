@@ -1,8 +1,8 @@
 import pytest
 from core.agents.registry import ModelUnavailableError, agent_registry
 from core.agents.runtime import AgentContext, AgentRuntime
-from core.agents.default_agents import _local_chat as default_local_chat
-from core.agents.prompt_agents import _local_chat as prompt_local_chat
+from legacy.agents.default_agents import _local_chat as default_local_chat
+from legacy.agents.prompt_agents import _local_chat as prompt_local_chat
 from core.orchestrator import Orchestrator
 
 

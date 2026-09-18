@@ -216,7 +216,7 @@ class TestRealisticAmbiguityMatrix:
 
     @pytest.fixture(autouse=True)
     def setup_agents(self):
-        from core.agents.default_agents import register_default_agents
+        from legacy.agents.default_agents import register_default_agents
         register_default_agents()
 
     def test_weather_query_not_hijacked_by_crop_advisory(self):

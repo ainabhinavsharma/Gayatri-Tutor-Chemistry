@@ -41,13 +41,15 @@ class Bridge(QObject):
         self._session_id = str(uuid.uuid4())
 
     def _get_orchestrator(self):
+        from core.agents.runtime import AgentRuntime
+
+        from core.agents.registry import agent_registry
+
+        from core.orchestrator import Orchestrator
+
         """Lazy-load the orchestrator."""
         if self._orchestrator is None:
-            from core.agents.default_agents import register_default_agents
-            from core.agents.registry import agent_registry
-            from core.agents.runtime import AgentRuntime
-            from core.orchestrator import Orchestrator
-            register_default_agents()
+            
 
             self._orchestrator = Orchestrator(
                 registry=agent_registry,
