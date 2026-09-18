@@ -287,24 +287,24 @@ project: "Gayatri Tutor V3 -> Chemistry Tutor + General Assistance"
 
 overall_status: "IN_PROGRESS"
 
-current_phase: 12
-current_task: "P12-T01"
+current_phase: 13
+current_task: "P13-T01"
 
-last_completed_task: "P11-T06 (Network Error Handling & Controlled Web Fallback)"
-last_verified_commit: "Phase 11 done"
+last_completed_task: "P12-T05 (Thread-Safe Cancellation & Governance)"
+last_verified_commit: "Phase 12 done"
 
-last_test_status: "299 passed, 20 skipped, 0 failed"
+last_test_status: "303 passed, 20 skipped, 0 failed"
 last_benchmark_status: "TTFT 1844ms (historical)"
 
 known_failures: []
 known_risks: []
 blocked_tasks: []
 
-next_action: "P12-T01: Security Audit & Governance Hardening"
+next_action: "P13-T01: Final Performance Reconciliation & Sign-Off"
 
-last_agent_note: "Phase 11 complete. Implemented ResearchPolicy, ResearchFallbackEvaluator, WebPromptDefense (prompt injection defense), and WebResearchService with graceful network fallback."
+last_agent_note: "Phase 12 complete. Hardened QWebChannel PySide bridge slots, implemented server-side validate_app_mode(), verified background database persistence resilience, and verified thread-safe idempotent cancellation."
 
-updated_at: "2026-09-19T01:10:00+05:30"
+updated_at: "2026-09-19T01:27:00+05:30"
 ```
 
 ## Allowed status vocabulary

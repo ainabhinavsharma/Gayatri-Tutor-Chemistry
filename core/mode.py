@@ -1,9 +1,19 @@
+"""Gayatri AI — Application Mode Policy & Server-Side Mode Validation."""
+from __future__ import annotations
+
 from enum import Enum
 from dataclasses import dataclass
+
+
+class InvalidAppModeError(ValueError):
+    """Raised when an unrecognized mode is passed to backend entrypoints."""
+    pass
+
 
 class AppMode(str, Enum):
     CHEMISTRY_TUTOR = "chemistry_tutor"
     GENERAL_ASSISTANT = "general_assistant"
+
 
 @dataclass
 class ModePolicy:
@@ -12,6 +22,7 @@ class ModePolicy:
     assessment: bool
     adaptive_learning: bool
     controlled_web_fallback: bool
+
 
 _POLICIES = {
     AppMode.CHEMISTRY_TUTOR: ModePolicy(
@@ -30,10 +41,20 @@ _POLICIES = {
     )
 }
 
-def get_mode_policy(mode: AppMode | str) -> ModePolicy:
+
+def validate_app_mode(mode: AppMode | str) -> AppMode:
+    """Validate server-side mode parameter. Raises InvalidAppModeError if invalid."""
+    if isinstance(mode, AppMode):
+        return mode
     try:
-        if isinstance(mode, str):
-            mode = AppMode(mode)
-        return _POLICIES[mode]
+        return AppMode(str(mode).lower().strip())
     except ValueError:
-        raise ValueError(f"Unknown mode: {mode}")
+        raise InvalidAppModeError(
+            f"Invalid mode '{mode}'. Supported modes are: "
+            f"{[m.value for m in AppMode]}"
+        )
+
+
+def get_mode_policy(mode: AppMode | str) -> ModePolicy:
+    app_mode = validate_app_mode(mode)
+    return _POLICIES[app_mode]
