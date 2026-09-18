@@ -136,14 +136,27 @@ class ChemistryTutorRuntime:
                 difficulty=adaptation.target_difficulty,
             )
 
-            # 5. RAG Retrieval
+            # 5. RAG Retrieval & Controlled Web Research Fallback
             rag_evidence = ""
             try:
+                from core.rag.schema import ConfidenceLevel
+                from core.research.policy import ResearchPolicy
+                from core.research.fallback import ResearchFallbackEvaluator
+                from core.research.service import get_web_research_service
+
                 retriever = get_ncert_retriever()
                 rag_ctx = retriever.retrieve(user_message, top_k=2)
                 rag_evidence = rag_ctx.formatted_evidence()
+
+                # Controlled Web Research Fallback (P11-T02)
+                research_policy = ResearchPolicy.from_settings()
+                if ResearchFallbackEvaluator.should_fallback(rag_ctx.confidence, research_policy, user_message):
+                    web_results = get_web_research_service().search_and_extract(user_message)
+                    web_evidence = get_web_research_service().format_web_evidence(web_results)
+                    if web_evidence:
+                        rag_evidence += f"\n\n{web_evidence}"
             except Exception as rag_exc:
-                logger.warning(f"RAG retrieval skipped: {rag_exc}")
+                logger.warning(f"RAG / Web fallback skipped: {rag_exc}")
 
             system = _build_chemistry_system_prompt(
                 self._topics or None,
