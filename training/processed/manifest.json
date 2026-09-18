@@ -1,0 +1,9 @@
+{
+  "total_examples": 1355,
+  "train_examples": 1302,
+  "val_examples": 53,
+  "total_families": 116,
+  "train_families": 113,
+  "val_families": 3,
+  "split_ratio": 0.9608856088560885
+}

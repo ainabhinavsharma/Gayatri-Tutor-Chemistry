@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+data/
+logs/
+models/
+*.db
+*.corrupt-*.db
+.hmac_key
+settings.json
+GayatriAI/
+ignored_assets/
+dist/

@@ -1,0 +1,15 @@
+{"message": "/tutor explain this", "expected_agent": "Tutor"}
+{"message": "help me learn python", "expected_agent": "Tutor"}
+{"message": "Can you review my code for bugs?", "expected_agent": "Code Reviewer"}
+{"message": "help me find bugs", "expected_agent": "Code Reviewer"}
+{"message": "please review my code", "expected_agent": "Code Reviewer"}
+{"message": "I want practice problems for variables", "expected_agent": "Practice Generator"}
+{"message": "give me practice problems", "expected_agent": "Practice Generator"}
+{"message": "explain how variables work", "expected_agent": "Tutor"}
+{"message": "hello", "expected_agent": "default"}
+{"message": "good morning", "expected_agent": "default"}
+{"message": "how are you?", "expected_agent": "default"}
+{"message": "teach me about loops", "expected_agent": "Tutor"}
+{"message": "teach me recursion", "expected_agent": "Tutor"}
+{"message": "review my code commit", "expected_agent": "Code Reviewer"}
+{"message": "find bugs in my function", "expected_agent": "Code Reviewer"}

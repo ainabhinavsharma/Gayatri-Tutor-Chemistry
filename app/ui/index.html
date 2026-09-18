@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' qrc:; script-src 'self' 'unsafe-inline' qrc:; style-src 'self' 'unsafe-inline'; img-src 'self' data: qrc:; object-src 'none'; base-uri 'none'; connect-src 'self' qrc: http://localhost:* http://127.0.0.1:*;">
+  <title>Gayatri AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0f0f23;
+      color: #e0e0e0;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .app {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 60px;
+      background: #16213e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      background: #e94560;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 16px;
+      user-select: none;
+    }
+    .sidebar-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: #8a8a9a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      font-size: 18px;
+      transition: all 0.15s;
+    }
+    .sidebar-btn:hover { background: #1a1a3e; color: #e0e0e0; }
+    .sidebar-btn.active { background: #e94560; color: white; }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      position: relative;
+    }
+
+    /* ── Titlebar ── */
+    .titlebar {
+      height: 36px;
+      background: #16213e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      -webkit-app-region: drag;
+      flex-shrink: 0;
+      border-bottom: 1px solid #1f2847;
+    }
+    .titlebar-text { font-size: 12px; color: #8a8a9a; font-weight: 500; }
+    .titlebar-controls { display: flex; gap: 8px; -webkit-app-region: no-drag; }
+    .titlebar-btn {
+      width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .titlebar-btn:hover { opacity: 0.8; }
+    .btn-minimize { background: #f5c542; }
+    .btn-maximize { background: #27c93f; }
+    .btn-close { background: #e94560; }
+
+    /* ── Tab Views ── */
+    .tab-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .tab-view.active {
+      display: flex;
+    }
+    .tab-scrollable {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Agent bar (Chat Tab) ── */
+    .agent-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #1a1a3e;
+      border-bottom: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .agent-label { font-size: 11px; color: #8a8a9a; }
+    .agent-select {
+      background: #16213e;
+      color: #e0e0e0;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+      outline: none;
+      max-width: 260px;
+    }
+    .model-badge {
+      margin-left: auto;
+      font-size: 11px;
+      background: #0f3460;
+      color: #53a8b6;
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Chat area ── */
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .message-content p {
+      margin-bottom: 8px;
+    }
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+    .message-content pre {
+      background: #0f0f23;
+      padding: 8px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .message-content code {
+      background: #0f0f23;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: #e94560;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant {
+      align-self: flex-start;
+      background: #1a1a3e;
+      border: 1px solid #2a2a4a;
+      border-bottom-left-radius: 4px;
+    }
+    .message.system {
+      align-self: center;
+      background: transparent;
+      color: #8a8a9a;
+      font-size: 12px;
+      max-width: 90%;
+      text-align: center;
+    }
+    .message-agent-tag {
+      font-size: 10px;
+      color: #53a8b6;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    /* ── Input area ── */
+    .input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #16213e;
+      border-top: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #0f0f23;
+      color: #e0e0e0;
+      font-size: 14px;
+      outline: none;
+    }
+    .input-area input:focus { border-color: #e94560; }
+    .send-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background: #e94560;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+    .send-btn:hover { background: #c73e54; }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Header & Sections for Non-Chat Tabs ── */
+    .tab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2a2a4a;
+      padding-bottom: 12px;
+    }
+    .tab-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-subtitle {
+      font-size: 12px;
+      color: #8a8a9a;
+      margin-top: 2px;
+    }
+    .search-input {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 6px 12px;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+    }
+    .search-input:focus { border-color: #e94560; }
+
+    /* ── Agents Tab Cards ── */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .agent-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .agent-card:hover {
+      border-color: #53a8b6;
+      transform: translateY(-2px);
+    }
+    .agent-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .agent-card-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .agent-card-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #0f3460;
+      color: #53a8b6;
+    }
+    .agent-card-desc {
+      font-size: 12px;
+      color: #b0b0c0;
+      line-height: 1.4;
+      flex: 1;
+    }
+    .agent-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .agent-tag {
+      font-size: 10px;
+      background: #1f2847;
+      color: #8a8a9a;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .agent-action-btn {
+      align-self: flex-start;
+      margin-top: 6px;
+      padding: 6px 12px;
+      background: #e94560;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .agent-action-btn:hover { background: #c73e54; }
+
+    /* ── Courses Tab ── */
+    .stats-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .stat-val { font-size: 20px; font-weight: bold; color: #53a8b6; }
+    .stat-lbl { font-size: 11px; color: #8a8a9a; }
+    .progress-bar {
+      flex: 1;
+      min-width: 200px;
+      height: 10px;
+      background: #0f0f23;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #27c93f;
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .concepts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .concept-item {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .concept-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .concept-title { font-size: 14px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .concept-subject { font-size: 10px; background: #0f3460; color: #53a8b6; padding: 1px 6px; border-radius: 4px; }
+    .concept-desc { font-size: 12px; color: #8a8a9a; }
+    .concept-mastery { display: flex; align-items: center; gap: 8px; font-size: 12px; min-width: 130px; }
+    .concept-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #0f3460;
+      color: #53a8b6;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .concept-btn:hover { background: #164273; color: #fff; }
+
+    /* ── Settings Tab ── */
+    .settings-section {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .settings-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      border-bottom: 1px solid #1f2847;
+      padding-bottom: 8px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .settings-label-block { display: flex; flex-direction: column; gap: 2px; }
+    .settings-label { font-size: 13px; font-weight: 500; color: #e0e0e0; }
+    .settings-caption { font-size: 11px; color: #8a8a9a; }
+    .settings-select, .settings-input {
+      background: #0f0f23;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .settings-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #e94560;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .settings-btn.secondary {
+      background: #1f2847;
+      color: #8a8a9a;
+    }
+    .settings-btn.secondary:hover { background: #2a355c; color: #e0e0e0; }
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f0f23;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* ── Status indicator ── */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.ready { background: #27c93f; }
+    .status-dot.loading { background: #f5c542; animation: pulse 1s infinite; }
+    .status-dot.error { background: #e94560; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">G</div>
+      <button class="sidebar-btn active" title="Chat" onclick="switchTab('chat', this)">💬</button>
+      <button class="sidebar-btn" title="Agents" onclick="switchTab('agents', this)">🤖</button>
+      <button class="sidebar-btn" title="Courses" onclick="switchTab('courses', this)">📚</button>
+      <button class="sidebar-btn" title="Settings" onclick="switchTab('settings', this)">⚙️</button>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <!-- Titlebar -->
+      <div class="titlebar">
+        <span class="titlebar-text">Gayatri AI — Desktop Workspace</span>
+        <div class="titlebar-controls">
+          <button class="titlebar-btn btn-minimize" onclick="minimizeWindow()" title="Minimize"></button>
+          <button class="titlebar-btn btn-maximize" onclick="maximizeWindow()" title="Maximize / Restore"></button>
+          <button class="titlebar-btn btn-close" onclick="closeWindow()" title="Close"></button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: CHAT TAB -->
+      <div class="tab-view active" id="tab-chat">
+        <!-- Agent bar -->
+        <div class="agent-bar">
+          <span class="agent-label">Agent:</span>
+          <select class="agent-select" id="agentSelect">
+            <option value="auto">🤖 Auto-detect</option>
+          </select>
+          <button class="settings-btn secondary" onclick="startNewChat()" style="margin-left: 8px; padding: 4px 8px; font-size: 11px;">+ New Chat</button>
+          <span class="model-badge" id="modelBadge">
+            <span class="status-dot loading" id="statusDot"></span>
+            <span id="statusText">Loading model...</span>
+          </span>
+        </div>
+
+        <!-- Chat messages -->
+        <div class="chat" id="chat">
+          <div class="message system">
+            Welcome to Gayatri AI. Type a message to start chatting,
+            or select a specialized agent from the dropdown above.
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+          <input type="text" id="userInput" placeholder="Type a message or question..."
+                 autocomplete="off" onkeydown="if(event.key==='Enter')send()">
+          <button class="send-btn" id="sendBtn" onclick="send()">Send</button>
+          <button class="send-btn" id="stopBtn" onclick="cancelGeneration()" style="display: none; background: #666;">Stop</button>
+        </div>
+      </div>
+
+      <!-- VIEW 2: AGENTS TAB -->
+      <div class="tab-view" id="tab-agents">
+        <div class="tab-scrollable">
+          <div class="tab-header">
+            <div>
+              <div class="tab-title">🤖 Agents & Specialists</div>
+              <div class="tab-subtitle">Specialized reasoning engines and Socratic tutors</div>
+            </div>
+            <input type="text" class="search-input" id="agentSearchInput" placeholder="Filter agents..." oninput="filterAgents()">
+          </div>
+          <div class="agents-grid" id="agentsContainer">
+            <!-- Dynamic agent cards -->
+            <div style="color: #8a8a9a; font-size: 13px;">Loading available agents...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: COURSES TAB (LDG) -->
+      <div class="tab-view" id="tab-courses">
+        <div class="tab-scrollable">
+          <div class="tab-header">
+            <div>
+              <div class="tab-title">📚 Courses & Curriculum Graph</div>
+              <div class="tab-subtitle">Learning Dependency Graph progress and concept mastery</div>
+            </div>
+            <button class="settings-btn secondary" onclick="loadCoursesTab()">Refresh</button>
+          </div>
+          <div class="stats-card" id="coursesStats">
+            <div class="stat-box">
+              <span class="stat-val" id="statTotal">0</span>
+              <span class="stat-lbl">Total Concepts</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" id="statMastered" style="color:#27c93f;">0</span>
+              <span class="stat-lbl">Mastered</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" id="statInProgress" style="color:#f5c542;">0</span>
+              <span class="stat-lbl">In Progress</span>
+            </div>
+            <div style="flex:1; min-width:180px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:#8a8a9a;">
+                <span>Overall Mastery</span>
+                <span id="statPct">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="statProgressFill"></div>
+              </div>
+            </div>
+          </div>
+          <div class="concepts-list" id="curriculumContainer">
+            <div style="color: #8a8a9a; font-size: 13px;">Loading curriculum progress...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: SETTINGS TAB -->
+      <div class="tab-view" id="tab-settings">
+        <div class="tab-scrollable">
+          <div class="tab-header">
+            <div>
+              <div class="tab-title">⚙️ System & Model Settings</div>
+              <div class="tab-subtitle">Configure privacy boundary, model weights, API keys, and session storage</div>
+            </div>
+          </div>
+
+          <!-- Privacy Mode Section -->
+          <div class="settings-section">
+            <div class="settings-section-title">Privacy Mode & Egress Boundary</div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label">Execution Mode</span>
+                <span class="settings-caption">Strictly enforces whether prompts may be sent to external cloud APIs</span>
+              </div>
+              <select class="settings-select" id="privacyModeSelect" onchange="savePrivacyMode()">
+                <option value="local_only">Local Only (Zero Data Leak - Strictly Offline)</option>
+                <option value="cloud_allowed">Cloud Allowed (Enable Cloud Fallbacks)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Local AI Model Management -->
+          <div class="settings-section">
+            <div class="settings-section-title">Local AI Model (Ollama / GGUF)</div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label" id="localModelTitle">Local Model Status</span>
+                <span class="settings-caption" id="localModelDetail">Checking local model file...</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="settings-btn" id="btnDownloadModel" onclick="downloadModel()">Download / Install</button>
+                <button class="settings-btn secondary" id="btnCancelDownload" onclick="cancelDownload()" style="display:none;">Cancel</button>
+              </div>
+            </div>
+            <div id="downloadProgressContainer" style="display:none; margin-top:8px;">
+              <span style="font-size:11px; color:#8a8a9a;" id="downloadProgressText">Downloading...</span>
+              <div class="progress-bar" style="margin-top:4px;">
+                <div class="progress-fill" id="downloadProgressFill" style="background:#53a8b6; width:0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Provider API Keys -->
+          <div class="settings-section">
+            <div class="settings-section-title">Cloud Provider API Keys (Windows DPAPI Encrypted)</div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label">Google Gemini</span>
+                <span class="settings-caption">Gemini 1.5 Flash / Pro API key</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <input type="password" class="settings-input" id="key-google" placeholder="AIzaSy..." style="width:200px;">
+                <button class="settings-btn secondary" onclick="validateKey('google')">Test</button>
+                <button class="settings-btn" onclick="saveKey('google')">Save</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label">Anthropic Claude</span>
+                <span class="settings-caption">Claude 3.5 Sonnet / Haiku API key</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <input type="password" class="settings-input" id="key-anthropic" placeholder="sk-ant-..." style="width:200px;">
+                <button class="settings-btn secondary" onclick="validateKey('anthropic')">Test</button>
+                <button class="settings-btn" onclick="saveKey('anthropic')">Save</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label">OpenAI</span>
+                <span class="settings-caption">GPT-4o / GPT-4o-mini API key</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <input type="password" class="settings-input" id="key-openai" placeholder="sk-..." style="width:200px;">
+                <button class="settings-btn secondary" onclick="validateKey('openai')">Test</button>
+                <button class="settings-btn" onclick="saveKey('openai')">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Past Sessions -->
+          <div class="settings-section">
+            <div class="settings-section-title">Conversation Sessions</div>
+            <div class="session-list" id="sessionsListContainer">
+              <div style="color:#8a8a9a; font-size:12px;">Loading past sessions...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="qrc:/qtwebchannel/qwebchannel.js"></script>
+  <script src="marked.min.js"></script>
+  <script>
+    var bridge = null;
+    var isGenerating = false;
+    var currentTokens = [];
+    var allAgents = [];
+    var markdownDebounceTimer = null;
+    var renderRequested = false;
+
+    // ── QWebChannel setup ──
+    new QWebChannel(qt.webChannelTransport, async function(channel) {
+      bridge = channel.objects.bridge;
+
+      // Signal handlers
+      bridge.token.connect(function(idx, text) {
+        currentTokens.push(text);
+        
+        if (!renderRequested) {
+          renderRequested = true;
+          window.requestAnimationFrame(updateLastMessageRaw);
+        }
+
+        clearTimeout(markdownDebounceTimer);
+        markdownDebounceTimer = setTimeout(updateLastMessageMarkdown, 50);
+      });
+      bridge.done.connect(function() {
+        isGenerating = false;
+        updateSendButton();
+        clearTimeout(markdownDebounceTimer);
+        updateLastMessageMarkdown();
+      });
+      bridge.error.connect(function(msg) {
+        addMessage('system', 'Error: ' + msg);
+        isGenerating = false;
+        updateSendButton();
+        clearTimeout(markdownDebounceTimer);
+        updateLastMessageMarkdown();
+      });
+
+      // Initial loads
+      updateModelStatus();
+      await populateAgentSelect();
+    });
+
+    // ── Tab Navigation (Audit #50 & #51) ──
+    function switchTab(tab, el) {
+      document.querySelectorAll('.sidebar-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      var target = el || (typeof event !== 'undefined' ? (event.currentTarget || event.target) : null);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      document.querySelectorAll('.tab-view').forEach(function(v) {
+        v.classList.remove('active');
+      });
+
+      var selected = document.getElementById('tab-' + tab);
+      if (selected) {
+        selected.classList.add('active');
+      }
+
+      if (tab === 'chat') {
+        document.getElementById('userInput').focus();
+      } else if (tab === 'agents') {
+        loadAgentsTab();
+      } else if (tab === 'courses') {
+        loadCoursesTab();
+      } else if (tab === 'settings') {
+        loadSettingsTab();
+      }
+    }
+
+    // ── Agent Selector (Audit #52 & #53) ──
+    async function populateAgentSelect() {
+      if (!bridge || typeof bridge.get_agents !== 'function') return;
+      try {
+        var res = JSON.parse(await bridge.get_agents());
+        if (res && res.ok && res.agents) {
+          allAgents = res.agents;
+          var select = document.getElementById('agentSelect');
+          var cur = select.value;
+          select.innerHTML = '<option value="auto">🤖 Auto-detect</option>';
+          allAgents.forEach(function(a) {
+            var opt = document.createElement('option');
+            opt.value = a.name;
+            opt.textContent = '🤖 ' + a.name;
+            select.appendChild(opt);
+          });
+          select.value = cur || 'auto';
+        }
+      } catch (e) {
+        console.error('Failed to load agents', e);
+      }
+    }
+
+    async function loadAgentsTab() {
+      await populateAgentSelect();
+      var container = document.getElementById('agentsContainer');
+      if (!allAgents || allAgents.length === 0) {
+        container.innerHTML = '<div style="color:#8a8a9a;">No agents registered.</div>';
+        return;
+      }
+      renderAgentCards(allAgents);
+    }
+
+    function renderAgentCards(agents) {
+      var container = document.getElementById('agentsContainer');
+      container.innerHTML = '';
+      agents.forEach(function(a) {
+        var card = document.createElement('div');
+        card.className = 'agent-card';
+
+        var cmds = (a.commands || []).map(function(c) { return '<span class="agent-tag">' + c + '</span>'; }).join('');
+        var triggers = (a.triggers || []).slice(0, 3).map(function(t) { return '<span class="agent-tag">"' + t + '"</span>'; }).join('');
+
+        card.innerHTML =
+          '<div class="agent-card-header">' +
+            '<span class="agent-card-name">🤖 ' + a.name + '</span>' +
+            '<span class="agent-card-badge">Agent</span>' +
+          '</div>' +
+          '<div class="agent-card-desc">' + (a.description || 'Specialist assistant.') + '</div>' +
+          '<div class="agent-card-tags">' + cmds + triggers + '</div>' +
+          '<button class="agent-action-btn" onclick="activateAgent(\'' + a.name + '\')">Chat with Agent</button>';
+        container.appendChild(card);
+      });
+    }
+
+    function filterAgents() {
+      var q = document.getElementById('agentSearchInput').value.toLowerCase().trim();
+      var filtered = allAgents.filter(function(a) {
+        return a.name.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q));
+      });
+      renderAgentCards(filtered);
+    }
+
+    function activateAgent(agentName) {
+      var select = document.getElementById('agentSelect');
+      if (select) select.value = agentName;
+      switchTab('chat', document.querySelector('.sidebar-btn[title="Chat"]'));
+      var input = document.getElementById('userInput');
+      input.placeholder = 'Chatting with ' + agentName + '...';
+      input.focus();
+    }
+
+    // ── Courses Tab (Audit #55) ──
+    async function loadCoursesTab() {
+      if (!bridge || typeof bridge.get_curriculum_progress !== 'function') return;
+      try {
+        var res = JSON.parse(await bridge.get_curriculum_progress());
+        if (!res || !res.ok) return;
+
+        var stats = res.stats || {};
+        document.getElementById('statTotal').textContent = stats.total || 0;
+        document.getElementById('statMastered').textContent = stats.mastered || 0;
+        document.getElementById('statInProgress').textContent = stats.in_progress || 0;
+        var pct = stats.mastery_pct ? Math.round(stats.mastery_pct) : 0;
+        document.getElementById('statPct').textContent = pct + '%';
+        document.getElementById('statProgressFill').style.width = pct + '%';
+
+        var list = document.getElementById('curriculumContainer');
+        list.innerHTML = '';
+        var concepts = res.concepts || [];
+        if (concepts.length === 0) {
+          list.innerHTML = '<div style="color:#8a8a9a;">No concepts tracked yet in LDG. Start learning in Tutor mode!</div>';
+          return;
+        }
+
+        concepts.forEach(function(c) {
+          var item = document.createElement('div');
+          item.className = 'concept-item';
+          var unlockedText = c.unlocked ? '<span style="color:#27c93f;">🔓 Unlocked</span>' : '<span style="color:#f5c542;">🔒 Locked</span>';
+          item.innerHTML =
+            '<div class="concept-info">' +
+              '<div class="concept-title">' + c.name + ' <span class="concept-subject">' + (c.subject || 'General') + '</span> ' + unlockedText + '</div>' +
+              '<div class="concept-desc">' + (c.description || 'Core concept') + '</div>' +
+            '</div>' +
+            '<div class="concept-mastery">' +
+              '<div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:' + c.mastery_pct + '%;"></div></div>' +
+              '<span>' + c.mastery_pct + '%</span>' +
+            '</div>' +
+            '<button class="concept-btn" onclick="learnConcept(\'' + c.name.replace(/'/g, "\\'") + '\')">Ask Tutor</button>';
+          list.appendChild(item);
+        });
+      } catch (e) {
+        console.error('Failed to load courses', e);
+      }
+    }
+
+    function learnConcept(conceptName) {
+      activateAgent('Tutor');
+      var input = document.getElementById('userInput');
+      input.value = 'Can you teach me about ' + conceptName + '?';
+      send();
+    }
+
+    // ── Settings Tab ──
+    async function loadSettingsTab() {
+      if (!bridge) return;
+      try {
+        // Privacy mode
+        var mode = JSON.parse(await bridge.get_setting('privacy_mode'));
+        if (mode) {
+          document.getElementById('privacyModeSelect').value = mode;
+        }
+        // Local model
+        updateModelStatus();
+        // Sessions
+        loadSessionsList();
+      } catch (e) {
+        console.error('Failed to load settings', e);
+      }
+    }
+
+    function savePrivacyMode() {
+      var val = document.getElementById('privacyModeSelect').value;
+      if (bridge && typeof bridge.set_setting === 'function') {
+        bridge.set_setting('privacy_mode', JSON.stringify(val));
+      }
+    }
+
+    async function loadSessionsList() {
+      if (!bridge || typeof bridge.get_sessions !== 'function') return;
+      try {
+        var res = JSON.parse(await bridge.get_sessions());
+        var container = document.getElementById('sessionsListContainer');
+        container.innerHTML = '';
+        if (!res || !res.ok || !res.sessions || res.sessions.length === 0) {
+          container.innerHTML = '<div style="color:#8a8a9a;">No saved sessions yet.</div>';
+          return;
+        }
+        res.sessions.forEach(function(s) {
+          var row = document.createElement('div');
+          row.className = 'session-item';
+          row.innerHTML =
+            '<div>' +
+              '<div style="font-weight:600; color:#fff;">' + (s.title || s.id.substring(0, 16)) + '</div>' +
+              '<div style="font-size:10px; color:#8a8a9a;">' + s.message_count + ' messages • ' + (s.updated_at ? s.updated_at.substring(0, 10) : '') + '</div>' +
+            '</div>' +
+            '<div style="display:flex; gap:6px;">' +
+              '<button class="settings-btn secondary" style="padding:3px 8px; font-size:11px;" onclick="switchSession(\'' + s.id + '\')">Open</button>' +
+              '<button class="settings-btn secondary" style="padding:3px 8px; font-size:11px; color:#e94560;" onclick="deleteSession(\'' + s.id + '\')">Delete</button>' +
+            '</div>';
+          container.appendChild(row);
+        });
+      } catch (e) {
+        console.error('Failed to load sessions', e);
+      }
+    }
+
+    async function switchSession(sessId) {
+      if (bridge && typeof bridge.load_session_id === 'function') {
+        bridge.load_session_id(sessId);
+        switchTab('chat', document.querySelector('.sidebar-btn[title="Chat"]'));
+        var chat = document.getElementById('chat');
+        chat.innerHTML = '<div class="message system">Session restored (' + sessId.substring(0, 8) + '...).</div>';
+      }
+    }
+
+    function deleteSession(sessId) {
+      if (bridge && typeof bridge.delete_session === 'function') {
+        bridge.delete_session(sessId);
+        loadSessionsList();
+      }
+    }
+
+    function startNewChat() {
+      if (bridge && typeof bridge.new_chat === 'function') {
+        bridge.new_chat();
+        var chat = document.getElementById('chat');
+        chat.innerHTML = '<div class="message system">New conversation started.</div>';
+      }
+    }
+
+    async function validateKey(providerKey) {
+      var input = document.getElementById('key-' + providerKey);
+      var keyVal = input ? input.value.trim() : '';
+      if (!keyVal) {
+        alert('Please enter an API key first.');
+        return;
+      }
+      if (bridge && typeof bridge.validate_provider_key === 'function') {
+        var res = JSON.parse(await bridge.validate_provider_key(providerKey, keyVal));
+        alert(res.valid ? 'Key is valid!' : 'Validation failed: ' + res.message);
+      }
+    }
+
+    function saveKey(providerKey) {
+      var input = document.getElementById('key-' + providerKey);
+      var keyVal = input ? input.value.trim() : '';
+      if (!keyVal) {
+        alert('Please enter an API key to save.');
+        return;
+      }
+      if (bridge && typeof bridge.save_provider_key === 'function') {
+        bridge.save_provider_key(providerKey, keyVal);
+        alert('Saved ' + providerKey + ' API key securely in Windows DPAPI vault.');
+        input.value = '';
+      }
+    }
+
+    function downloadModel() {
+      if (bridge && typeof bridge.download_model === 'function') {
+        bridge.download_model();
+        document.getElementById('downloadProgressContainer').style.display = 'block';
+        document.getElementById('btnCancelDownload').style.display = 'inline-block';
+      }
+    }
+
+    function cancelDownload() {
+      if (bridge && typeof bridge.cancel_model_download === 'function') {
+        bridge.cancel_model_download();
+        document.getElementById('downloadProgressContainer').style.display = 'none';
+        document.getElementById('btnCancelDownload').style.display = 'none';
+      }
+    }
+
+    // ── Model status ──
+    async function updateModelStatus() {
+      try {
+        var status = JSON.parse(await bridge.get_local_model_status());
+        var dot = document.getElementById('statusDot');
+        var text = document.getElementById('statusText');
+        var detail = document.getElementById('localModelDetail');
+
+        if (status.installed) {
+          dot.className = 'status-dot ready';
+          var size = (status.size_mb / 1024).toFixed(1) + ' GB';
+          text.textContent = 'Ready — ' + size;
+          if (detail) detail.textContent = 'Model installed and ready (' + size + ') at ' + (status.path || 'local storage');
+        } else {
+          dot.className = 'status-dot error';
+          text.textContent = 'Model not found';
+          if (detail) detail.textContent = 'Model file not installed: ' + (status.message || 'Needs download');
+        }
+      } catch(e) { console.error('Model status check failed:', e); }
+    }
+
+    // ── Chat functions ──
+    function send() {
+      if (isGenerating) return;
+      if (!bridge) {
+        addMessage('system', 'Connection initializing. Please wait a moment...');
+        return;
+      }
+      var input = document.getElementById('userInput');
+      var msg = input.value.trim();
+      if (!msg) return;
+
+      var agentSelect = document.getElementById('agentSelect');
+      var selectedAgent = agentSelect ? agentSelect.value : 'auto';
+
+      addMessage('user', msg);
+      addMessage('assistant', '', selectedAgent !== 'auto' ? selectedAgent : null);
+      input.value = '';
+      isGenerating = true;
+      updateSendButton();
+      currentTokens = [];
+
+      bridge.send_message(msg, selectedAgent);
+    }
+
+    function addMessage(role, text, agentName) {
+      var chat = document.getElementById('chat');
+      var div = document.createElement('div');
+      div.className = 'message ' + role;
+
+      if (agentName) {
+        var tag = document.createElement('div');
+        tag.className = 'message-agent-tag';
+        tag.textContent = '🤖 ' + agentName;
+        div.appendChild(tag);
+      }
+
+      var content = document.createElement('div');
+      content.className = 'message-content';
+      
+      if (typeof marked !== 'undefined' && role !== 'system') {
+        content.innerHTML = marked.parse(text);
+      } else {
+        content.textContent = text;
+      }
+      div.appendChild(content);
+
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function updateLastMessageRaw() {
+      renderRequested = false;
+      var chat = document.getElementById('chat');
+      var msgs = chat.querySelectorAll('.message.assistant');
+      var last = msgs[msgs.length - 1];
+      if (!last) {
+        addMessage('assistant', '');
+        last = chat.querySelector('.message.assistant:last-child');
+      }
+      var content = last.querySelector('.message-content');
+      if (content) {
+        content.textContent = currentTokens.join('');
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function updateLastMessageMarkdown() {
+      var chat = document.getElementById('chat');
+      var msgs = chat.querySelectorAll('.message.assistant');
+      var last = msgs[msgs.length - 1];
+      if (!last) return;
+      var content = last.querySelector('.message-content');
+      if (content && typeof marked !== 'undefined') {
+        content.innerHTML = marked.parse(currentTokens.join(''));
+      } else if (content) {
+        content.textContent = currentTokens.join('');
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function updateSendButton() {
+      var sendBtn = document.getElementById('sendBtn');
+      var stopBtn = document.getElementById('stopBtn');
+      if (isGenerating) {
+          sendBtn.style.display = 'none';
+          stopBtn.style.display = 'inline-block';
+      } else {
+          sendBtn.style.display = 'inline-block';
+          stopBtn.style.display = 'none';
+      }
+    }
+    
+    function cancelGeneration() {
+      if (!isGenerating || !bridge) return;
+      if (typeof bridge.cancel_generation === 'function') {
+        bridge.cancel_generation();
+        // Don't set isGenerating = false immediately, let the bridge.error/done signal handle it safely
+      }
+    }
+
+    // ── Window Controls (Frameless UI) ──
+    function minimizeWindow() {
+      if (bridge && typeof bridge.minimize_window === 'function') {
+        bridge.minimize_window();
+      }
+    }
+
+    function maximizeWindow() {
+      if (bridge && typeof bridge.maximize_window === 'function') {
+        bridge.maximize_window();
+      }
+    }
+
+    function closeWindow() {
+      if (bridge && typeof bridge.close_window === 'function') {
+        bridge.close_window();
+      }
+    }
+
+    // Focus input on load
+    document.getElementById('userInput').focus();
+  </script>
+</body>
+</html>
