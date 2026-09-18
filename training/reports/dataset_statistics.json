@@ -1,0 +1,27 @@
+{
+  "total_examples": 916,
+  "domains": {
+    "thermodynamics": 874,
+    "inorganic_chemistry": 42
+  },
+  "interaction_types": {
+    "student_evaluation": 231,
+    "socratic_questioning": 220,
+    "hint_generation": 242,
+    "explain_example_ask": 223
+  },
+  "question_types": {
+    "numerical": 874,
+    "conceptual": 42
+  },
+  "difficulty_distribution": {
+    "1": 241,
+    "2": 209,
+    "4": 231,
+    "3": 235
+  },
+  "class_levels": {
+    "Class 11": 897,
+    "Class 12": 19
+  }
+}

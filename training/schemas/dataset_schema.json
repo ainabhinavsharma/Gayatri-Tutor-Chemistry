@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["system", "user", "assistant"]
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": ["role", "content"]
+      },
+      "minItems": 3
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": ["thermodynamics", "inorganic_chemistry", "boundary"]
+        },
+        "topic_id": {
+          "type": "string"
+        },
+        "subtopic_id": {
+          "type": "string"
+        },
+        "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "interaction_type": {
+          "type": "string",
+          "enum": [
+            "explain_concept",
+            "explain_example_ask",
+            "socratic_questioning",
+            "hint_generation",
+            "student_evaluation",
+            "difficulty_adaptation",
+            "numerical_tutoring",
+            "reaction_tutoring",
+            "mcq",
+            "assertion_reasoning",
+            "previous_year_style",
+            "chapter_revision",
+            "test_generation",
+            "feedback",
+            "boundary"
+          ]
+        },
+        "question_type": {
+          "type": "string",
+          "enum": ["conceptual", "numerical", "reaction", "mcq", "assertion_reasoning", "mixed", "n/a"]
+        },
+        "class_level": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_reference": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "retrieval_context_used": {
+          "type": "boolean"
+        },
+        "source_grounding": {
+          "type": "string"
+        },
+        "numerical_metadata": {
+          "type": "object",
+          "properties": {
+            "given": { "type": "array", "items": { "type": "string" } },
+            "required": { "type": "string" },
+            "formula": { "type": "string" },
+            "substitution": { "type": "string" },
+            "expected_answer": { "type": "string" },
+            "unit": { "type": "string" },
+            "tolerance": { "type": "string" }
+          }
+        },
+        "reaction_metadata": {
+          "type": "object",
+          "properties": {
+            "reactants": { "type": "array", "items": { "type": "string" } },
+            "products": { "type": "array", "items": { "type": "string" } },
+            "conditions": { "type": "string" }
+          }
+        },
+        "evaluation_metadata": {
+          "type": "object",
+          "properties": {
+            "student_error_type": { "type": "string" },
+            "misconception": { "type": "string" },
+            "expected_concept": { "type": "string" },
+            "next_action": { "type": "string" },
+            "difficulty_change": { "type": "string", "enum": ["increase", "decrease", "maintain"] }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "properties": {
+            "domain_valid": { "type": "boolean" },
+            "topic_valid": { "type": "boolean" },
+            "format_valid": { "type": "boolean" },
+            "chemistry_verified": { "type": "boolean" },
+            "behavior_valid": { "type": "boolean" },
+            "duplicate_free": { "type": "boolean" },
+            "rag_compatible": { "type": "boolean" }
+          }
+        }
+      },
+      "required": [
+        "domain",
+        "difficulty",
+        "interaction_type",
+        "question_type",
+        "verified"
+      ]
+    }
+  },
+  "required": ["messages", "metadata"]
+}
