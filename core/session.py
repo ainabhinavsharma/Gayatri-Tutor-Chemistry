@@ -100,53 +100,58 @@ class SessionStore:
             return self._db_conn
 
     def _create_schema(self) -> None:
-        """Create tables if they don't exist."""
+        """Create or migrate tables."""
+        from core.db import run_migrations
         conn = self.conn
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS sessions (
-                id          TEXT PRIMARY KEY,
-                profile_id  TEXT DEFAULT 'default',
-                title       TEXT DEFAULT '',
-                created_at  TEXT NOT NULL,
-                updated_at  TEXT NOT NULL,
-                message_count INTEGER DEFAULT 0
-            );
+        
+        def initial_schema(c):
+            c.executescript("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id          TEXT PRIMARY KEY,
+                    profile_id  TEXT DEFAULT 'default',
+                    title       TEXT DEFAULT '',
+                    created_at  TEXT NOT NULL,
+                    updated_at  TEXT NOT NULL,
+                    message_count INTEGER DEFAULT 0
+                );
 
-            CREATE TABLE IF NOT EXISTS messages (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id  TEXT NOT NULL,
-                role        TEXT NOT NULL,
-                content     TEXT NOT NULL,
-                agent_name  TEXT DEFAULT '',
-                timestamp   TEXT NOT NULL,
-                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
-            );
+                CREATE TABLE IF NOT EXISTS messages (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id  TEXT NOT NULL,
+                    role        TEXT NOT NULL,
+                    content     TEXT NOT NULL,
+                    agent_name  TEXT DEFAULT '',
+                    timestamp   TEXT NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id);
 
-            CREATE TABLE IF NOT EXISTS tutor_contexts (
-                session_id           TEXT PRIMARY KEY,
-                current_concept_id   TEXT DEFAULT '',
-                current_concept_name TEXT DEFAULT '',
-                concept_description  TEXT DEFAULT '',
-                subject              TEXT DEFAULT '',
-                mastery              REAL DEFAULT 0.3,
-                waiting_for_answer   INTEGER DEFAULT 0,
-                last_response_type   TEXT DEFAULT 'explain',
-                last_attempt_correct INTEGER,
-                updated_at           TEXT NOT NULL,
-                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
-            );
+                CREATE TABLE IF NOT EXISTS tutor_contexts (
+                    session_id  TEXT PRIMARY KEY,
+                    state_json  TEXT NOT NULL,
+                    updated_at  TEXT NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+                );
+            """)
 
-            CREATE INDEX IF NOT EXISTS idx_messages_session
-                ON messages(session_id);
-            CREATE INDEX IF NOT EXISTS idx_messages_timestamp
-                ON messages(timestamp);
-        """)
-        conn.commit()
-        try:
-            conn.execute("ALTER TABLE sessions ADD COLUMN profile_id TEXT DEFAULT 'default';")
-            conn.commit()
-        except sqlite3.OperationalError:
-            pass  # Already present
+        def add_mode_and_user_id(c):
+            try:
+                c.execute("ALTER TABLE sessions ADD COLUMN mode TEXT DEFAULT 'general_assistant';")
+            except Exception:
+                pass
+            try:
+                c.execute("ALTER TABLE sessions ADD COLUMN user_id TEXT DEFAULT 'local_user_1';")
+            except Exception:
+                pass
+            c.execute("UPDATE sessions SET mode = 'general_assistant' WHERE mode IS NULL;")
+            c.execute("UPDATE sessions SET user_id = 'local_user_1' WHERE user_id IS NULL;")
+        
+        migrations = {
+            1: ("initial_schema", initial_schema),
+            2: ("add_mode_and_user_id", add_mode_and_user_id),
+        }
+        
+        run_migrations(conn, migrations)  # Already present
             
         try:
             conn.execute("ALTER TABLE sessions ADD COLUMN summary TEXT DEFAULT '';")
@@ -164,12 +169,14 @@ class SessionStore:
         title = getattr(conversation, "title", "New Chat")
         messages = list(conversation.get_all()) if hasattr(conversation, "get_all") else list(conversation)
         
+        mode = getattr(conversation, "mode", "general_assistant")
+        user_id = getattr(conversation, "user_id", "local_user_1")
         self._enqueue_write(
             self._save_session_internal,
-            session_id, title, messages, tutor_context
+            session_id, title, messages, tutor_context, mode, user_id
         )
 
-    def _save_session_internal(self, session_id: str, title: str, messages: list[dict], tutor_context: Any = None) -> None:
+    def _save_session_internal(self, session_id: str, title: str, messages: list[dict], tutor_context: Any = None, mode: str = "general_assistant", user_id: str = "local_user_1") -> None:
         """Synchronously persist the conversation to SQLite."""
         with self._lock:
             conn = self.conn
@@ -179,13 +186,15 @@ class SessionStore:
 
             # 1. Ensure parent session record exists first to satisfy FOREIGN KEY constraint
             conn.execute(
-                """INSERT INTO sessions (id, title, created_at, updated_at, message_count)
-                   VALUES (?, ?, ?, ?, ?)
+                """INSERT INTO sessions (id, title, created_at, updated_at, message_count, mode, user_id)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(id) DO UPDATE SET
                        title = CASE WHEN sessions.title IS NULL OR sessions.title = '' THEN excluded.title ELSE sessions.title END,
                        updated_at = excluded.updated_at,
-                       message_count = excluded.message_count""",
-                (session_id, first_preview, now, now, n_msgs),
+                       message_count = excluded.message_count,
+                       mode = excluded.mode,
+                       user_id = excluded.user_id""",
+                (session_id, first_preview, now, now, n_msgs, mode, user_id),
             )
 
             # 2. Check existing message count and latest message for incremental append (Audit #30)

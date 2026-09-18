@@ -325,6 +325,8 @@ class Orchestrator:
 
         try:
             mode = self._validate_mode(opts)
+            conv.mode = mode
+        
         except ValueError as e:
             from core.errors import sanitize_error
             sanitized = sanitize_error(e, category="orchestrator_submit")
@@ -414,6 +416,8 @@ class Orchestrator:
 
         try:
             mode = self._validate_mode(opts)
+            conv.mode = mode
+        
         except ValueError as e:
             yield str(e), True
             return

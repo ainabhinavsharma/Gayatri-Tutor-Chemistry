@@ -33,6 +33,8 @@ class Conversation:
     for LLM prompt context.
     """
     session_id: str
+    mode: str = "general_assistant"
+    user_id: str = "local_user_1"
     max_messages: int = 20
     max_history: int = 5000
     _messages: list[Message] = field(default_factory=list, repr=False)

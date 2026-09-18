@@ -210,7 +210,7 @@ class Bridge(QObject):
         try:
             from core.session import get_session_store
             store = get_session_store()
-            sessions = store.list_sessions()
+            sessions = store.list_sessions(mode="chemistry_tutor", user_id="local_user_1")
             result = [
                 {
                     "id": s["id"],
