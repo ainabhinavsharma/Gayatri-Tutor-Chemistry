@@ -287,24 +287,24 @@ project: "Gayatri Tutor V3 -> Chemistry Tutor + General Assistance"
 
 overall_status: "IN_PROGRESS"
 
-current_phase: 7
-current_task: "P7-T01"
+current_phase: 8
+current_task: "P8-T01"
 
-last_completed_task: "P6-T10 (Out-of-Domain Guard & Tutor Engine Integration)"
-last_verified_commit: "Phase 6 done"
+last_completed_task: "P7-T10 (Assessment Anti-Leakage & Grader Engine)"
+last_verified_commit: "Phase 7 done"
 
-last_test_status: "261 passed, 20 skipped, 0 failed"
+last_test_status: "275 passed, 20 skipped, 0 failed"
 last_benchmark_status: "TTFT 1844ms (historical)"
 
 known_failures: []
 known_risks: []
 blocked_tasks: []
 
-next_action: "P7-T01: General Assistance Mode Definition"
+next_action: "P8-T01: General Assistant System Policy"
 
-last_agent_note: "Phase 6 complete. Implemented explicit Tutor State Machine, Intent Classifier, Student Adapter, Tutor Memory Manager, specialized policies (Explanation, Numerical Solver, Reaction Tutoring), Student Answer Evaluator, Adaptive Difficulty Manager, and Out-of-Domain Guard."
+last_agent_note: "Phase 7 complete. Implemented typed Question schemas (MCQ, Numerical, Assertion-Reasoning, Reaction Completion, Equation Balancing), deterministic Chemical Equation Balancing Engine, backend Assessment Grader with anti-leakage protection, Chapter & Mock Test Generators, and Adaptive Question Selector."
 
-updated_at: "2026-09-18T22:42:00+05:30"
+updated_at: "2026-09-18T23:13:00+05:30"
 ```
 
 ## Allowed status vocabulary

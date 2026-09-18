@@ -1,0 +1,1 @@
+"""Gayatri AI — Assessment Subsystem."""
