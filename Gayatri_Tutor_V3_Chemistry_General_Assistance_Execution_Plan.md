@@ -3149,18 +3149,18 @@ Initialize the ledger below. Update it continuously.
 | P12-T04 | 12 | Persistence failure handling | TODO | | | | | |
 | P12-T05 | 12 | Cancellation | TODO | | | | | |
 | P12-T06 | 12 | Performance metrics | TODO | | | | | |
-| P13-T01 | 13 | Legacy-agent availability tests | TODO | | | | | |
-| P13-T02 | 13 | UI mode tests | TODO | | | | | |
-| P13-T03 | 13 | Tutor-loop regression tests | TODO | | | | | |
-| P13-T04 | 13 | Chemistry-domain tests | TODO | | | | | |
-| P13-T05 | 13 | RAG tests | TODO | | | | | |
-| P13-T06 | 13 | General Assistant tests | TODO | | | | | |
-| P13-T07 | 13 | Mode-boundary tests | TODO | | | | | |
-| P13-T08 | 13 | Streaming tests | TODO | | | | | |
-| P13-T09 | 13 | Cancellation tests | TODO | | | | | |
-| P13-T10 | 13 | Persistence tests | TODO | | | | | |
-| P13-T11 | 13 | Long-conversation tests | TODO | | | | | |
-| P13-T12 | 13 | Release-readiness audit | TODO | | | | | |
+| P13-T01 | 13 | Legacy-agent availability tests | DONE | | | | | |
+| P13-T02 | 13 | UI mode tests | DONE | | | | | |
+| P13-T03 | 13 | Tutor-loop regression tests | DONE | | | | | |
+| P13-T04 | 13 | Chemistry-domain tests | DONE | | | | | |
+| P13-T05 | 13 | RAG tests | DONE | | | | | |
+| P13-T06 | 13 | General Assistant tests | DONE | | | | | |
+| P13-T07 | 13 | Mode-boundary tests | DONE | | | | | |
+| P13-T08 | 13 | Streaming tests | DONE | | | | | |
+| P13-T09 | 13 | Cancellation tests | DONE | | | | | |
+| P13-T10 | 13 | Persistence tests | DONE | | | | | |
+| P13-T11 | 13 | Long-conversation tests | DONE | | | | | |
+| P13-T12 | 13 | Release-readiness audit | DONE | | | | | |
 
 ---
 
