@@ -42,6 +42,7 @@
       color: white;
       margin-bottom: 16px;
       user-select: none;
+      cursor: pointer;
     }
     .sidebar-btn {
       width: 40px;
@@ -113,33 +114,74 @@
       gap: 20px;
     }
 
-    /* ── Agent bar (Chat Tab) ── */
-    .agent-bar {
+    /* ── Landing Cards Grid ── */
+    .landing-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 40px;
+      gap: 30px;
+      text-align: center;
+    }
+    .landing-title { font-size: 28px; font-weight: bold; color: #ffffff; }
+    .landing-subtitle { font-size: 14px; color: #8a8a9a; max-width: 500px; }
+    .mode-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 680px;
+    }
+    .mode-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .mode-card:hover {
+      border-color: #e94560;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(233, 69, 96, 0.2);
+    }
+    .mode-icon { font-size: 32px; }
+    .mode-card-title { font-size: 18px; font-weight: bold; color: #ffffff; }
+    .mode-card-desc { font-size: 13px; color: #b0b0c0; line-height: 1.5; }
+    .mode-card-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      background: #0f3460;
+      color: #53a8b6;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* ── Mode Header ── */
+    .mode-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
       background: #1a1a3e;
       border-bottom: 1px solid #2a2a4a;
       flex-shrink: 0;
     }
-    .agent-label { font-size: 11px; color: #8a8a9a; }
-    .agent-select {
-      background: #16213e;
-      color: #e0e0e0;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 13px;
-      outline: none;
-      max-width: 260px;
-    }
+    .mode-title-tag { font-size: 14px; font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 8px; }
     .model-badge {
       margin-left: auto;
       font-size: 11px;
       background: #0f3460;
       color: #53a8b6;
-      padding: 2px 8px;
+      padding: 3px 10px;
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -163,12 +205,8 @@
       line-height: 1.5;
       word-wrap: break-word;
     }
-    .message-content p {
-      margin-bottom: 8px;
-    }
-    .message-content p:last-child {
-      margin-bottom: 0;
-    }
+    .message-content p { margin-bottom: 8px; }
+    .message-content p:last-child { margin-bottom: 0; }
     .message-content pre {
       background: #0f0f23;
       padding: 8px;
@@ -202,12 +240,20 @@
       max-width: 90%;
       text-align: center;
     }
-    .message-agent-tag {
-      font-size: 10px;
-      color: #53a8b6;
-      margin-bottom: 4px;
-      font-weight: 600;
+
+    /* ── Empty State ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      gap: 12px;
+      color: #8a8a9a;
+      text-align: center;
     }
+    .empty-icon { font-size: 40px; }
+    .empty-text { font-size: 14px; font-weight: 500; }
 
     /* ── Input area ── */
     .input-area {
@@ -241,7 +287,6 @@
       transition: background 0.15s;
     }
     .send-btn:hover { background: #c73e54; }
-    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── Header & Sections for Non-Chat Tabs ── */
     .tab-header {
@@ -259,92 +304,7 @@
       align-items: center;
       gap: 8px;
     }
-    .tab-subtitle {
-      font-size: 12px;
-      color: #8a8a9a;
-      margin-top: 2px;
-    }
-    .search-input {
-      background: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 6px;
-      color: #e0e0e0;
-      padding: 6px 12px;
-      font-size: 13px;
-      outline: none;
-      width: 220px;
-    }
-    .search-input:focus { border-color: #e94560; }
-
-    /* ── Agents Tab Cards ── */
-    .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .agent-card {
-      background: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 10px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: transform 0.15s, border-color 0.15s;
-    }
-    .agent-card:hover {
-      border-color: #53a8b6;
-      transform: translateY(-2px);
-    }
-    .agent-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .agent-card-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: #ffffff;
-    }
-    .agent-card-badge {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: #0f3460;
-      color: #53a8b6;
-    }
-    .agent-card-desc {
-      font-size: 12px;
-      color: #b0b0c0;
-      line-height: 1.4;
-      flex: 1;
-    }
-    .agent-card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .agent-tag {
-      font-size: 10px;
-      background: #1f2847;
-      color: #8a8a9a;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .agent-action-btn {
-      align-self: flex-start;
-      margin-top: 6px;
-      padding: 6px 12px;
-      background: #e94560;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .agent-action-btn:hover { background: #c73e54; }
+    .tab-subtitle { font-size: 12px; color: #8a8a9a; margin-top: 2px; }
 
     /* ── Courses Tab ── */
     .stats-card {
@@ -357,11 +317,7 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    .stat-box {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .stat-box { display: flex; flex-direction: column; gap: 2px; }
     .stat-val { font-size: 20px; font-weight: bold; color: #53a8b6; }
     .stat-lbl { font-size: 11px; color: #8a8a9a; }
     .progress-bar {
@@ -380,11 +336,7 @@
       width: 0%;
       transition: width 0.3s;
     }
-    .concepts-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .concepts-list { display: flex; flex-direction: column; gap: 10px; }
     .concept-item {
       background: #16213e;
       border: 1px solid #2a2a4a;
@@ -457,10 +409,7 @@
       font-weight: 600;
       cursor: pointer;
     }
-    .settings-btn.secondary {
-      background: #1f2847;
-      color: #8a8a9a;
-    }
+    .settings-btn.secondary { background: #1f2847; color: #8a8a9a; }
     .settings-btn.secondary:hover { background: #2a355c; color: #e0e0e0; }
     .session-list {
       display: flex;
@@ -499,18 +448,19 @@
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="sidebar-logo">G</div>
-      <button class="sidebar-btn active" title="Chat" onclick="switchTab('chat', this)">💬</button>
-      <button class="sidebar-btn" title="Agents" onclick="switchTab('agents', this)">🤖</button>
-      <button class="sidebar-btn" title="Courses" onclick="switchTab('courses', this)">📚</button>
-      <button class="sidebar-btn" title="Settings" onclick="switchTab('settings', this)">⚙️</button>
+      <div class="sidebar-logo" onclick="switchTab('landing')" title="Gayatri AI Home">G</div>
+      <button class="sidebar-btn active" id="btn-landing" title="Home" onclick="switchTab('landing', this)">🏠</button>
+      <button class="sidebar-btn" id="btn-chemistry" title="Chemistry Tutor" onclick="switchTab('chemistry', this)">🧪</button>
+      <button class="sidebar-btn" id="btn-general" title="General Assistant" onclick="switchTab('general', this)">🤖</button>
+      <button class="sidebar-btn" id="btn-courses" title="Curriculum Graph" onclick="switchTab('courses', this)">📚</button>
+      <button class="sidebar-btn" id="btn-settings" title="Settings" onclick="switchTab('settings', this)">⚙️</button>
     </div>
 
-    <!-- Main -->
+    <!-- Main Workspace -->
     <div class="main">
       <!-- Titlebar -->
       <div class="titlebar">
-        <span class="titlebar-text">Gayatri AI — Desktop Workspace</span>
+        <span class="titlebar-text" id="appTitle">Gayatri AI — Desktop Workspace</span>
         <div class="titlebar-controls">
           <button class="titlebar-btn btn-minimize" onclick="minimizeWindow()" title="Minimize"></button>
           <button class="titlebar-btn btn-maximize" onclick="maximizeWindow()" title="Maximize / Restore"></button>
@@ -518,56 +468,84 @@
         </div>
       </div>
 
-      <!-- VIEW 1: CHAT TAB -->
-      <div class="tab-view active" id="tab-chat">
-        <!-- Agent bar -->
-        <div class="agent-bar">
-          <span class="agent-label">Agent:</span>
-          <select class="agent-select" id="agentSelect">
-            <option value="auto">🤖 Auto-detect</option>
-          </select>
-          <button class="settings-btn secondary" onclick="startNewChat()" style="margin-left: 8px; padding: 4px 8px; font-size: 11px;">+ New Chat</button>
-          <span class="model-badge" id="modelBadge">
-            <span class="status-dot loading" id="statusDot"></span>
-            <span id="statusText">Loading model...</span>
+      <!-- VIEW 1: LANDING / HOME SCREEN -->
+      <div class="tab-view active" id="tab-landing">
+        <div class="landing-container">
+          <div>
+            <h1 class="landing-title">Welcome to Gayatri AI</h1>
+            <p class="landing-subtitle">Select your workspace mode to start learning or collaborating.</p>
+          </div>
+          <div class="mode-cards-grid">
+            <!-- Chemistry Tutor Mode Card -->
+            <div class="mode-card" onclick="selectMode('chemistry_tutor')">
+              <span class="mode-icon">🧪</span>
+              <div class="mode-card-badge">NCERT / CBSE Curriculum</div>
+              <div class="mode-card-title">Chemistry Tutor</div>
+              <div class="mode-card-desc">Guided, step-by-step adaptive teaching for Thermodynamics, Inorganic Chemistry, numerical problem solving, and equation balancing.</div>
+            </div>
+
+            <!-- General Assistant Mode Card -->
+            <div class="mode-card" onclick="selectMode('general_assistant')">
+              <span class="mode-icon">🤖</span>
+              <div class="mode-card-badge">General Purpose AI</div>
+              <div class="mode-card-title">General Assistant</div>
+              <div class="mode-card-desc">Versatile workspace for general conversation, writing, polishing drafts, summarization, brainstorming, and planning.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: CHEMISTRY WORKSPACE -->
+      <div class="tab-view" id="tab-chemistry">
+        <div class="mode-header">
+          <span class="mode-title-tag">🧪 Chemistry Tutor Mode — NCERT Adaptive Guidance</span>
+          <button class="settings-btn secondary" onclick="startNewChat('chemistry_tutor')" style="padding: 4px 10px; font-size: 11px;">+ New Chemistry Chat</button>
+          <span class="model-badge">
+            <span class="status-dot loading" id="statusDotChem"></span>
+            <span id="statusTextChem">Local Model Ready</span>
           </span>
         </div>
 
-        <!-- Chat messages -->
-        <div class="chat" id="chat">
-          <div class="message system">
-            Welcome to Gayatri AI. Type a message to start chatting,
-            or select a specialized agent from the dropdown above.
+        <div class="chat" id="chat-chemistry">
+          <div class="empty-state">
+            <span class="empty-icon">🧪</span>
+            <span class="empty-text">No chemistry sessions active. Ask a question or start a topic like Thermodynamics or s-Block elements!</span>
           </div>
         </div>
 
-        <!-- Input -->
         <div class="input-area">
-          <input type="text" id="userInput" placeholder="Type a message or question..."
-                 autocomplete="off" onkeydown="if(event.key==='Enter')send()">
-          <button class="send-btn" id="sendBtn" onclick="send()">Send</button>
-          <button class="send-btn" id="stopBtn" onclick="cancelGeneration()" style="display: none; background: #666;">Stop</button>
+          <input type="text" id="userInputChem" placeholder="Ask a chemistry question (e.g., 'What is Hess's Law?')..."
+                 autocomplete="off" onkeydown="if(event.key==='Enter')sendMode('chemistry_tutor')">
+          <button class="send-btn" id="sendBtnChem" onclick="sendMode('chemistry_tutor')">Send</button>
         </div>
       </div>
 
-      <!-- VIEW 2: AGENTS TAB -->
-      <div class="tab-view" id="tab-agents">
-        <div class="tab-scrollable">
-          <div class="tab-header">
-            <div>
-              <div class="tab-title">🤖 Agents & Specialists</div>
-              <div class="tab-subtitle">Specialized reasoning engines and Socratic tutors</div>
-            </div>
-            <input type="text" class="search-input" id="agentSearchInput" placeholder="Filter agents..." oninput="filterAgents()">
+      <!-- VIEW 3: GENERAL ASSISTANT WORKSPACE -->
+      <div class="tab-view" id="tab-general">
+        <div class="mode-header">
+          <span class="mode-title-tag">🤖 General Assistant Mode — Chat, Write & Brainstorm</span>
+          <button class="settings-btn secondary" onclick="startNewChat('general_assistant')" style="padding: 4px 10px; font-size: 11px;">+ New General Chat</button>
+          <span class="model-badge">
+            <span class="status-dot loading" id="statusDotGen"></span>
+            <span id="statusTextGen">Local Model Ready</span>
+          </span>
+        </div>
+
+        <div class="chat" id="chat-general">
+          <div class="empty-state">
+            <span class="empty-icon">🤖</span>
+            <span class="empty-text">No general conversations active. Start a chat, draft text, summarize, or brainstorm!</span>
           </div>
-          <div class="agents-grid" id="agentsContainer">
-            <!-- Dynamic agent cards -->
-            <div style="color: #8a8a9a; font-size: 13px;">Loading available agents...</div>
-          </div>
+        </div>
+
+        <div class="input-area">
+          <input type="text" id="userInputGen" placeholder="Type a message or task (e.g., 'Summarize this idea')..."
+                 autocomplete="off" onkeydown="if(event.key==='Enter')sendMode('general_assistant')">
+          <button class="send-btn" id="sendBtnGen" onclick="sendMode('general_assistant')">Send</button>
         </div>
       </div>
 
-      <!-- VIEW 3: COURSES TAB (LDG) -->
+      <!-- VIEW 4: COURSES TAB (LDG) -->
       <div class="tab-view" id="tab-courses">
         <div class="tab-scrollable">
           <div class="tab-header">
@@ -606,7 +584,7 @@
         </div>
       </div>
 
-      <!-- VIEW 4: SETTINGS TAB -->
+      <!-- VIEW 5: SETTINGS TAB -->
       <div class="tab-view" id="tab-settings">
         <div class="tab-scrollable">
           <div class="tab-header">
@@ -633,71 +611,30 @@
 
           <!-- Local AI Model Management -->
           <div class="settings-section">
-            <div class="settings-section-title">Local AI Model (Ollama / GGUF)</div>
+            <div class="settings-section-title">Local AI Model Status</div>
             <div class="settings-row">
               <div class="settings-label-block">
                 <span class="settings-label" id="localModelTitle">Local Model Status</span>
                 <span class="settings-caption" id="localModelDetail">Checking local model file...</span>
               </div>
-              <div style="display:flex; gap:8px;">
-                <button class="settings-btn" id="btnDownloadModel" onclick="downloadModel()">Download / Install</button>
-                <button class="settings-btn secondary" id="btnCancelDownload" onclick="cancelDownload()" style="display:none;">Cancel</button>
-              </div>
-            </div>
-            <div id="downloadProgressContainer" style="display:none; margin-top:8px;">
-              <span style="font-size:11px; color:#8a8a9a;" id="downloadProgressText">Downloading...</span>
-              <div class="progress-bar" style="margin-top:4px;">
-                <div class="progress-fill" id="downloadProgressFill" style="background:#53a8b6; width:0%;"></div>
-              </div>
             </div>
           </div>
 
-          <!-- Provider API Keys -->
+          <!-- Past Chemistry Sessions -->
           <div class="settings-section">
-            <div class="settings-section-title">Cloud Provider API Keys (Windows DPAPI Encrypted)</div>
-            <div class="settings-row">
-              <div class="settings-label-block">
-                <span class="settings-label">Google Gemini</span>
-                <span class="settings-caption">Gemini 1.5 Flash / Pro API key</span>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <input type="password" class="settings-input" id="key-google" placeholder="AIzaSy..." style="width:200px;">
-                <button class="settings-btn secondary" onclick="validateKey('google')">Test</button>
-                <button class="settings-btn" onclick="saveKey('google')">Save</button>
-              </div>
-            </div>
-            <div class="settings-row">
-              <div class="settings-label-block">
-                <span class="settings-label">Anthropic Claude</span>
-                <span class="settings-caption">Claude 3.5 Sonnet / Haiku API key</span>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <input type="password" class="settings-input" id="key-anthropic" placeholder="sk-ant-..." style="width:200px;">
-                <button class="settings-btn secondary" onclick="validateKey('anthropic')">Test</button>
-                <button class="settings-btn" onclick="saveKey('anthropic')">Save</button>
-              </div>
-            </div>
-            <div class="settings-row">
-              <div class="settings-label-block">
-                <span class="settings-label">OpenAI</span>
-                <span class="settings-caption">GPT-4o / GPT-4o-mini API key</span>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <input type="password" class="settings-input" id="key-openai" placeholder="sk-..." style="width:200px;">
-                <button class="settings-btn secondary" onclick="validateKey('openai')">Test</button>
-                <button class="settings-btn" onclick="saveKey('openai')">Save</button>
-              </div>
+            <div class="settings-section-title">🧪 Chemistry Tutor Sessions</div>
+            <div class="session-list" id="chemSessionsContainer">
+              <div style="color:#8a8a9a; font-size:12px;">Loading chemistry sessions...</div>
             </div>
           </div>
 
-          <!-- Past Sessions -->
+          <!-- Past General Sessions -->
           <div class="settings-section">
-            <div class="settings-section-title">Conversation Sessions</div>
-            <div class="session-list" id="sessionsListContainer">
-              <div style="color:#8a8a9a; font-size:12px;">Loading past sessions...</div>
+            <div class="settings-section-title">🤖 General Assistant Sessions</div>
+            <div class="session-list" id="genSessionsContainer">
+              <div style="color:#8a8a9a; font-size:12px;">Loading general sessions...</div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -710,7 +647,7 @@
     var bridge = null;
     var isGenerating = false;
     var currentTokens = [];
-    var allAgents = [];
+    var activeMode = 'chemistry_tutor';
     var markdownDebounceTimer = null;
     var renderRequested = false;
 
@@ -718,60 +655,55 @@
     new QWebChannel(qt.webChannelTransport, async function(channel) {
       bridge = channel.objects.bridge;
 
-      // Signal handlers
       bridge.token.connect(function(idx, text) {
         currentTokens.push(text);
-        
         if (!renderRequested) {
           renderRequested = true;
           window.requestAnimationFrame(updateLastMessageRaw);
         }
-
         clearTimeout(markdownDebounceTimer);
         markdownDebounceTimer = setTimeout(updateLastMessageMarkdown, 50);
       });
       bridge.done.connect(function() {
         isGenerating = false;
-        updateSendButton();
         clearTimeout(markdownDebounceTimer);
         updateLastMessageMarkdown();
       });
       bridge.error.connect(function(msg) {
-        addMessage('system', 'Error: ' + msg);
+        addMessageToActive('system', 'System Notice: ' + msg);
         isGenerating = false;
-        updateSendButton();
         clearTimeout(markdownDebounceTimer);
         updateLastMessageMarkdown();
       });
 
-      // Initial loads
       updateModelStatus();
-      await populateAgentSelect();
     });
 
-    // ── Tab Navigation (Audit #50 & #51) ──
+    // ── Mode & Tab Navigation ──
+    function selectMode(mode) {
+      activeMode = mode;
+      if (mode === 'chemistry_tutor') {
+        switchTab('chemistry', document.getElementById('btn-chemistry'));
+      } else {
+        switchTab('general', document.getElementById('btn-general'));
+      }
+    }
+
     function switchTab(tab, el) {
-      document.querySelectorAll('.sidebar-btn').forEach(function(b) {
-        b.classList.remove('active');
-      });
-      var target = el || (typeof event !== 'undefined' ? (event.currentTarget || event.target) : null);
-      if (target) {
-        target.classList.add('active');
-      }
+      document.querySelectorAll('.sidebar-btn').forEach(function(b) { b.classList.remove('active'); });
+      var btn = el || document.getElementById('btn-' + tab);
+      if (btn) btn.classList.add('active');
 
-      document.querySelectorAll('.tab-view').forEach(function(v) {
-        v.classList.remove('active');
-      });
-
+      document.querySelectorAll('.tab-view').forEach(function(v) { v.classList.remove('active'); });
       var selected = document.getElementById('tab-' + tab);
-      if (selected) {
-        selected.classList.add('active');
-      }
+      if (selected) selected.classList.add('active');
 
-      if (tab === 'chat') {
-        document.getElementById('userInput').focus();
-      } else if (tab === 'agents') {
-        loadAgentsTab();
+      if (tab === 'chemistry') {
+        activeMode = 'chemistry_tutor';
+        document.getElementById('userInputChem').focus();
+      } else if (tab === 'general') {
+        activeMode = 'general_assistant';
+        document.getElementById('userInputGen').focus();
       } else if (tab === 'courses') {
         loadCoursesTab();
       } else if (tab === 'settings') {
@@ -779,79 +711,7 @@
       }
     }
 
-    // ── Agent Selector (Audit #52 & #53) ──
-    async function populateAgentSelect() {
-      if (!bridge || typeof bridge.get_agents !== 'function') return;
-      try {
-        var res = JSON.parse(await bridge.get_agents());
-        if (res && res.ok && res.agents) {
-          allAgents = res.agents;
-          var select = document.getElementById('agentSelect');
-          var cur = select.value;
-          select.innerHTML = '<option value="auto">🤖 Auto-detect</option>';
-          allAgents.forEach(function(a) {
-            var opt = document.createElement('option');
-            opt.value = a.name;
-            opt.textContent = '🤖 ' + a.name;
-            select.appendChild(opt);
-          });
-          select.value = cur || 'auto';
-        }
-      } catch (e) {
-        console.error('Failed to load agents', e);
-      }
-    }
-
-    async function loadAgentsTab() {
-      await populateAgentSelect();
-      var container = document.getElementById('agentsContainer');
-      if (!allAgents || allAgents.length === 0) {
-        container.innerHTML = '<div style="color:#8a8a9a;">No agents registered.</div>';
-        return;
-      }
-      renderAgentCards(allAgents);
-    }
-
-    function renderAgentCards(agents) {
-      var container = document.getElementById('agentsContainer');
-      container.innerHTML = '';
-      agents.forEach(function(a) {
-        var card = document.createElement('div');
-        card.className = 'agent-card';
-
-        var cmds = (a.commands || []).map(function(c) { return '<span class="agent-tag">' + c + '</span>'; }).join('');
-        var triggers = (a.triggers || []).slice(0, 3).map(function(t) { return '<span class="agent-tag">"' + t + '"</span>'; }).join('');
-
-        card.innerHTML =
-          '<div class="agent-card-header">' +
-            '<span class="agent-card-name">🤖 ' + a.name + '</span>' +
-            '<span class="agent-card-badge">Agent</span>' +
-          '</div>' +
-          '<div class="agent-card-desc">' + (a.description || 'Specialist assistant.') + '</div>' +
-          '<div class="agent-card-tags">' + cmds + triggers + '</div>' +
-          '<button class="agent-action-btn" onclick="activateAgent(\'' + a.name + '\')">Chat with Agent</button>';
-        container.appendChild(card);
-      });
-    }
-
-    function filterAgents() {
-      var q = document.getElementById('agentSearchInput').value.toLowerCase().trim();
-      var filtered = allAgents.filter(function(a) {
-        return a.name.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q));
-      });
-      renderAgentCards(filtered);
-    }
-
-    function activateAgent(agentName) {
-      var select = document.getElementById('agentSelect');
-      if (select) select.value = agentName;
-      switchTab('chat', document.querySelector('.sidebar-btn[title="Chat"]'));
-      var input = document.getElementById('userInput');
-      input.placeholder = 'Chatting with ' + agentName + '...';
-      input.focus();
-    }
-
-    // ── Courses Tab (Audit #55) ──
+    // ── Courses Tab ──
     async function loadCoursesTab() {
       if (!bridge || typeof bridge.get_curriculum_progress !== 'function') return;
       try {
@@ -870,7 +730,7 @@
         list.innerHTML = '';
         var concepts = res.concepts || [];
         if (concepts.length === 0) {
-          list.innerHTML = '<div style="color:#8a8a9a;">No concepts tracked yet in LDG. Start learning in Tutor mode!</div>';
+          list.innerHTML = '<div style="color:#8a8a9a;">No concepts tracked yet in LDG. Start learning in Chemistry Tutor mode!</div>';
           return;
         }
 
@@ -880,14 +740,14 @@
           var unlockedText = c.unlocked ? '<span style="color:#27c93f;">🔓 Unlocked</span>' : '<span style="color:#f5c542;">🔒 Locked</span>';
           item.innerHTML =
             '<div class="concept-info">' +
-              '<div class="concept-title">' + c.name + ' <span class="concept-subject">' + (c.subject || 'General') + '</span> ' + unlockedText + '</div>' +
+              '<div class="concept-title">' + c.name + ' <span class="concept-subject">' + (c.subject || 'Chemistry') + '</span> ' + unlockedText + '</div>' +
               '<div class="concept-desc">' + (c.description || 'Core concept') + '</div>' +
             '</div>' +
             '<div class="concept-mastery">' +
               '<div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:' + c.mastery_pct + '%;"></div></div>' +
               '<span>' + c.mastery_pct + '%</span>' +
             '</div>' +
-            '<button class="concept-btn" onclick="learnConcept(\'' + c.name.replace(/'/g, "\\'") + '\')">Ask Tutor</button>';
+            '<button class="concept-btn" onclick="askTutorAbout(\'' + c.name.replace(/'/g, "\\'") + '\')">Ask Tutor</button>';
           list.appendChild(item);
         });
       } catch (e) {
@@ -895,26 +755,22 @@
       }
     }
 
-    function learnConcept(conceptName) {
-      activateAgent('Tutor');
-      var input = document.getElementById('userInput');
+    function askTutorAbout(conceptName) {
+      selectMode('chemistry_tutor');
+      var input = document.getElementById('userInputChem');
       input.value = 'Can you teach me about ' + conceptName + '?';
-      send();
+      sendMode('chemistry_tutor');
     }
 
-    // ── Settings Tab ──
+    // ── Settings Tab & Session Isolation ──
     async function loadSettingsTab() {
       if (!bridge) return;
       try {
-        // Privacy mode
         var mode = JSON.parse(await bridge.get_setting('privacy_mode'));
-        if (mode) {
-          document.getElementById('privacyModeSelect').value = mode;
-        }
-        // Local model
+        if (mode) document.getElementById('privacyModeSelect').value = mode;
         updateModelStatus();
-        // Sessions
-        loadSessionsList();
+        loadModeSessionsList('chemistry_tutor', 'chemSessionsContainer');
+        loadModeSessionsList('general_assistant', 'genSessionsContainer');
       } catch (e) {
         console.error('Failed to load settings', e);
       }
@@ -927,99 +783,58 @@
       }
     }
 
-    async function loadSessionsList() {
-      if (!bridge || typeof bridge.get_sessions !== 'function') return;
+    async function loadModeSessionsList(modeStr, containerId) {
+      if (!bridge) return;
       try {
-        var res = JSON.parse(await bridge.get_sessions());
-        var container = document.getElementById('sessionsListContainer');
+        var fn = typeof bridge.get_sessions_by_mode === 'function' ? bridge.get_sessions_by_mode : bridge.get_sessions;
+        var res = JSON.parse(await fn(modeStr));
+        var container = document.getElementById(containerId);
         container.innerHTML = '';
+
         if (!res || !res.ok || !res.sessions || res.sessions.length === 0) {
-          container.innerHTML = '<div style="color:#8a8a9a;">No saved sessions yet.</div>';
+          container.innerHTML = '<div style="color:#8a8a9a;">No saved sessions for this mode yet.</div>';
           return;
         }
+
         res.sessions.forEach(function(s) {
           var row = document.createElement('div');
           row.className = 'session-item';
           row.innerHTML =
             '<div>' +
               '<div style="font-weight:600; color:#fff;">' + (s.title || s.id.substring(0, 16)) + '</div>' +
-              '<div style="font-size:10px; color:#8a8a9a;">' + s.message_count + ' messages • ' + (s.updated_at ? s.updated_at.substring(0, 10) : '') + '</div>' +
+              '<div style="font-size:10px; color:#8a8a9a;">' + s.message_count + ' messages</div>' +
             '</div>' +
             '<div style="display:flex; gap:6px;">' +
-              '<button class="settings-btn secondary" style="padding:3px 8px; font-size:11px;" onclick="switchSession(\'' + s.id + '\')">Open</button>' +
+              '<button class="settings-btn secondary" style="padding:3px 8px; font-size:11px;" onclick="switchSession(\'' + s.id + '\', \'' + modeStr + '\')">Open</button>' +
               '<button class="settings-btn secondary" style="padding:3px 8px; font-size:11px; color:#e94560;" onclick="deleteSession(\'' + s.id + '\')">Delete</button>' +
             '</div>';
           container.appendChild(row);
         });
       } catch (e) {
-        console.error('Failed to load sessions', e);
+        console.error('Failed to load sessions for ' + modeStr, e);
       }
     }
 
-    async function switchSession(sessId) {
+    async function switchSession(sessId, modeStr) {
       if (bridge && typeof bridge.load_session_id === 'function') {
         bridge.load_session_id(sessId);
-        switchTab('chat', document.querySelector('.sidebar-btn[title="Chat"]'));
-        var chat = document.getElementById('chat');
-        chat.innerHTML = '<div class="message system">Session restored (' + sessId.substring(0, 8) + '...).</div>';
+        selectMode(modeStr);
+        addMessageToActive('system', 'Restored session (' + sessId.substring(0, 8) + '...)');
       }
     }
 
     function deleteSession(sessId) {
       if (bridge && typeof bridge.delete_session === 'function') {
         bridge.delete_session(sessId);
-        loadSessionsList();
+        loadSettingsTab();
       }
     }
 
-    function startNewChat() {
+    function startNewChat(modeStr) {
       if (bridge && typeof bridge.new_chat === 'function') {
         bridge.new_chat();
-        var chat = document.getElementById('chat');
-        chat.innerHTML = '<div class="message system">New conversation started.</div>';
-      }
-    }
-
-    async function validateKey(providerKey) {
-      var input = document.getElementById('key-' + providerKey);
-      var keyVal = input ? input.value.trim() : '';
-      if (!keyVal) {
-        alert('Please enter an API key first.');
-        return;
-      }
-      if (bridge && typeof bridge.validate_provider_key === 'function') {
-        var res = JSON.parse(await bridge.validate_provider_key(providerKey, keyVal));
-        alert(res.valid ? 'Key is valid!' : 'Validation failed: ' + res.message);
-      }
-    }
-
-    function saveKey(providerKey) {
-      var input = document.getElementById('key-' + providerKey);
-      var keyVal = input ? input.value.trim() : '';
-      if (!keyVal) {
-        alert('Please enter an API key to save.');
-        return;
-      }
-      if (bridge && typeof bridge.save_provider_key === 'function') {
-        bridge.save_provider_key(providerKey, keyVal);
-        alert('Saved ' + providerKey + ' API key securely in Windows DPAPI vault.');
-        input.value = '';
-      }
-    }
-
-    function downloadModel() {
-      if (bridge && typeof bridge.download_model === 'function') {
-        bridge.download_model();
-        document.getElementById('downloadProgressContainer').style.display = 'block';
-        document.getElementById('btnCancelDownload').style.display = 'inline-block';
-      }
-    }
-
-    function cancelDownload() {
-      if (bridge && typeof bridge.cancel_model_download === 'function') {
-        bridge.cancel_model_download();
-        document.getElementById('downloadProgressContainer').style.display = 'none';
-        document.getElementById('btnCancelDownload').style.display = 'none';
+        var targetContainer = (modeStr === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
+        targetContainer.innerHTML = '<div class="message system">New conversation started.</div>';
       }
     }
 
@@ -1027,62 +842,69 @@
     async function updateModelStatus() {
       try {
         var status = JSON.parse(await bridge.get_local_model_status());
-        var dot = document.getElementById('statusDot');
-        var text = document.getElementById('statusText');
         var detail = document.getElementById('localModelDetail');
 
+        var dotChem = document.getElementById('statusDotChem');
+        var textChem = document.getElementById('statusTextChem');
+        var dotGen = document.getElementById('statusDotGen');
+        var textGen = document.getElementById('statusTextGen');
+
         if (status.installed) {
-          dot.className = 'status-dot ready';
           var size = (status.size_mb / 1024).toFixed(1) + ' GB';
-          text.textContent = 'Ready — ' + size;
-          if (detail) detail.textContent = 'Model installed and ready (' + size + ') at ' + (status.path || 'local storage');
+          if (dotChem) dotChem.className = 'status-dot ready';
+          if (textChem) textChem.textContent = 'Ready (' + size + ')';
+          if (dotGen) dotGen.className = 'status-dot ready';
+          if (textGen) textGen.textContent = 'Ready (' + size + ')';
+          if (detail) detail.textContent = 'Local model ready (' + size + ') at ' + (status.path || 'local storage');
         } else {
-          dot.className = 'status-dot error';
-          text.textContent = 'Model not found';
-          if (detail) detail.textContent = 'Model file not installed: ' + (status.message || 'Needs download');
+          if (dotChem) dotChem.className = 'status-dot error';
+          if (textChem) textChem.textContent = 'Model Offline';
+          if (dotGen) dotGen.className = 'status-dot error';
+          if (textGen) textGen.textContent = 'Model Offline';
+          if (detail) detail.textContent = 'Model file not installed: ' + (status.message || 'Needs setup');
         }
       } catch(e) { console.error('Model status check failed:', e); }
     }
 
-    // ── Chat functions ──
-    function send() {
+    // ── Sending & Messaging ──
+    function sendMode(modeStr) {
       if (isGenerating) return;
       if (!bridge) {
-        addMessage('system', 'Connection initializing. Please wait a moment...');
+        addMessageToActive('system', 'Connection initializing. Please wait...');
         return;
       }
-      var input = document.getElementById('userInput');
+
+      var inputId = (modeStr === 'chemistry_tutor') ? 'userInputChem' : 'userInputGen';
+      var input = document.getElementById(inputId);
       var msg = input.value.trim();
       if (!msg) return;
 
-      var agentSelect = document.getElementById('agentSelect');
-      var selectedAgent = agentSelect ? agentSelect.value : 'auto';
-
-      addMessage('user', msg);
-      addMessage('assistant', '', selectedAgent !== 'auto' ? selectedAgent : null);
+      addMessageToMode(modeStr, 'user', msg);
+      addMessageToMode(modeStr, 'assistant', '');
       input.value = '';
       isGenerating = true;
-      updateSendButton();
       currentTokens = [];
 
-      bridge.send_message(msg, selectedAgent);
+      bridge.send_message(msg, modeStr);
     }
 
-    function addMessage(role, text, agentName) {
-      var chat = document.getElementById('chat');
+    function addMessageToActive(role, text) {
+      addMessageToMode(activeMode, role, text);
+    }
+
+    function addMessageToMode(modeStr, role, text) {
+      var chat = (modeStr === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
+      
+      // Remove empty state if present
+      var empty = chat.querySelector('.empty-state');
+      if (empty) empty.remove();
+
       var div = document.createElement('div');
       div.className = 'message ' + role;
 
-      if (agentName) {
-        var tag = document.createElement('div');
-        tag.className = 'message-agent-tag';
-        tag.textContent = '🤖 ' + agentName;
-        div.appendChild(tag);
-      }
-
       var content = document.createElement('div');
       content.className = 'message-content';
-      
+
       if (typeof marked !== 'undefined' && role !== 'system') {
         content.innerHTML = marked.parse(text);
       } else {
@@ -1097,11 +919,11 @@
 
     function updateLastMessageRaw() {
       renderRequested = false;
-      var chat = document.getElementById('chat');
+      var chat = (activeMode === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
       var msgs = chat.querySelectorAll('.message.assistant');
       var last = msgs[msgs.length - 1];
       if (!last) {
-        addMessage('assistant', '');
+        addMessageToActive('assistant', '');
         last = chat.querySelector('.message.assistant:last-child');
       }
       var content = last.querySelector('.message-content');
@@ -1112,7 +934,7 @@
     }
 
     function updateLastMessageMarkdown() {
-      var chat = document.getElementById('chat');
+      var chat = (activeMode === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
       var msgs = chat.querySelectorAll('.message.assistant');
       var last = msgs[msgs.length - 1];
       if (!last) return;
@@ -1125,47 +947,16 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
-    function updateSendButton() {
-      var sendBtn = document.getElementById('sendBtn');
-      var stopBtn = document.getElementById('stopBtn');
-      if (isGenerating) {
-          sendBtn.style.display = 'none';
-          stopBtn.style.display = 'inline-block';
-      } else {
-          sendBtn.style.display = 'inline-block';
-          stopBtn.style.display = 'none';
-      }
-    }
-    
-    function cancelGeneration() {
-      if (!isGenerating || !bridge) return;
-      if (typeof bridge.cancel_generation === 'function') {
-        bridge.cancel_generation();
-        // Don't set isGenerating = false immediately, let the bridge.error/done signal handle it safely
-      }
-    }
-
-    // ── Window Controls (Frameless UI) ──
+    // ── Window Controls ──
     function minimizeWindow() {
-      if (bridge && typeof bridge.minimize_window === 'function') {
-        bridge.minimize_window();
-      }
+      if (bridge && typeof bridge.minimize_window === 'function') bridge.minimize_window();
     }
-
     function maximizeWindow() {
-      if (bridge && typeof bridge.maximize_window === 'function') {
-        bridge.maximize_window();
-      }
+      if (bridge && typeof bridge.maximize_window === 'function') bridge.maximize_window();
     }
-
     function closeWindow() {
-      if (bridge && typeof bridge.close_window === 'function') {
-        bridge.close_window();
-      }
+      if (bridge && typeof bridge.close_window === 'function') bridge.close_window();
     }
-
-    // Focus input on load
-    document.getElementById('userInput').focus();
   </script>
 </body>
 </html>

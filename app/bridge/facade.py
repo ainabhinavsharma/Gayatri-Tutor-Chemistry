@@ -233,6 +233,36 @@ class Bridge(QObject):
                 "recoverable": True
             })
 
+    @Slot(str, result=str)
+    def get_sessions_by_mode(self, mode: str = "chemistry_tutor") -> str:
+        """Return list of past sessions filtered by mode as JSON."""
+        try:
+            from core.session import get_session_store
+            store = get_session_store()
+            sessions = store.list_sessions(mode=mode, user_id="local_user_1")
+            result = [
+                {
+                    "id": s["id"],
+                    "title": s.get("title", s["id"][:20]),
+                    "created_at": s.get("created_at", ""),
+                    "updated_at": s.get("updated_at", ""),
+                    "message_count": s.get("message_count", 0),
+                    "preview": s.get("preview", ""),
+                    "mode": s.get("mode", mode),
+                }
+                for s in sessions
+            ]
+            return json.dumps({"ok": True, "sessions": result})
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_get_sessions")
+            return json.dumps({
+                "ok": False,
+                "sessions": [],
+                "error": sanitized.user_message,
+                "recoverable": True
+            })
+
     @Slot(result=str)
     def get_agents(self) -> str:
         """Return list of available agents with metadata as JSON (Audit #52 & #54)."""

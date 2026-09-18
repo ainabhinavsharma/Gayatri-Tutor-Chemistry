@@ -480,31 +480,42 @@ class SessionStore:
                 for row in cursor.fetchall()
             ]
 
-    def list_sessions(self, profile_id: str | None = None) -> list[dict]:
-        """List all sessions ordered by most recent first, optionally filtered by profile.
+    def list_sessions(
+        self,
+        mode: str | None = None,
+        user_id: str | None = None,
+        profile_id: str | None = None,
+    ) -> list[dict]:
+        """List sessions ordered by most recent first, optionally filtered by mode, user_id, or profile_id.
 
         Returns:
-            List of {id, profile_id, title, created_at, updated_at, message_count, preview}
+            List of {id, profile_id, title, mode, user_id, created_at, updated_at, message_count, preview}
         """
         self.flush()
         with self._lock:
             conn = self.conn
+            query = "SELECT id, profile_id, title, mode, user_id, created_at, updated_at, message_count FROM sessions WHERE 1=1"
+            params = []
+            if mode is not None:
+                query += " AND mode = ?"
+                params.append(mode)
+            if user_id is not None:
+                query += " AND user_id = ?"
+                params.append(user_id)
             if profile_id is not None:
-                cursor = conn.execute(
-                    "SELECT id, profile_id, title, created_at, updated_at, message_count "
-                    "FROM sessions WHERE profile_id = ? ORDER BY updated_at DESC",
-                    (profile_id,),
-                )
-            else:
-                cursor = conn.execute(
-                    "SELECT id, profile_id, title, created_at, updated_at, message_count "
-                    "FROM sessions ORDER BY updated_at DESC"
-                )
+                query += " AND profile_id = ?"
+                params.append(profile_id)
+
+            query += " ORDER BY updated_at DESC"
+            cursor = conn.execute(query, params)
+
             return [
                 {
                     "id": row["id"],
                     "profile_id": row["profile_id"] if "profile_id" in row.keys() else "default",
                     "title": row["title"] or row["id"][:20],
+                    "mode": row["mode"] if "mode" in row.keys() else "general_assistant",
+                    "user_id": row["user_id"] if "user_id" in row.keys() else "local_user_1",
                     "created_at": row["created_at"],
                     "updated_at": row["updated_at"],
                     "message_count": row["message_count"],
