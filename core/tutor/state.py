@@ -36,9 +36,11 @@ class StudentConceptMastery:
     exposure_count: int = 0
     correct_count: int = 0
     error_count: int = 0
+    hint_count: int = 0
     last_practiced: str = ''
     next_review_at: str = ''
     difficulty_level: float = 0.5
+    learning_status: str = 'NEW'
 
     def to_dict(self) -> dict:
         return {
@@ -49,9 +51,11 @@ class StudentConceptMastery:
             'exposure_count': self.exposure_count,
             'correct_count': self.correct_count,
             'error_count': self.error_count,
+            'hint_count': self.hint_count,
             'last_practiced': self.last_practiced,
             'next_review_at': self.next_review_at,
             'difficulty_level': self.difficulty_level,
+            'learning_status': self.learning_status,
         }
 
 
@@ -237,11 +241,22 @@ class TutorStateManager:
                 );
             ''')
 
+        def student_learning_state_v2(c):
+            try:
+                c.execute('ALTER TABLE student_concept_mastery ADD COLUMN hint_count INTEGER DEFAULT 0;')
+            except Exception:
+                pass
+            try:
+                c.execute("ALTER TABLE student_concept_mastery ADD COLUMN learning_status TEXT DEFAULT 'NEW';")
+            except Exception:
+                pass
+
         migrations = {
             200: ('initial_tutor_state_schema', initial_schema),
             201: ('student_learning_state_v1', student_learning_state_v1),
             202: ('assessment_engine_v1', assessment_engine_v1),
             203: ('turn_lifecycle_v1', turn_lifecycle_v1),
+            204: ('student_learning_state_v2', student_learning_state_v2),
         }
 
         run_migrations(conn, migrations)
@@ -301,6 +316,7 @@ class TutorStateManager:
         if not row:
             return StudentConceptMastery(student_id=student_id, concept_id=concept_id)
 
+        keys = row.keys()
         return StudentConceptMastery(
             student_id=row['student_id'],
             concept_id=row['concept_id'],
@@ -309,9 +325,11 @@ class TutorStateManager:
             exposure_count=row['exposure_count'],
             correct_count=row['correct_count'],
             error_count=row['error_count'],
+            hint_count=row['hint_count'] if 'hint_count' in keys else 0,
             last_practiced=row['last_practiced'],
             next_review_at=row['next_review_at'],
             difficulty_level=row['difficulty_level'],
+            learning_status=row['learning_status'] if 'learning_status' in keys else 'NEW',
         )
 
     def record_learning_event(self, event: LearningEvent) -> bool:
@@ -349,6 +367,7 @@ class TutorStateManager:
             new_exposure = current.exposure_count + 1
             new_correct = current.correct_count + (1 if event.correctness == 'correct' else 0)
             new_error = current.error_count + (1 if event.correctness == 'incorrect' else 0)
+            new_hints = current.hint_count + (1 if event.hint_used > 0 else 0)
 
             # Master delta rules
             if event.correctness == 'correct':
@@ -361,23 +380,30 @@ class TutorStateManager:
             new_mastery = max(0.0, min(1.0, current.mastery + delta))
             new_confidence = min(1.0, current.confidence + 0.1)
 
+            from core.learning.progress import get_status_label
+            from core.learning.scheduler import SpacedReviewScheduler
+            is_due = SpacedReviewScheduler().is_review_due(current.next_review_at)
+            new_status = get_status_label(new_mastery, new_exposure, is_due)
+
             self.conn.execute('''
                 INSERT INTO student_concept_mastery (
                     student_id, concept_id, mastery, confidence, exposure_count,
-                    correct_count, error_count, last_practiced, next_review_at, difficulty_level
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    correct_count, error_count, hint_count, last_practiced, next_review_at, difficulty_level, learning_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(student_id, concept_id) DO UPDATE SET
                     mastery = excluded.mastery,
                     confidence = excluded.confidence,
                     exposure_count = excluded.exposure_count,
                     correct_count = excluded.correct_count,
                     error_count = excluded.error_count,
+                    hint_count = excluded.hint_count,
                     last_practiced = excluded.last_practiced,
-                    difficulty_level = excluded.difficulty_level
+                    difficulty_level = excluded.difficulty_level,
+                    learning_status = excluded.learning_status
             ''', (
                 event.student_id, event.concept_id, new_mastery, new_confidence,
-                new_exposure, new_correct, new_error, event.timestamp or datetime.now().isoformat(),
-                current.next_review_at, event.difficulty
+                new_exposure, new_correct, new_error, new_hints, event.timestamp or datetime.now().isoformat(),
+                current.next_review_at, event.difficulty, new_status
             ))
 
             return True

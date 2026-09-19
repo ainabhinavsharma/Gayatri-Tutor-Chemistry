@@ -1,7 +1,7 @@
 """Gayatri AI - Phase 1 Acceptance Test Suite.
 
 Tests student-scoped learning state isolation, append-only learning events,
-turn IDs, idempotency, and mode isolation invariants.
+turn IDs, idempotency, mode isolation invariants, and migration 204 fields.
 """
 
 import pytest
@@ -132,3 +132,21 @@ def test_session_does_not_reset_mastery(tutor_mgr):
     mastery_session_2 = tutor_mgr.get_student_concept_mastery("student_persisted", "chem_thermo_gibbs")
     assert mastery_session_2.exposure_count == 2
     assert mastery_session_2.mastery > mastery_session_1.mastery
+
+
+def test_hint_count_and_learning_status_persistence(tutor_mgr):
+    '''Phase 1 Re-audit: Verify hint_count and learning_status persistence via migration 204.'''
+    event_hint = LearningEvent(
+        event_id="evt_hint_01",
+        student_id="student_h1",
+        session_id="sess_h1",
+        turn_id="turn_h1",
+        concept_id="thermo.enthalpy",
+        correctness="correct",
+        hint_used=1,
+    )
+    tutor_mgr.record_learning_event(event_hint)
+
+    mastery = tutor_mgr.get_student_concept_mastery("student_h1", "thermo.enthalpy")
+    assert mastery.hint_count == 1
+    assert mastery.learning_status == "LEARNING"
