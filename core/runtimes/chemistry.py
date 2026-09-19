@@ -111,7 +111,14 @@ class ChemistryTutorRuntime:
                 msgs = _build_messages(system, user_message, getattr(context, "history", None))
                 return get_inference_service().stream_chat(msgs, max_tokens=600)
 
-            # 2. Intent Classification & State Machine Transition
+            # 2. Dynamic Concept & Topic Resolution (Phase 3 P3-T01 to P3-T04)
+            from core.curriculum.resolver import ConceptResolver
+            active_concept_id = getattr(context, "active_concept_id", "") if context else ""
+            resolved = ConceptResolver.resolve_concept(user_message, active_concept_id=active_concept_id)
+            if context and hasattr(context, "active_concept_id"):
+                setattr(context, "active_concept_id", resolved.concept_id)
+
+            # Intent Classification & State Machine Transition
             intent = TutorIntentClassifier.classify(user_message)
             if intent == TutorIntent.SOLVE:
                 self.state_machine.transition_to(TutorState.EXPLAINING)
@@ -121,9 +128,9 @@ class ChemistryTutorRuntime:
                 policy_directive = NumericalPolicy.get_directive()
             elif intent in (TutorIntent.EXPLAIN, TutorIntent.LEARN):
                 self.state_machine.transition_to(TutorState.EXPLAINING)
-                policy_directive = ExplanationPolicy.get_directive("Thermodynamics", "General", "medium")
+                policy_directive = ExplanationPolicy.get_directive(resolved.topic, resolved.subtopic, "medium")
             else:
-                policy_directive = ExplanationPolicy.get_directive("Chemistry", "General", "medium")
+                policy_directive = ExplanationPolicy.get_directive(resolved.topic, resolved.subtopic, "medium")
 
             # 3. Student Answer Evaluation if checking or evaluating
             eval_result = StudentAnswerEvaluator.evaluate(user_message)
@@ -131,7 +138,7 @@ class ChemistryTutorRuntime:
 
             # 4. Memory summary block
             memory = TutorMemoryManager.build_memory(
-                topic="Thermodynamics",
+                topic=resolved.topic,
                 mastery=eval_result.confidence,
                 difficulty=adaptation.target_difficulty,
             )
