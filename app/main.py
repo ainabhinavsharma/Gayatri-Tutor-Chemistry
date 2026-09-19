@@ -22,7 +22,16 @@ def main():
     window = MainWindow()
     window.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
     window.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+
+    # Center on primary screen (frameless windows don't auto-center)
+    screen = app.primaryScreen().availableGeometry()
+    x = (screen.width() - WINDOW_WIDTH) // 2 + screen.x()
+    y = (screen.height() - WINDOW_HEIGHT) // 2 + screen.y()
+    window.move(x, y)
+
     window.show()
+    window.raise_()
+    window.activateWindow()
 
     logger.info("Gayatri AI started")
     sys.exit(app.exec())

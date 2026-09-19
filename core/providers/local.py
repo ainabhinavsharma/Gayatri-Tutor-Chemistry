@@ -67,6 +67,24 @@ def format_gemma_prompt(messages: list[dict]) -> str:
     return "".join(parts)
 
 
+def format_chatml_prompt(messages: list[dict]) -> str:
+    """Format a list of chat messages into ChatML template (Qwen2 / fine-tuned Gayatri).
+
+    Args:
+        messages: List of {"role": "system|user|assistant", "content": str}
+
+    Returns:
+        Formatted prompt string ready for ChatML-based models.
+    """
+    parts = []
+    for msg in messages:
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+        parts.append(f"<|im_start|>{role}\n{content}<|im_end|>\n")
+    parts.append("<|im_start|>assistant\n")
+    return "".join(parts)
+
+
 class LocalProvider:
     """Loads and runs a GGUF model via llama-cpp-python.
 
@@ -266,7 +284,7 @@ class LocalProvider:
         top_k = kwargs.get("top_k", DEFAULT_TOP_K)
         stop = kwargs.get("stop")
         if not stop:
-            stop = ["<end_of_turn>"]
+            stop = ["<|im_end|>", "<|endoftext|>", "<end_of_turn>"]
 
         logger.info(f"Generating: max_tokens={max_tokens}, temp={temperature}")
 
@@ -317,26 +335,11 @@ class LocalProvider:
         return _generator()
 
     @classmethod
-    def chat(cls, messages: list[dict], **kwargs) -> str:
-        """Generate a response from a list of chat messages.
-
-        Automatically formats using the Gemma 2 chat template.
-
-        Args:
-            messages: List of {"role": "system|user|assistant", "content": str}
-            **kwargs: Generation parameters (max_tokens, temperature, etc.)
-
-        Returns:
-            Full response string.
-        """
-        prompt = format_gemma_prompt(messages)
-        return cls.generate(prompt, **kwargs)
-
-    @classmethod
     def chat_stream(cls, messages: list[dict], **kwargs):
-        """Stream a response from a list of chat messages.
+        """Stream a response from a list of chat messages using native model chat template.
 
-        Automatically formats using the Gemma 2 chat template.
+        Uses model.create_chat_completion to automatically apply the GGUF model's
+        embedded Jinja chat template (supporting ChatML for Qwen2, Gemma, etc.).
 
         Args:
             messages: List of {"role": "system|user|assistant", "content": str}
@@ -345,8 +348,102 @@ class LocalProvider:
         Yields:
             Token strings.
         """
-        prompt = format_gemma_prompt(messages)
-        return cls.stream(prompt, **kwargs)
+        model = cls._load_model()
+        max_tokens = kwargs.get("max_tokens", DEFAULT_MAX_TOKENS)
+        temperature = kwargs.get("temperature", DEFAULT_TEMPERATURE)
+        top_p = kwargs.get("top_p", DEFAULT_TOP_P)
+        top_k = kwargs.get("top_k", DEFAULT_TOP_K)
+        stop = kwargs.get("stop")
+        if not stop:
+            stop = ["<|im_end|>", "<|endoftext|>", "<end_of_turn>"]
+
+        logger.info(f"Chat generating: max_tokens={max_tokens}, temp={temperature}")
+
+        def _chat_generator():
+            try:
+                import time
+                start_time = time.time()
+                first_token_time = None
+                tokens_emitted = 0
+
+                with cls._infer_lock:
+                    cls._cancel_flag = False
+                    try:
+                        stream_obj = model.create_chat_completion(
+                            messages=messages,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            top_p=top_p,
+                            top_k=top_k,
+                            stop=stop,
+                            stream=True,
+                        )
+                        for chunk in stream_obj:
+                            if cls._cancel_flag:
+                                logger.info("Local model generation cancelled by user.")
+                                break
+
+                            delta = chunk["choices"][0].get("delta", {})
+                            text = delta.get("content", "")
+                            if text:
+                                if first_token_time is None:
+                                    first_token_time = time.time()
+                                tokens_emitted += 1
+                                yield text
+                    except Exception as chat_exc:
+                        logger.warning(
+                            f"create_chat_completion failed ({chat_exc}), falling back to prompt completion"
+                        )
+                        prompt = format_chatml_prompt(messages)
+                        comp_stream = model.create_completion(
+                            prompt=prompt,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            top_p=top_p,
+                            top_k=top_k,
+                            stop=stop,
+                            stream=True,
+                        )
+                        for chunk in comp_stream:
+                            if cls._cancel_flag:
+                                logger.info("Local model generation cancelled by user.")
+                                break
+                            text = chunk["choices"][0].get("text", "")
+                            if text:
+                                if first_token_time is None:
+                                    first_token_time = time.time()
+                                tokens_emitted += 1
+                                yield text
+
+                    duration = time.time() - (first_token_time or start_time)
+                    ttft = ((first_token_time or start_time) - start_time) * 1000
+                    tps = tokens_emitted / duration if duration > 0 else 0
+                    logger.info(
+                        f"TELEMETRY: {{\"ttft_ms\": {ttft:.1f}, "
+                        f"\"generation_ms\": {duration*1000:.1f}, "
+                        f"\"output_tokens\": {tokens_emitted}, "
+                        f"\"tokens_per_second\": {tps:.1f}}}"
+                    )
+                    cls._cancel_flag = False
+            except Exception as exc:
+                logger.error(f"Chat generation failed: {exc}")
+                raise LocalModelError(f"Chat generation failed: {exc}") from exc
+
+        return _chat_generator()
+
+    @classmethod
+    def chat(cls, messages: list[dict], **kwargs) -> str:
+        """Generate a response from a list of chat messages.
+
+        Args:
+            messages: List of {"role": "system|user|assistant", "content": str}
+            **kwargs: Generation parameters (max_tokens, temperature, etc.)
+
+        Returns:
+            Full response string.
+        """
+        tokens = list(cls.chat_stream(messages, **kwargs))
+        return "".join(tokens)
 
     @classmethod
     def generate(cls, prompt: str, **kwargs) -> str:
