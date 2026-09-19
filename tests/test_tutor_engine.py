@@ -75,20 +75,20 @@ class TestPedagogicalPolicies:
 
 class TestStudentAdapterAndEvaluator:
     def test_evaluator_correct(self):
-        res = StudentAnswerEvaluator.evaluate("Yes, the answer is equal to 400 J")
+        res = StudentAnswerEvaluator.evaluate("400 J", expected_answer="400 J", question_type="numeric")
         assert res.correctness == "correct"
         assert res.confidence >= 0.7
 
     def test_evaluator_incorrect(self):
-        res = StudentAnswerEvaluator.evaluate("I have no idea about this")
+        res = StudentAnswerEvaluator.evaluate("750 J", expected_answer="400 J", question_type="numeric")
         assert res.correctness == "incorrect"
 
     def test_difficulty_adaptation(self):
-        res_correct = StudentAnswerEvaluator.evaluate("Correct 400 J")
+        res_correct = StudentAnswerEvaluator.evaluate("400 J", expected_answer="400 J", question_type="numeric")
         next_diff = DifficultyManager.calculate_next_difficulty(2, res_correct)
         assert next_diff == 3
 
-        res_incorrect = StudentAnswerEvaluator.evaluate("Wrong answer")
+        res_incorrect = StudentAnswerEvaluator.evaluate("750 J", expected_answer="400 J", question_type="numeric")
         next_diff_lower = DifficultyManager.calculate_next_difficulty(2, res_incorrect)
         assert next_diff_lower == 1
 
