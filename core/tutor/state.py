@@ -223,10 +223,25 @@ class TutorStateManager:
                 );
             ''')
 
+        def turn_lifecycle_v1(c):
+            c.executescript('''
+                CREATE TABLE IF NOT EXISTS turn_lifecycle (
+                    turn_id TEXT PRIMARY KEY,
+                    student_id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    concept_id TEXT DEFAULT '',
+                    stage TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    error_detail TEXT DEFAULT ''
+                );
+            ''')
+
         migrations = {
             200: ('initial_tutor_state_schema', initial_schema),
             201: ('student_learning_state_v1', student_learning_state_v1),
             202: ('assessment_engine_v1', assessment_engine_v1),
+            203: ('turn_lifecycle_v1', turn_lifecycle_v1),
         }
 
         run_migrations(conn, migrations)
