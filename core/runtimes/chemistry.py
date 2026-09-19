@@ -109,7 +109,7 @@ class ChemistryTutorRuntime:
                 policy_directive = OutOfDomainGuard.get_redirection_prompt(user_message)
                 system = _build_chemistry_system_prompt(self._topics or None, policy_directive=policy_directive)
                 msgs = _build_messages(system, user_message, getattr(context, "history", None))
-                return get_inference_service().stream_chat(msgs, max_tokens=300)
+                return get_inference_service().stream_chat(msgs, max_tokens=600)
 
             # 2. Intent Classification & State Machine Transition
             intent = TutorIntentClassifier.classify(user_message)
@@ -171,7 +171,7 @@ class ChemistryTutorRuntime:
                 getattr(context, "history", None),
                 dynamic_context=dynamic_ctx,
             )
-            return get_inference_service().stream_chat(msgs, max_tokens=400)
+            return get_inference_service().stream_chat(msgs, max_tokens=800)
         except Exception as exc:
             logger.error(f"ChemistryTutorRuntime.stream error: {exc}")
             raise

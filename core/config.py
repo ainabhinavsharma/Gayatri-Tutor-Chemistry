@@ -65,7 +65,7 @@ MODEL_GGUF_FILENAME: str = "gemma-2-2b-it-IQ3_M.gguf"
 
 # Inference defaults
 DEFAULT_TEMPERATURE: float = 0.7
-DEFAULT_MAX_TOKENS: int = 512
+DEFAULT_MAX_TOKENS: int = 1024
 DEFAULT_TOP_P: float = 0.9
 DEFAULT_TOP_K: int = 40
 

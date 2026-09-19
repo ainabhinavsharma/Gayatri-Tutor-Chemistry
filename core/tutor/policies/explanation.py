@@ -23,4 +23,4 @@ Follow this structure for your response:
 1. Direct Explanation: Clear NCERT-grounded definition.
 2. Intuition / Analogy: Provide a relatable physical intuition or everyday analogy.
 3. Chemistry Example: Give a specific chemical scenario or equation.
-4. Check Understanding: End with a single short question asking the student to apply the concept."""
+4. Check Understanding & Next Action: End with a single short question to apply the concept, AND offer a clear next action for the student (e.g. "Do you want to practice this, or move to the next topic?")."""

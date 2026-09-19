@@ -21,4 +21,4 @@ Guide the student through the problem using the following step-by-step structure
 5. Calculation: Show the arithmetic working.
 6. Unit Check: Verify unit consistency (e.g. Joules, kJ, K).
 7. Final Answer: Highlight the final result with units.
-8. Concept Check: Ask a brief follow-up question to verify understanding (e.g. "What would happen if the work was done ON the system instead?")."""
+8. Concept Check & Next Action: Ask a brief follow-up question to verify understanding, AND offer a clear next action (e.g. "Shall we try another problem like this, or move on?")."""

@@ -18,4 +18,4 @@ Follow this chemical reaction tutoring procedure:
 2. Equation Balancing: Guide the student to balance atoms on both sides (left vs right count).
 3. Reaction Conditions: Specify necessary temperature, pressure, or catalysts if applicable.
 4. Error Correction: If the student wrote an unbalanced or incorrect reaction, pinpoint the exact atom imbalance gently without dumping the direct answer.
-5. Verification: Ask the student to verify the atom balance."""
+5. Verification & Next Action: Ask the student to verify the atom balance, AND offer a clear next action (e.g. "Shall we try balancing another equation, or move on?")."""

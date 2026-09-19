@@ -306,6 +306,32 @@
     }
     .tab-subtitle { font-size: 12px; color: #8a8a9a; margin-top: 2px; }
 
+    
+    /* ── Action Chips for Next Actions ── */
+    .action-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip-btn {
+      background: #1a1a3a;
+      border: 1px solid #3b3b68;
+      color: #8bb5e8;
+      padding: 5px 12px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chip-btn:hover {
+      background: #e94560;
+      border-color: #e94560;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
     /* ── Courses Tab ── */
     .stats-card {
       background: #16213e;
@@ -664,11 +690,14 @@
         clearTimeout(markdownDebounceTimer);
         markdownDebounceTimer = setTimeout(updateLastMessageMarkdown, 50);
       });
+
       bridge.done.connect(function() {
         isGenerating = false;
         clearTimeout(markdownDebounceTimer);
         updateLastMessageMarkdown();
+        appendActionChips();
       });
+
       bridge.error.connect(function(msg) {
         addMessageToActive('system', 'System Notice: ' + msg);
         isGenerating = false;
@@ -945,6 +974,45 @@
         content.textContent = currentTokens.join('');
       }
       chat.scrollTop = chat.scrollHeight;
+    }
+
+    
+    function appendActionChips() {
+      if (activeMode !== 'chemistry_tutor') return;
+      var chat = document.getElementById('chat-chemistry');
+      var msgs = chat.querySelectorAll('.message.assistant');
+      var last = msgs[msgs.length - 1];
+      if (!last || last.querySelector('.action-chips')) return;
+
+      var chipsDiv = document.createElement('div');
+      chipsDiv.className = 'action-chips';
+
+      var actions = [
+        { label: '🎯 Practice Problem', prompt: 'Can you give me a practice problem on this topic?' },
+        { label: '💡 Give an Example', prompt: 'Can you explain this with a practical chemistry example?' },
+        { label: '⏩ Next Concept', prompt: 'I understand! What concept should we cover next?' },
+        { label: '❓ Ask Me a Question', prompt: 'Test my understanding with a question!' }
+      ];
+
+      actions.forEach(function(act) {
+        var btn = document.createElement('button');
+        btn.className = 'chip-btn';
+        btn.textContent = act.label;
+        btn.onclick = function() {
+          sendChipAction(act.prompt);
+          chipsDiv.remove();
+        };
+        chipsDiv.appendChild(btn);
+      });
+
+      last.appendChild(chipsDiv);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function sendChipAction(promptText) {
+      var input = document.getElementById('userInputChem');
+      input.value = promptText;
+      sendMode('chemistry_tutor');
     }
 
     // ── Window Controls ──

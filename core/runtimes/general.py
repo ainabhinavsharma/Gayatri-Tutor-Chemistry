@@ -76,7 +76,7 @@ class GeneralAssistantRuntime:
                 user_message,
                 getattr(context, "history", None),
             )
-            return get_inference_service().stream_chat(msgs, max_tokens=400)
+            return get_inference_service().stream_chat(msgs, max_tokens=800)
         except Exception as exc:
             logger.error(f"GeneralAssistantRuntime.stream error: {exc}")
             raise
