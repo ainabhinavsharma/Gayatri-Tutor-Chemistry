@@ -1,5 +1,5 @@
 """
-Core Adaptive Learning Engine module (Phase 4).
+Core Adaptive Learning Engine module (Phase 4 & Phase 5).
 Provides evidence-driven mastery calculation, difficulty policy,
 misconception tracking, spaced review scheduling, and concept selection.
 """
@@ -12,6 +12,7 @@ from core.learning.misconceptions import (
     ALL_MISCONCEPTIONS,
 )
 from core.learning.selector import ConceptSelector, ConceptSelectionResult
+from core.learning.scheduler import SpacedReviewScheduler, ReviewScheduleResult
 
 __all__ = [
     "MasteryCalculator",
@@ -24,4 +25,6 @@ __all__ = [
     "ALL_MISCONCEPTIONS",
     "ConceptSelector",
     "ConceptSelectionResult",
+    "SpacedReviewScheduler",
+    "ReviewScheduleResult",
 ]
