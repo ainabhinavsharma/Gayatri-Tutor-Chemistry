@@ -1,19 +1,19 @@
 project: Gayatri Tutor Chemistry
 status: IN_PROGRESS
 
-current_phase: 7
-current_task: P7-T01
+current_phase: 8
+current_task: P8-T01
 
-last_completed_task: P6-T04
-last_verified_commit: "c20cf1d"
+last_completed_task: P7-T04
+last_verified_commit: "9e8e920"
 
 baseline:
   python_version: "3.12.10"
   os: "Windows-11"
-  git_commit: "c20cf1d"
+  git_commit: "9e8e920"
   branch: "main"
   test_command: "pytest"
-  tests_passed: 341
+  tests_passed: 343
   tests_failed: 0
   tests_skipped: 20
 
@@ -25,8 +25,8 @@ phases:
   phase_4_adaptive_engine: DONE
   phase_5_spaced_review: DONE
   phase_6_assessment: DONE
-  phase_7_rag: IN_PROGRESS
-  phase_8_state_machine: TODO
+  phase_7_rag: DONE
+  phase_8_state_machine: IN_PROGRESS
   phase_9_progress: TODO
   phase_10_reliability: TODO
   phase_11_curriculum_validation: TODO
@@ -48,11 +48,11 @@ critical_bugs:
 
 last_session:
   date: "2026-09-19"
-  summary: "Completed Phase 6: Assessment Engine. Updated schema migration 202, implemented core/assessment/manager.py, and added unit tests (341 passed)."
-  files_changed: ["core/tutor/state.py", "core/assessment/manager.py", "tests/test_phase6_assessment_engine.py", "PROGRESS_TRACKER.yaml"]
-  tests_run: ["pytest tests/test_phase6_assessment_engine.py", "pytest tests/"]
-  tests_passed: [1, 341]
+  summary: "Completed Phase 7: NCERT RAG and Evidence Control. Updated schema.py and retriever.py for concept-aware retrieval, provenance priority, and observable RAG status (343 passed)."
+  files_changed: ["core/rag/schema.py", "core/rag/retriever.py", "tests/test_phase7_rag.py", "PROGRESS_TRACKER.yaml"]
+  tests_run: ["pytest tests/test_phase7_rag.py", "pytest tests/"]
+  tests_passed: [2, 343]
   tests_failed: []
   blockers: []
 
-next_action: "Execute Phase 7: NCERT RAG and Evidence Control (P7-T01 Concept-aware retrieval, P7-T02 Source provenance, P7-T03 Source priority, P7-T04 RAG failure handling)."
+next_action: "Execute Phase 8: Tutor State Machine Integration (P8-T01 State transitions: DISCOVERING -> EXPLAINING -> EXAMPLE -> CHECKING -> EVALUATING -> REMEDIATING / PRACTICING -> COMPLETED)."

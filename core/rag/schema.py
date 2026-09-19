@@ -1,7 +1,7 @@
-"""Gayatri AI — RAG Data Schemas.
+"""Gayatri AI — RAG Data Schemas (Phase 7).
 
 Defines schemas for NCERT source metadata, document chunks, retrieval results,
-and citations.
+source provenance, citations, and observable RAG status.
 """
 from __future__ import annotations
 
@@ -14,6 +14,12 @@ class ConfidenceLevel(str, Enum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
+
+
+class RAGStatus(str, Enum):
+    RAG_STATUS_OK = "RAG_STATUS_OK"
+    RAG_STATUS_EMPTY = "RAG_STATUS_EMPTY"
+    RAG_STATUS_ERROR = "RAG_STATUS_ERROR"
 
 
 @dataclass
@@ -45,7 +51,7 @@ class SourceMetadata:
 
 @dataclass
 class DocumentChunk:
-    """A granular chunk of an NCERT document preserved with metadata."""
+    """A granular chunk of an NCERT document preserved with metadata and provenance (P7-T02)."""
     chunk_id: str
     source_id: str
     chapter: str
@@ -54,6 +60,7 @@ class DocumentChunk:
     page: int
     text: str
     embedding_id: str = ""
+    provenance_type: str = "NCERT"  # "NCERT", "TRUSTED_CURRICULUM", "FALLBACK"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -65,29 +72,33 @@ class DocumentChunk:
             "page": self.page,
             "text": self.text,
             "embedding_id": self.embedding_id,
+            "provenance_type": self.provenance_type,
         }
 
 
 @dataclass
 class RetrievalResult:
-    """Result of a RAG query lookup."""
+    """Result of a RAG query lookup with score and provenance (P7-T02 & P7-T03)."""
     chunk: DocumentChunk
     score: float
     confidence: ConfidenceLevel
 
     def citation(self) -> str:
-        return f"[NCERT {self.chunk.chapter}, Topic: {self.chunk.topic} (p. {self.chunk.page})]"
+        prov = self.chunk.provenance_type
+        return f"[{prov} {self.chunk.chapter}, Topic: {self.chunk.topic} (p. {self.chunk.page})]"
 
 
 @dataclass
 class RAGContext:
-    """Structured context ready for LLM prompt injection."""
+    """Structured context ready for LLM prompt injection with observable RAG status (P7-T04)."""
     query: str
     results: list[RetrievalResult] = field(default_factory=list)
     confidence: ConfidenceLevel = ConfidenceLevel.LOW
+    status: RAGStatus = RAGStatus.RAG_STATUS_OK
+    error_message: str = ""
 
     def formatted_evidence(self) -> str:
-        if not self.results or self.confidence == ConfidenceLevel.LOW:
+        if self.status != RAGStatus.RAG_STATUS_OK or not self.results or self.confidence == ConfidenceLevel.LOW:
             return ""
         evidence_lines = ["--- AUTHORITATIVE NCERT EVIDENCE ---"]
         for idx, res in enumerate(self.results, 1):
