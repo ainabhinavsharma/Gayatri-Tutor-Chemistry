@@ -16,10 +16,10 @@ logger = logging.getLogger("gayatri.inference.service")
 class ModelConfig:
     """Configuration for local model engine."""
     provider: str = "local"
-    family: str = "qwen2.5"
-    model_id: str = "qwen2.5-1.5b-instruct-gguf"
+    family: str = "gayatri-tutor"
+    model_id: str = "Gayatri-Tutor-v3-Q4_K_M"
     quantization: str = "Q4_K_M"
-    context_length: int = 4096
+    context_length: int = 8192
 
 
 class InferenceService:

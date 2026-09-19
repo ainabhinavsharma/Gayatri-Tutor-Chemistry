@@ -393,11 +393,12 @@ class Bridge(QObject):
         """Return local model status as JSON."""
         try:
             from core.providers.local import LocalProvider
+            from core.config import LOCAL_MODEL_FILE
             health = LocalProvider.health()
 
             status = {
                 "installed": health["available"],
-                "name": "gemma-2-2b-it",
+                "name": LOCAL_MODEL_FILE.replace(".gguf", ""),
                 "provider": "local",
                 "reason_code": health["reason_code"],
                 "message": health["message"],

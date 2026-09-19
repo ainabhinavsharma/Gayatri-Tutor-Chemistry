@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from core.config import DB_PATH
-from core.db import get_safe_db_connection, run_migrations
+from core.db import get_safe_db_connection
 from core.rag.schema import DocumentChunk, SourceMetadata
 
 logger = logging.getLogger("gayatri.rag.store")
@@ -39,9 +39,8 @@ class RAGStore:
 
     def _create_schema(self) -> None:
         conn = self.conn
-
-        def initial_rag_schema(c):
-            c.executescript("""
+        with conn:
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS rag_sources (
                     source_id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -66,11 +65,6 @@ class RAGStore:
                     FOREIGN KEY (source_id) REFERENCES rag_sources(source_id) ON DELETE CASCADE
                 );
             """)
-
-        migrations = {
-            1: ("initial_rag_schema", initial_rag_schema),
-        }
-        run_migrations(conn, migrations)
 
     def add_source(self, source: SourceMetadata) -> None:
         """Insert or replace a source document metadata record."""

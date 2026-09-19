@@ -31,7 +31,7 @@ class TestPromptContractLoader:
 class TestInferenceService:
     def test_inference_service_config(self):
         service = get_inference_service()
-        assert service.config.family == "qwen2.5"
+        assert service.config.family == "gayatri-tutor"
         assert service.config.provider == "local"
 
     def test_custom_model_config(self):
