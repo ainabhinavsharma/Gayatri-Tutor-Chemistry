@@ -52,7 +52,7 @@ for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR):
 # Primary local model (fine-tuned GGUF)
 # Place your downloaded GGUF file in MODELS_DIR and set LOCAL_MODEL_FILE to match the filename
 # Training notebook outputs: gayatri-Q4_K_M.gguf (~500MB, Q4_K_M quantized gemma-2-2b-it)
-LOCAL_MODEL_FILE: str = "gemma-2-2b-it-IQ3_M.gguf"
+LOCAL_MODEL_FILE: str = "Gayatri-Tutor-v3-Q4_K_M.gguf"
 _PROJECT_MODEL_DIR: Path = BASE_DIR / "GayatriAI" / "models" / "gayatri"
 LOCAL_MODEL_DIR: Path = _PROJECT_MODEL_DIR if (_PROJECT_MODEL_DIR / LOCAL_MODEL_FILE).exists() and not (MODELS_DIR / LOCAL_MODEL_FILE).exists() else MODELS_DIR
 
