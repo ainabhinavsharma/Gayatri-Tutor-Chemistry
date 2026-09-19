@@ -1,6 +1,7 @@
-"""Gayatri AI — Tutor State Machine.
+"""Gayatri AI — Tutor State Machine (Phase 8).
 
-Defines explicit tutoring lifecycle states and valid state transitions.
+Defines explicit tutoring lifecycle states, valid state transitions,
+and adaptive state routing based on evaluation & evidence persistence.
 """
 from __future__ import annotations
 
@@ -28,19 +29,19 @@ class TutorState(str, Enum):
 VALID_TRANSITIONS: dict[TutorState, set[TutorState]] = {
     TutorState.IDLE: {TutorState.DISCOVERING, TutorState.EXPLAINING, TutorState.PRACTICING, TutorState.ASSESSING},
     TutorState.DISCOVERING: {TutorState.EXPLAINING, TutorState.PRACTICING, TutorState.IDLE},
-    TutorState.EXPLAINING: {TutorState.EXAMPLE, TutorState.CHECKING, TutorState.EVALUATING},
+    TutorState.EXPLAINING: {TutorState.EXAMPLE, TutorState.CHECKING, TutorState.EVALUATING, TutorState.PRACTICING, TutorState.COMPLETED},
     TutorState.EXAMPLE: {TutorState.CHECKING, TutorState.EVALUATING, TutorState.PRACTICING},
-    TutorState.CHECKING: {TutorState.EVALUATING, TutorState.EXPLAINING},
-    TutorState.EVALUATING: {TutorState.REMEDIATING, TutorState.PRACTICING, TutorState.COMPLETED, TutorState.EXPLAINING},
-    TutorState.REMEDIATING: {TutorState.EXPLAINING, TutorState.EXAMPLE, TutorState.CHECKING},
-    TutorState.PRACTICING: {TutorState.CHECKING, TutorState.EVALUATING, TutorState.COMPLETED, TutorState.IDLE},
+    TutorState.CHECKING: {TutorState.EVALUATING, TutorState.EXPLAINING, TutorState.REMEDIATING, TutorState.PRACTICING},
+    TutorState.EVALUATING: {TutorState.REMEDIATING, TutorState.PRACTICING, TutorState.COMPLETED, TutorState.EXPLAINING, TutorState.CHECKING},
+    TutorState.REMEDIATING: {TutorState.EXPLAINING, TutorState.EXAMPLE, TutorState.CHECKING, TutorState.EVALUATING, TutorState.PRACTICING},
+    TutorState.PRACTICING: {TutorState.CHECKING, TutorState.EVALUATING, TutorState.COMPLETED, TutorState.IDLE, TutorState.REMEDIATING},
     TutorState.ASSESSING: {TutorState.EVALUATING, TutorState.COMPLETED, TutorState.IDLE},
     TutorState.COMPLETED: {TutorState.IDLE, TutorState.DISCOVERING, TutorState.EXPLAINING, TutorState.PRACTICING},
 }
 
 
 class TutorStateMachine:
-    """Manages explicit tutor state transitions for a session."""
+    """Manages explicit tutor state transitions and adaptive progression rules for a session."""
 
     def __init__(self, current_state: TutorState = TutorState.IDLE):
         self._state = current_state
@@ -63,3 +64,38 @@ class TutorStateMachine:
             )
             self._state = TutorState.EXPLAINING
             return False
+
+    def evaluate_next_state(
+        self,
+        correctness: str,
+        mastery: float,
+        misconception_code: str = "",
+        is_assessment: bool = False,
+    ) -> TutorState:
+        """Evidence-driven state router (P8-T01)."""
+        if is_assessment:
+            next_st = TutorState.COMPLETED if mastery >= 0.85 else TutorState.ASSESSING
+            self.transition_to(next_st)
+            return self._state
+
+        if correctness == "incorrect":
+            if misconception_code:
+                next_st = TutorState.REMEDIATING
+            else:
+                next_st = TutorState.EXPLAINING
+        elif correctness == "partially_correct":
+            next_st = TutorState.PRACTICING
+        elif correctness == "correct":
+            if mastery >= 0.85:
+                next_st = TutorState.COMPLETED
+            else:
+                next_st = TutorState.PRACTICING
+        else:  # uncertain
+            next_st = TutorState.CHECKING
+
+        self.transition_to(next_st)
+        return self._state
+
+    def is_hint_allowed(self) -> bool:
+        """Assessment mode suppresses unnecessary hints."""
+        return self._state != TutorState.ASSESSING
