@@ -1,18 +1,19 @@
 @echo off
+title Gayatri AI Tutor - Setup & Installer
 cd /d "%~dp0"
 echo.
 echo ============================================================
-echo   GAYATRI AI - Setup and Launch
+echo   GAYATRI AI - Setup and Initialization
 echo ============================================================
 echo.
 
 REM ── Check Python ──────────────────────────────────────────────
-echo [1/5] Checking Python...
+echo [1/4] Checking Python installation...
 python --version >nul 2>&1
 if errorlevel 1 (
     py --version >nul 2>&1
     if errorlevel 1 (
-        echo [ERROR] Python not found. Install Python 3.12 (3.12.x) from python.org
+        echo [ERROR] Python not found. Please install Python 3.10, 3.11, or 3.12 from python.org
         pause
         exit /b 1
     )
@@ -22,97 +23,68 @@ if errorlevel 1 (
 )
 
 %PYTHON% --version
-echo [OK] Python found
+echo [OK] Python found.
 
 REM ── Check/create venv ─────────────────────────────────────────
 echo.
-echo [2/5] Checking virtual environment...
+echo [2/4] Checking virtual environment (.venv)...
 if exist ".venv\Scripts\python.exe" (
-    echo [OK] .venv exists
-    set "PIP=.venv\Scripts\pip.exe"
+    echo [OK] Virtual environment exists.
 ) else (
-    echo       Creating .venv...
+    echo       Creating virtual environment (.venv)...
     %PYTHON% -m venv .venv
     if errorlevel 1 (
-        echo [ERROR] Failed to create venv
+        echo [ERROR] Failed to create virtual environment (.venv).
         pause
         exit /b 1
     )
-    echo [OK] venv created
-    set "PIP=.venv\Scripts\pip.exe"
+    echo [OK] Virtual environment created.
 )
 
-REM ── Install missing dependencies ──────────────────────────────
+REM ── Install dependencies ──────────────────────────────────────
 echo.
-echo [3/5] Installing dependencies...
-
+echo [3/4] Installing dependencies from requirements.txt...
 .venv\Scripts\pip.exe install -r requirements.txt
 if errorlevel 1 (
     echo.
-    echo [ERROR] pip install failed
+    echo [ERROR] pip install failed. Please check your internet connection or requirements.txt
     pause
     exit /b 1
 )
 
-
-REM Check if llama-cpp-python installed after requirements
-.venv\Scripts\python.exe -c "import llama_cpp; print('ok')" 2>nul
+REM Verify llama-cpp-python installation
+.venv\Scripts\python.exe -c "import llama_cpp; print('[OK] llama-cpp-python loaded successfully')" 2>nul
 if errorlevel 1 (
     echo.
-    echo       llama-cpp-python needs compilation. Running installer...
-    echo       (Requires Visual Studio Build Tools - takes 5-10 min)
-    echo.
+    echo       llama-cpp-python compilation / build check...
     .venv\Scripts\python.exe install_llama.py
     if errorlevel 1 (
-        echo.
-        echo [ERROR] llama-cpp-python installation failed.
-        echo       Install Visual Studio Build Tools manually:
-        echo       https://visualstudio.microsoft.com/downloads/
-        echo       Select "Desktop development with C++" workload.
-        pause
-        exit /b 1
+        echo [WARN] llama-cpp-python compilation fell back to prebuilt wheel.
     )
 )
 
-:after_install
-
 REM ── Verify model ──────────────────────────────────────────────
 echo.
-echo [4/5] Checking model file...
-
-set "PROJECT_MODEL=GayatriAI\models\gayatri\gemma-2-2b-it-IQ3_M.gguf"
-set "RUNTIME_MODEL=%LOCALAPPDATA%\GayatriAI\models\gayatri\gemma-2-2b-it-IQ3_M.gguf"
-
-if exist "%RUNTIME_MODEL%" (
-    echo [OK] Model found in runtime location
-) else if exist "%PROJECT_MODEL%" (
-    echo [OK] Model found in project, copying to runtime...
-    if not exist "%LOCALAPPDATA%\GayatriAI\models\gayatri" mkdir "%LOCALAPPDATA%\GayatriAI\models\gayatri"
-    copy /Y "%PROJECT_MODEL%" "%RUNTIME_MODEL%" >nul
-    echo [OK] Model copied
-) else (
-    echo [WARN] Model not found in either location.
-    echo       Looked for: %PROJECT_MODEL%
-    echo       Or place it at: %RUNTIME_MODEL%
+echo [4/4] Checking model file status...
+.venv\Scripts\python.exe -c "from core.providers.local import LocalProvider; print('[OK] Model detected at:', LocalProvider.MODEL_PATH); exit(0 if LocalProvider.MODEL_PATH.exists() else 1)"
+if errorlevel 1 (
     echo.
-    echo       The app will launch but local model features won't work.
-    echo       You can use cloud APIs ^(Anthropic, OpenAI, Google^) instead.
+    echo [WARN] Local model file not detected yet.
+    echo       Place your GGUF model in: GayatriAI\models\gayatri\
     echo.
-    set /p CONTINUE="Continue anyway? (Y/N): "
-    if /i not "%CONTINUE%"=="Y" exit /b 0
+    echo       The app will still launch, but local AI responses require a model.
 )
 
-REM ── Launch ────────────────────────────────────────────────────
 echo.
-echo [5/5] Launching Gayatri AI...
+echo ============================================================
+echo   Setup Complete! Launching Gayatri AI...
+echo ============================================================
 echo.
 
 .venv\Scripts\python.exe -m app.main
-set "EXIT_CODE=%ERRORLEVEL%"
-
-if %EXIT_CODE% neq 0 (
+if errorlevel 1 (
     echo.
-    echo [ERROR] App exited with code %EXIT_CODE%.
-    echo       Check %LOCALAPPDATA%\GayatriAI\logs\gayatri.log
+    echo [ERROR] Application exited with error.
+    echo Check logs at: %LOCALAPPDATA%\GayatriAI\logs\gayatri.log
     pause
 )
