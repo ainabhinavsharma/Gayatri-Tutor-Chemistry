@@ -1,19 +1,19 @@
 project: Gayatri Tutor Chemistry
 status: IN_PROGRESS
 
-current_phase: 4
-current_task: P4-T01
+current_phase: 5
+current_task: P5-T01
 
-last_completed_task: P3-T04
-last_verified_commit: "31f33a75a287955513d6aeb9a19c72e2aa8780ad"
+last_completed_task: P4-T04
+last_verified_commit: "dd1655e"
 
 baseline:
   python_version: "3.12.10"
   os: "Windows-11"
-  git_commit: "31f33a75a287955513d6aeb9a19c72e2aa8780ad"
+  git_commit: "dd1655e"
   branch: "main"
   test_command: "pytest"
-  tests_passed: 331
+  tests_passed: 336
   tests_failed: 0
   tests_skipped: 20
 
@@ -22,8 +22,8 @@ phases:
   phase_1_learning_state: DONE
   phase_2_evaluator: DONE
   phase_3_concept_resolution: DONE
-  phase_4_adaptive_engine: IN_PROGRESS
-  phase_5_spaced_review: TODO
+  phase_4_adaptive_engine: DONE
+  phase_5_spaced_review: IN_PROGRESS
   phase_6_assessment: TODO
   phase_7_rag: TODO
   phase_8_state_machine: TODO
@@ -35,12 +35,12 @@ phases:
   phase_14_documentation: TODO
 
 critical_bugs:
-  P0-01: CONFIRMED
+  P0-01: RESOLVED
   P0-02: RESOLVED
   P0-03: RESOLVED
   P0-04: RESOLVED
-  P0-05: CONFIRMED
-  P0-06: CONFIRMED
+  P0-05: RESOLVED
+  P0-06: RESOLVED
   P0-07: CONFIRMED
   P0-08: CONFIRMED
   P0-09: RESOLVED
@@ -48,11 +48,11 @@ critical_bugs:
 
 last_session:
   date: "2026-09-19"
-  summary: "Completed Phase 3: Concept & Topic Resolution. Created ConceptResolver, removed hardcoded Thermodynamics/General defaults from runtime prompt construction, and added unit tests (331 passed)."
-  files_changed: ["core/curriculum/resolver.py", "core/runtimes/chemistry.py", "tests/test_phase3_concept_resolution.py", "PROGRESS_TRACKER.yaml"]
-  tests_run: ["pytest tests/test_phase3_concept_resolution.py", "pytest tests/"]
-  tests_passed: [5, 331]
+  summary: "Completed Phase 4: Adaptive Learning Engine. Created core/learning package (mastery, policy, misconceptions, selector) and added unit test suite (336 passed)."
+  files_changed: ["core/learning/__init__.py", "core/learning/mastery.py", "core/learning/policy.py", "core/learning/misconceptions.py", "core/learning/selector.py", "tests/test_phase4_adaptive_engine.py", "PROGRESS_TRACKER.yaml"]
+  tests_run: ["pytest tests/test_phase4_adaptive_engine.py", "pytest tests/"]
+  tests_passed: [5, 336]
   tests_failed: []
   blockers: []
 
-next_action: "Execute Phase 4: Adaptive Learning Engine (P4-T01 Mastery engine, P4-T02 Difficulty policy, P4-T03 Misconceptions, P4-T04 Concept selector)."
+next_action: "Execute Phase 5: Spaced Review (P5-T01 Review schedule, P5-T02 Initial intervals, P5-T03 Adaptive intervals, P5-T04 Retention requirement)."
