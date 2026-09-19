@@ -1,19 +1,19 @@
 project: Gayatri Tutor Chemistry
 status: IN_PROGRESS
 
-current_phase: 11
-current_task: P11-T01
+current_phase: 12
+current_task: P12-T01
 
-last_completed_task: P10-T03
-last_verified_commit: "81f054f"
+last_completed_task: P11-T04
+last_verified_commit: "264269a"
 
 baseline:
   python_version: "3.12.10"
   os: "Windows-11"
-  git_commit: "81f054f"
+  git_commit: "264269a"
   branch: "main"
   test_command: "pytest"
-  tests_passed: 350
+  tests_passed: 355
   tests_failed: 0
   tests_skipped: 20
 
@@ -29,8 +29,8 @@ phases:
   phase_8_state_machine: DONE
   phase_9_progress: DONE
   phase_10_reliability: DONE
-  phase_11_curriculum_validation: IN_PROGRESS
-  phase_12_security: TODO
+  phase_11_curriculum_validation: DONE
+  phase_12_security: IN_PROGRESS
   phase_13_model_config: TODO
   phase_14_documentation: TODO
 
@@ -48,11 +48,11 @@ critical_bugs:
 
 last_session:
   date: "2026-09-19"
-  summary: "Completed Phase 10: Reliability, Concurrency and Recovery. Added migration 203, created core/tutor/lifecycle.py TurnLifecycleManager, and added unit tests (350 passed)."
-  files_changed: ["core/tutor/state.py", "core/tutor/lifecycle.py", "tests/test_phase10_reliability.py", "PROGRESS_TRACKER.yaml"]
-  tests_run: ["pytest tests/test_phase10_reliability.py", "pytest tests/"]
-  tests_passed: [2, 350]
+  summary: "Completed Phase 11: Curriculum Validation. Created core/curriculum/validator.py DAG validator and added unit tests (355 passed)."
+  files_changed: ["core/curriculum/validator.py", "tests/test_phase11_curriculum_validation.py", "PROGRESS_TRACKER.yaml"]
+  tests_run: ["pytest tests/test_phase11_curriculum_validation.py", "pytest tests/"]
+  tests_passed: [5, 355]
   tests_failed: []
   blockers: []
 
-next_action: "Execute Phase 11: Curriculum Validation (P11-T01 Structural curriculum validation: cycles, duplicate concept IDs, missing prerequisites, orphan concepts)."
+next_action: "Execute Phase 12: Security and Data Isolation (P12-T01 Student ID authorization, P12-T02 Cross-student progress access prevention, P12-T03 Log credential sanitization)."
