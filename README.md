@@ -1,94 +1,166 @@
-# Gayatri Tutor V3 🎓
+# Gayatri Chemistry Tutor --- Adaptive AI Learning Platform
 
-> **A Next-Generation, Local-First Agentic AI Platform**  
-> *Developed with pride under the [DBERT Internship Program](https://dbert.online)*
+[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Build & Tests](https://img.shields.io/badge/tests-361%20passed-brightgreen.svg)]()
 
-Gayatri Tutor V3 is an advanced, local-first desktop application designed to revolutionize personalized learning and AI assistance. By combining a locally-hosted fine-tuned Large Language Model (LLM) with a sophisticated agentic architecture, it provides an intelligent and privacy-controlled learning environment.
+**Gayatri Chemistry Tutor** is an evidence-driven, NCERT-aligned adaptive AI tutoring system for High School & Entrance Exam Chemistry (specifically focused on **Thermodynamics** and **Inorganic Chemistry**).
 
-This project was built from the ground up to demonstrate how specialized AI agents, orchestrated by a central locally-running brain, can securely tutor students, execute complex tools, and seamlessly bridge local inference with cloud APIs when needed.
-
----
-
-## 🌟 What This Project Does
-
-- **Intelligent Orchestration:** A central local LLM routes user requests to specialized AI agents (e.g., Code Reviewer, Math Tutor, General Assistant) based on context and need.
-- **Privacy Controlled by Design:** The app supports precise data boundary control:
-  - **Local-Only Mode (Default):** All primary inference happens entirely on your local machine using quantized GGUF models. Conversation content stays on-device except for explicitly invoked local dependencies.
-  - **Cloud-Allowed Mode:** User-approved provider calls may transmit submitted content according to the provider's policy.
-- **Interactive Tutoring Engine:** Tracks student mastery over concepts using a Learning Dependency Graph and adapts responses dynamically to foster actual learning rather than just providing answers.
-- **Beautiful & Native Desktop UI:** Built using PySide6 and a modern WebEngine front-end, bridging smooth web technologies with robust Python backend logic.
+Unlike generic LLM wrappers, Gayatri Tutor pairs a neural language model with a **deterministic adaptive learning engine**, persistent student mastery tracking, structured answer evaluation, concept-aware RAG, and isolated conversation states.
 
 ---
 
-## 🚀 Getting Started
+## Key Capabilities & Architecture
 
-Follow these steps to set up the project on your local Windows machine.
+```text
+             ┌─────────────────────────┐
+             │                         │
+             v                         │
+       Student Evidence                │
+             │                         │
+             v                         │
+      Answer Evaluation                │
+             │                         │
+             v                         │
+       Learning Event                  │
+             │                         │
+             v                         │
+      Student Mastery State            │
+             │                         │
+             v                         │
+   Adaptive Policy / Scheduler         │
+             │                         │
+             v                         │
+       Next Learning Action            │
+             │                         │
+             v                         │
+        Tutor Response                 │
+             │                         │
+             └─────────────────────────┘
+```
+
+1. **Student-Scoped Learning State (`core/tutor/state.py`)**
+   - Separate global curriculum definitions from student mastery (`student_concept_mastery`).
+   - Append-only evidence logs (`learning_events`) with unique turn IDs (`turn_id`) and idempotency checks.
+   - Complete isolation between students (Student A cannot access or mutate Student B data).
+   - Strict separation between **General Assistant** conversation history and **Chemistry Tutor** mastery state.
+
+2. **Structured Chemistry Answer Evaluator (`core/tutor/evaluator.py`)**
+   - Zero keyword matching fallbacks (`["yes", "400"]` deleted).
+   - Deterministic evaluators for MCQ, numeric tolerances (with unit checks), formula/reaction normalization.
+   - Returns structured `EvaluationResult` with `correct`, `partially_correct`, `incorrect`, or `uncertain` confidence states.
+
+3. **Adaptive Learning Engine (`core/learning/`)**
+   - **Multi-factor Mastery Model (`mastery.py`)**: `mastery = 0.45*recent_acc + 0.25*long_term_acc + 0.15*diff_score + 0.10*independent_success + 0.05*retention_score`.
+   - **Adaptive Difficulty Policy (`policy.py`)**: Dynamic difficulty level adjustment (1 to 5) based on independent recall and conceptual errors.
+   - **Misconception Tracking (`misconceptions.py`)**: Controlled misconception codes for Thermodynamics & Inorganic Chemistry.
+   - **Concept Selector (`selector.py`)**: Multi-factor candidate ranking considering prerequisite readiness, mastery gap, review urgency, and misconception risk.
+   - **Spaced Review (`scheduler.py`)**: Configurable interval progression (1d -> 3d -> 7d -> 14d -> 30d) with delayed recall retention enforcement.
+   - **Progress Service (`progress.py`)**: Single authoritative progress API computing domain/concept analytics.
+
+4. **Assessment Engine (`core/assessment/manager.py`)**
+   - Question bank schema, assessment session management, attempt recording, anti-leakage question sanitization, and score computation.
+
+5. **NCERT Concept-Aware RAG (`core/rag/`)**
+   - Enriches retrieval queries with active curriculum context.
+   - Priority ranking: `NCERT` > `TRUSTED_CURRICULUM` > `FALLBACK`.
+   - Observable RAG status (`RAG_STATUS_OK`, `RAG_STATUS_EMPTY`, `RAG_STATUS_ERROR`).
+
+6. **Reliability & Crash Recovery (`core/tutor/lifecycle.py`)**
+   - Step-by-step turn lifecycle persistence (`TURN_STARTED` -> ... -> `TURN_COMMITTED`).
+   - Automatic startup recovery for interrupted turns.
+
+7. **Model & Configuration Consistency (`model_manifest.json` & `core/model_fetch/manifest_validator.py`)**
+   - Declarative model manifest file ensuring consistent local model loading and quantization details.
+
+---
+
+## Core Scope
+
+- **Primary Curriculum Domains:**
+  - **Thermodynamics:** Enthalpy, First Law, Hess's Law, Entropy, Gibbs Free Energy, Heat Capacities ($C_p, C_v$), Work conventions.
+  - **Inorganic Chemistry:** Periodic Trends, Atomic Structure, Coordination Compounds, Oxidation States, Redox Reactions, Metallurgy.
+
+---
+
+## Installation & Setup
 
 ### Prerequisites
-- **Python:** 3.12.x (`>=3.12, <3.13` required for binary wheel and C++ extension compatibility)
-- **Git:** Installed and available on system PATH
 
-### 1. Setup the Environment
-Clone the repository and run the setup script to configure your virtual environment and install dependencies:
-```bash
-git clone https://github.com/Gayatri-Education/Gayatri-Tutor-V3.git
-cd Gayatri-Tutor-V3
-setup.bat
-```
+- Python 3.12+
+- Git
 
-### 2. Launch the Application
-Once the dependencies are installed and the model is acquired, you can run the application normally:
-```bash
-launch.bat
-```
+### Installation
 
-**Debug Mode:**
-If you want to view real-time application logs (useful for checking agent dispatches, model loading, and database queries), use the debug script instead:
 ```bash
-run_gayatri.bat
+# Clone the repository
+git clone https://github.com/ainabhinavsharma/Gayatri-Tutor-Chemistry.git
+cd Gayatri-Tutor-Chemistry
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment (Windows PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
 ```
-*(Alternatively, you can manually activate the environment and run `python -m app.main` with the `GAYATRI_LOG_LEVEL=DEBUG` environment variable set)*
 
 ---
 
-## 🧠 Model Training & Integration
+## Running Tests
 
-The intelligence of Gayatri Tutor is powered by a custom fine-tuned model. The repository includes the complete pipeline used to generate data and fine-tune the model.
+Execute the full regression suite:
 
-1. **Generate Data:** Run `python training/generate_data.py` to produce a diverse set of training examples.
-2. **Fine-Tune:** Upload `training/colab_notebook.py` to Google Colab to execute the QLoRA fine-tuning process.
-3. **Deploy:** Download the resulting `.gguf` file and place it in the models directory: `%LOCALAPPDATA%\GayatriAI\models\gayatri\`.
+```bash
+pytest
+```
+
+Run specific phase test suites:
+
+```bash
+pytest tests/test_phase1_learning_state.py
+pytest tests/test_phase2_evaluator.py
+pytest tests/test_phase3_concept_resolution.py
+pytest tests/test_phase4_adaptive_engine.py
+pytest tests/test_phase5_spaced_review.py
+pytest tests/test_phase6_assessment_engine.py
+pytest tests/test_phase7_rag.py
+pytest tests/test_phase8_state_machine.py
+pytest tests/test_phase9_progress.py
+pytest tests/test_phase10_reliability.py
+pytest tests/test_phase11_curriculum_validation.py
+pytest tests/test_phase12_security.py
+pytest tests/test_phase13_model_config.py
+```
 
 ---
 
-## 🏗️ Technology Stack
+## Verification & Status
 
-| Component | Technology |
-|---|---|
-| **UI Framework** | PySide6 + QWebEngine + QWebChannel |
-| **Local Inference** | GGUF → llama-cpp-python |
-| **Model Training** | QLoRA via Unsloth (Google Colab) |
-| **Database & Persistence**| SQLite + sqlite-vec |
-| **Security & Secrets** | Windows DPAPI |
-| **Testing & Quality** | `pytest`, `pytest-qt`, `ruff` |
+All 14 Execution Plan phases have been fully implemented, verified, and integrated with **361 passed unit and integration tests**.
+
+| Phase | Description | Status |
+|---|---|---|
+| Phase 0 | Baseline & Discovery | `DONE` |
+| Phase 1 | Student-Scoped Learning State | `DONE` |
+| Phase 2 | Chemistry Answer Evaluator | `DONE` |
+| Phase 3 | Dynamic Concept Resolution | `DONE` |
+| Phase 4 | Adaptive Learning Engine | `DONE` |
+| Phase 5 | Spaced Review & Retention | `DONE` |
+| Phase 6 | Assessment Engine | `DONE` |
+| Phase 7 | NCERT Concept-Aware RAG | `DONE` |
+| Phase 8 | Tutor State Machine Integration | `DONE` |
+| Phase 9 | Progress & Analytics Service | `DONE` |
+| Phase 10 | Reliability & Crash Recovery | `DONE` |
+| Phase 11 | Curriculum Validation | `DONE` |
+| Phase 12 | Security & Student Isolation | `DONE` |
+| Phase 13 | Model Manifest & Config | `DONE` |
+| Phase 14 | Documentation & Cleanup | `DONE` |
 
 ---
 
-## 📜 License
+## License
 
-**Educational / Personal Use Only — Commercial Use Prohibited**
-
-This repository is publicly available for educational, academic, research, and personal learning purposes. You are welcome to read, study, and modify the source code for your own non-commercial educational or personal use.
-
-Commercial use, redistribution, resale, incorporation into commercial products or services, SaaS deployment, and development of competing commercial products are strictly prohibited without prior written permission from Gayatri Education.
-
-Please see the [LICENSE.md](LICENSE.md) file for the complete terms.
-
-*Copyright © 2026 Gayatri Education. All Rights Reserved.*
-
-
-## 🤝 Contributing & Help Wanted
-
-We are actively looking for open-source contributors on GitHub to help us fix issues and improve the project!
-
-To get started, read our [CONTRIBUTING.md](CONTRIBUTING.md) guide. We welcome all Pull Requests!
+This project is licensed under the MIT License.
