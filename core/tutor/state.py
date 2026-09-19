@@ -196,9 +196,37 @@ class TutorStateManager:
                 );
             ''')
 
+        def assessment_engine_v1(c):
+            c.executescript('''
+                CREATE TABLE IF NOT EXISTS assessment_sessions (
+                    assessment_id TEXT PRIMARY KEY,
+                    student_id TEXT NOT NULL,
+                    concepts_json TEXT NOT NULL,
+                    question_ids_json TEXT NOT NULL,
+                    start_time TEXT NOT NULL,
+                    end_time TEXT DEFAULT '',
+                    status TEXT DEFAULT 'IN_PROGRESS',
+                    score REAL DEFAULT 0.0
+                );
+
+                CREATE TABLE IF NOT EXISTS assessment_attempts (
+                    attempt_id TEXT PRIMARY KEY,
+                    assessment_id TEXT NOT NULL,
+                    student_id TEXT NOT NULL,
+                    question_id TEXT NOT NULL,
+                    concept_id TEXT NOT NULL,
+                    student_answer TEXT NOT NULL,
+                    is_correct INTEGER NOT NULL,
+                    score_fraction REAL NOT NULL,
+                    feedback TEXT DEFAULT '',
+                    submitted_at TEXT NOT NULL
+                );
+            ''')
+
         migrations = {
             200: ('initial_tutor_state_schema', initial_schema),
             201: ('student_learning_state_v1', student_learning_state_v1),
+            202: ('assessment_engine_v1', assessment_engine_v1),
         }
 
         run_migrations(conn, migrations)

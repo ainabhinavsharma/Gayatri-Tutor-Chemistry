@@ -1,19 +1,19 @@
 project: Gayatri Tutor Chemistry
 status: IN_PROGRESS
 
-current_phase: 6
-current_task: P6-T01
+current_phase: 7
+current_task: P7-T01
 
-last_completed_task: P5-T04
-last_verified_commit: "e9d73a0"
+last_completed_task: P6-T04
+last_verified_commit: "c20cf1d"
 
 baseline:
   python_version: "3.12.10"
   os: "Windows-11"
-  git_commit: "e9d73a0"
+  git_commit: "c20cf1d"
   branch: "main"
   test_command: "pytest"
-  tests_passed: 340
+  tests_passed: 341
   tests_failed: 0
   tests_skipped: 20
 
@@ -24,8 +24,8 @@ phases:
   phase_3_concept_resolution: DONE
   phase_4_adaptive_engine: DONE
   phase_5_spaced_review: DONE
-  phase_6_assessment: IN_PROGRESS
-  phase_7_rag: TODO
+  phase_6_assessment: DONE
+  phase_7_rag: IN_PROGRESS
   phase_8_state_machine: TODO
   phase_9_progress: TODO
   phase_10_reliability: TODO
@@ -48,11 +48,11 @@ critical_bugs:
 
 last_session:
   date: "2026-09-19"
-  summary: "Completed Phase 5: Spaced Review Engine. Created core/learning/scheduler.py and added unit tests (340 passed)."
-  files_changed: ["core/learning/scheduler.py", "core/learning/__init__.py", "tests/test_phase5_spaced_review.py", "PROGRESS_TRACKER.yaml"]
-  tests_run: ["pytest tests/test_phase5_spaced_review.py", "pytest tests/"]
-  tests_passed: [4, 340]
+  summary: "Completed Phase 6: Assessment Engine. Updated schema migration 202, implemented core/assessment/manager.py, and added unit tests (341 passed)."
+  files_changed: ["core/tutor/state.py", "core/assessment/manager.py", "tests/test_phase6_assessment_engine.py", "PROGRESS_TRACKER.yaml"]
+  tests_run: ["pytest tests/test_phase6_assessment_engine.py", "pytest tests/"]
+  tests_passed: [1, 341]
   tests_failed: []
   blockers: []
 
-next_action: "Execute Phase 6: Assessment Engine (P6-T01 Question bank schema, P6-T02 Assessment session, P6-T03 Attempt records, P6-T04 Assessment result)."
+next_action: "Execute Phase 7: NCERT RAG and Evidence Control (P7-T01 Concept-aware retrieval, P7-T02 Source provenance, P7-T03 Source priority, P7-T04 RAG failure handling)."
