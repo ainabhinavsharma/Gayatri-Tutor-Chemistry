@@ -1,7 +1,7 @@
 """Phase 4 Test Suite: Adaptive Learning Engine.
 
 Verifies evidence-driven mastery calculation, difficulty policy,
-misconception tracking, and concept selection (P4-T01 through P4-T04).
+misconception tracking, concept selection, and event stream filtering (P4-T01 through P4-T04).
 """
 import pytest
 import tempfile
@@ -11,6 +11,7 @@ from core.learning.mastery import MasteryCalculator, MasteryWeights
 from core.learning.policy import DifficultyPolicy, DifficultyDecision
 from core.learning.misconceptions import MisconceptionTracker, THERMODYNAMICS_MISCONCEPTIONS
 from core.learning.selector import ConceptSelector
+from core.learning.events import LearningEventStream
 from core.tutor.state import LearningEvent, TutorStateManager, generate_turn_id
 
 
@@ -55,6 +56,25 @@ def test_mastery_calculator_uncertain_ignored():
     ]
     mastery = calc.compute_mastery(events)
     assert mastery == 0.0
+
+
+def test_learning_event_stream_filters():
+    """Phase 4 Re-audit: Verify LearningEventStream event filtering and metrics."""
+    events = [
+        LearningEvent(event_id='e1', student_id='s1', session_id='sess1', turn_id='t1', concept_id='c1', correctness='correct', hint_used=0),
+        LearningEvent(event_id='e2', student_id='s1', session_id='sess1', turn_id='t2', concept_id='c1', correctness='uncertain', hint_used=0),
+        LearningEvent(event_id='e3', student_id='s1', session_id='sess1', turn_id='t3', concept_id='c1', correctness='correct', hint_used=1),
+        LearningEvent(event_id='e4', student_id='s1', session_id='sess1', turn_id='t4', concept_id='c1', correctness='incorrect', hint_used=0),
+    ]
+
+    valid = LearningEventStream.filter_valid_events(events)
+    assert len(valid) == 3
+
+    recent_acc = LearningEventStream.calculate_recent_accuracy(events, n=2)
+    assert recent_acc == 0.5  # (1.0 + 0.0) / 2
+
+    independent_rate = LearningEventStream.get_independent_success_rate(events)
+    assert independent_rate == 0.5  # 1 out of 2 correct answers used no hints
 
 
 def test_difficulty_policy_rules():
