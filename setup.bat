@@ -1,5 +1,5 @@
 @echo off
-title Gayatri AI Tutor - Setup & Installer
+title Gayatri AI Tutor - Setup and Installer
 cd /d "%~dp0"
 echo.
 echo ============================================================
@@ -7,7 +7,7 @@ echo   GAYATRI AI - Setup and Initialization
 echo ============================================================
 echo.
 
-REM ── Check Python ──────────────────────────────────────────────
+REM Check Python
 echo [1/4] Checking Python installation...
 python --version >nul 2>&1
 if errorlevel 1 (
@@ -25,10 +25,10 @@ if errorlevel 1 (
 %PYTHON% --version
 echo [OK] Python found.
 
-REM ── Check/create venv ─────────────────────────────────────────
+REM Check/create venv
 echo.
 echo [2/4] Checking virtual environment (.venv)...
-if exist ".venv\Scripts\python.exe" (
+if exist .venv\Scripts\python.exe (
     echo [OK] Virtual environment exists.
 ) else (
     echo       Creating virtual environment (.venv)...
@@ -41,7 +41,7 @@ if exist ".venv\Scripts\python.exe" (
     echo [OK] Virtual environment created.
 )
 
-REM ── Install dependencies ──────────────────────────────────────
+REM Install dependencies
 echo.
 echo [3/4] Installing dependencies from requirements.txt...
 .venv\Scripts\pip.exe install -r requirements.txt
@@ -63,14 +63,14 @@ if errorlevel 1 (
     )
 )
 
-REM ── Verify model ──────────────────────────────────────────────
+REM Verify model
 echo.
 echo [4/4] Checking model file status...
-.venv\Scripts\python.exe -c "from core.providers.local import LocalProvider; print('[OK] Model detected at:', LocalProvider.MODEL_PATH); exit(0 if LocalProvider.MODEL_PATH.exists() else 1)"
+.venv\Scripts\python.exe -c "from core.providers.local import LocalProvider; print('[OK] Model detected at:', LocalProvider.MODEL_PATH); import sys; sys.exit(0 if LocalProvider.MODEL_PATH.exists() else 1)"
 if errorlevel 1 (
     echo.
     echo [WARN] Local model file not detected yet.
-    echo       Place your GGUF model in: GayatriAI\models\gayatri\
+    echo       Place your GGUF model in: GayatriAI\models\gayatri
     echo.
     echo       The app will still launch, but local AI responses require a model.
 )
