@@ -1,15 +1,58 @@
+# Virtual environments
 .venv/
+venv/
+env/
+
+# Python bytecode & cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Testing & quality caches
 .pytest_cache/
 .ruff_cache/
-data/
+.mypy_cache/
+.pyright/
+.coverage
+htmlcov/
+coverage.xml
+
+# Build & packaging artifacts
+build/
+dist/
+*.egg-info/
+node_modules/
+
+# Local data & databases
+data/*.db
+data/**/*.db
+data/uploads/
 logs/
 models/
 *.db
+*.sqlite
+*.sqlite3
 *.corrupt-*.db
 .hmac_key
 settings.json
 GayatriAI/
 ignored_assets/
-dist/
+
+# Secrets & environment
+.env
+.env.*
+*.env
+secrets.enc
+*.key
+*.pem
+*.cert
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary & scratch scripts
+scratch/
+temp/
+tmp/

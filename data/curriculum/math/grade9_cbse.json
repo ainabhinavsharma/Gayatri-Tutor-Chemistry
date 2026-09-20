@@ -1,0 +1,36 @@
+﻿{
+  "board": "CBSE",
+  "subject": "Mathematics",
+  "grade": "Grade 9",
+  "language": "en",
+  "version": "2026.1",
+  "concepts": [
+    {
+      "id": "cbse_math_9_number_systems",
+      "name": "Number Systems",
+      "name_hi": "संख्या पद्धति",
+      "description": "Irrational numbers, real numbers and decimal expansions, laws of exponents for real numbers.",
+      "difficulty": 0.4,
+      "minimum_mastery": 0.85,
+      "prerequisites": []
+    },
+    {
+      "id": "cbse_math_9_polynomials",
+      "name": "Polynomials",
+      "name_hi": "बहुपद",
+      "description": "Definition of a polynomial in one variable, coefficients, degree, zeros of a polynomial, Remainder Theorem, factorisation of polynomials.",
+      "difficulty": 0.6,
+      "minimum_mastery": 0.85,
+      "prerequisites": ["cbse_math_9_number_systems"]
+    },
+    {
+      "id": "cbse_math_9_linear_equations_two_vars",
+      "name": "Linear Equations in Two Variables",
+      "name_hi": "दो चरों वाले रैखिक समीकरण",
+      "description": "Recall of linear equations in one variable, solution of a linear equation in two variables, graph of linear equation.",
+      "difficulty": 0.65,
+      "minimum_mastery": 0.85,
+      "prerequisites": ["cbse_math_9_polynomials"]
+    }
+  ]
+}

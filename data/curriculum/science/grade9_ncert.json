@@ -1,0 +1,36 @@
+﻿{
+  "board": "NCERT",
+  "subject": "Science",
+  "grade": "Grade 9",
+  "language": "en",
+  "version": "2026.1",
+  "concepts": [
+    {
+      "id": "ncert_sci_9_matter_surroundings",
+      "name": "Matter in Our Surroundings",
+      "name_hi": "हमारे आस-पास के पदार्थ",
+      "description": "Physical nature of matter, characteristics of particles, states of matter: solid, liquid, gas, effect of temperature and pressure.",
+      "difficulty": 0.4,
+      "minimum_mastery": 0.85,
+      "prerequisites": []
+    },
+    {
+      "id": "ncert_sci_9_motion",
+      "name": "Motion",
+      "name_hi": "गति",
+      "description": "Distance and displacement, velocity, uniform and non-uniform motion along a straight line, acceleration, graphical representation of motion.",
+      "difficulty": 0.55,
+      "minimum_mastery": 0.85,
+      "prerequisites": []
+    },
+    {
+      "id": "ncert_sci_9_force_laws",
+      "name": "Force and Laws of Motion",
+      "name_hi": "बल तथा गति के नियम",
+      "description": "Balanced and unbalanced forces, first law of motion, inertia and mass, second law of motion, momentum, third law of motion.",
+      "difficulty": 0.7,
+      "minimum_mastery": 0.85,
+      "prerequisites": ["ncert_sci_9_motion"]
+    }
+  ]
+}

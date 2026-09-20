@@ -1,0 +1,36 @@
+{
+  "source_id": "NCERT_CHEM_11_CH06",
+  "chapter": "Thermodynamics",
+  "sections": [
+    {
+      "topic": "Thermodynamic Terms",
+      "subtopic": "System and Surroundings",
+      "page": 160,
+      "text": "A system in thermodynamics refers to that part of the universe in which observations are made and remaining universe constitutes the surroundings. The surroundings include everything other than the system. System and surroundings together constitute the universe. An open system can exchange both energy and matter with its surroundings. A closed system can exchange energy but not matter with its surroundings. An isolated system can exchange neither energy nor matter with its surroundings."
+    },
+    {
+      "topic": "Thermodynamic Terms",
+      "subtopic": "First Law of Thermodynamics",
+      "page": 163,
+      "text": "The First Law of Thermodynamics is the law of conservation of energy. It states that energy can neither be created nor destroyed; it can only be transformed from one form to another. Mathematically, delta U = q + w, where delta U is the change in internal energy of the system, q is the heat added to the system, and w is the work done on the system. For an isolated system, q = 0 and w = 0, so delta U = 0."
+    },
+    {
+      "topic": "Reaction Enthalpy",
+      "subtopic": "Hess's Law of Constant Heat Summation",
+      "page": 171,
+      "text": "Hess's Law states that if a reaction takes place in several steps, then its standard reaction enthalpy is the sum of the standard enthalpies of the intermediate reactions into which the overall reaction may be divided at the same temperature. Enthalpy is a state function, meaning standard enthalpy change of a reaction is independent of the path taken."
+    },
+    {
+      "topic": "Spontaneity",
+      "subtopic": "Gibbs Energy Change and Equilibrium",
+      "page": 178,
+      "text": "Gibbs energy change (delta G) is related to enthalpy change (delta H) and entropy change (delta S) by the equation delta G = delta H - T * delta S. A process is spontaneous if delta G is negative. If delta G is positive, the process is non-spontaneous. If delta G is zero, the system has reached chemical equilibrium. At equilibrium, delta G° = -R * T * ln(K)."
+    },
+    {
+      "topic": "Applications",
+      "subtopic": "Heat Capacity and Specific Heat",
+      "page": 167,
+      "text": "Heat capacity (C) is defined as the amount of heat required to raise the temperature of a system by one degree Celsius or Kelvin. Cp is heat capacity at constant pressure and Cv is heat capacity at constant volume. For one mole of an ideal gas, Cp - Cv = R, where R is the universal gas constant (8.314 J/mol K)."
+    }
+  ]
+}
