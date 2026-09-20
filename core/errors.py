@@ -21,7 +21,7 @@ _RE_POSIX_PATH = re.compile(r"/(?:Users|home|root|var|etc|usr|opt|tmp|app|core)/
 _RE_URL = re.compile(r"https?://[^\s\"'>]+")
 _RE_BEARER = re.compile(r"Bearer\s+[A-Za-z0-9\-\._~\+\/]+=*", re.IGNORECASE)
 _RE_API_KEY_QUERY = re.compile(r"[?&]key=[^&\s\"'>]+", re.IGNORECASE)
-_RE_API_KEY_GOOGLE = re.compile(r"AIza[0-9A-Za-z\-_]{35}")
+_RE_API_KEY_GOOGLE = re.compile(r"AIza[0-9A-Za-z\-_]{30,40}")
 _RE_API_KEY_ANTHROPIC = re.compile(r"sk-ant-[0-9A-Za-z\-_]{20,}")
 _RE_API_KEY_OPENAI = re.compile(r"sk-[0-9A-Za-z\-_]{20,}")
 _RE_TRACEBACK_LINE = re.compile(r'File ".*?", line \d+, in .*')
@@ -38,9 +38,9 @@ def sanitize_message(raw_text: str) -> str:
     sanitized = _RE_API_KEY_ANTHROPIC.sub("[ANTHROPIC_API_KEY]", sanitized)
     sanitized = _RE_API_KEY_OPENAI.sub("[OPENAI_API_KEY]", sanitized)
     sanitized = _RE_BEARER.sub("Bearer [REDACTED_TOKEN]", sanitized)
+    sanitized = _RE_URL.sub("[ENDPOINT_URL]", sanitized)
     sanitized = _RE_WIN_PATH.sub("[LOCAL_PATH]", sanitized)
     sanitized = _RE_POSIX_PATH.sub("[LOCAL_PATH]", sanitized)
-    sanitized = _RE_URL.sub("[ENDPOINT_URL]", sanitized)
     sanitized = _RE_TRACEBACK_LINE.sub("[TRACEBACK_FRAME]", sanitized)
     return sanitized
 
