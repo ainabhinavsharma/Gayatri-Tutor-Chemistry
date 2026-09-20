@@ -2,7 +2,7 @@
 
 Tests structured Chemistry answer evaluator:
 - Keyword-based correctness removal
-- Structured evaluation contract
+- Structured evaluation contract and evaluate_dict()
 - Deterministic evaluators (MCQ, numeric, formula, reaction, short answer)
 - Tolerance and unit error detection
 - Ambiguous answer 'uncertain' fallback
@@ -26,6 +26,13 @@ def test_keyword_400_cannot_prove_random_question_correct():
     res = StudentAnswerEvaluator.evaluate("400")
     assert res.correctness == "uncertain"
     assert res.confidence == 0.0
+
+
+def test_generic_isolated_answers_return_uncertain():
+    """P2-T01 & Re-audit Phase 2: Isolated '0', 'true', 'correct' without context return 'uncertain'."""
+    for ans in ["0", "true", "false", "correct", "equal", "ok"]:
+        res = StudentAnswerEvaluator.evaluate(ans)
+        assert res.correctness == "uncertain"
 
 
 def test_numeric_within_tolerance_correct():
@@ -114,3 +121,22 @@ def test_evaluation_evidence_trail():
         rubric="internal energy heat work"
     )
     assert len(res.evidence) > 0
+
+
+def test_evaluate_dict_contract():
+    """Phase 2 Re-audit: Verify evaluate_dict() dictionary contract processing."""
+    payload = {
+        "question_id": "q101",
+        "concept_id": "thermo.hess",
+        "question": "Calculate delta H",
+        "expected_answer": "-110.5",
+        "student_answer": "-110.5 kJ",
+        "question_type": "numeric",
+        "tolerance": 0.05
+    }
+
+    res = StudentAnswerEvaluator.evaluate_dict(payload)
+    assert res.correctness == "correct"
+    assert res.confidence >= 0.9
+    assert len(res.evidence) > 0
+    assert "correctness" in res.to_dict()

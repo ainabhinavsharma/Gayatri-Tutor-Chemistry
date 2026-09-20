@@ -49,6 +49,25 @@ class EvaluationResult:
 class StudentAnswerEvaluator:
     """Context-aware, evidence-driven student answer evaluator (Phase 2)."""
 
+    @classmethod
+    def evaluate_dict(cls, data: dict) -> EvaluationResult:
+        """Evaluate student answer from a dictionary input contract matching Phase 2 schema."""
+        student_ans = str(data.get("student_answer") or data.get("user_answer") or "").strip()
+        expected_ans = str(data.get("expected_answer") or data.get("answer") or "").strip()
+        qtype = str(data.get("question_type") or data.get("type") or "conceptual").strip()
+        rubric = str(data.get("rubric") or "").strip()
+        tol = float(data.get("tolerance", 0.05))
+        exp_unit = str(data.get("expected_unit") or "").strip()
+
+        return cls.evaluate(
+            user_answer=student_ans,
+            expected_answer=expected_ans,
+            question_type=qtype,
+            rubric=rubric,
+            tolerance=tol,
+            expected_unit=exp_unit,
+        )
+
     @staticmethod
     def evaluate(
         user_answer: str,
