@@ -56,6 +56,69 @@ class StudentMisconceptionRecord:
 class MisconceptionTracker:
     """Manages recording, querying, and resolving student misconception records."""
 
+    @classmethod
+    def identify_misconception_from_error(
+        cls, concept_id: str, student_answer: str, error_type: str = ""
+    ) -> Optional[str]:
+        """Identify a controlled misconception code based on concept_id, error_type, or student answer content."""
+        answer_lower = student_answer.lower()
+        error_lower = error_type.lower()
+        concept_lower = concept_id.lower()
+
+        # Check explicit error_type first if provided
+        if error_type in ALL_MISCONCEPTIONS:
+            return error_type
+
+        # Thermodynamics mappings
+        if any(kw in concept_lower for kw in ["thermo", "hess", "gibbs", "heat", "enthalpy"]):
+            if "hess" in concept_lower or "direction" in answer_lower or "invert" in answer_lower or "hess" in answer_lower:
+                return 'HESS_LAW_DIRECTION'
+            if "gibbs" in concept_lower or "spontaneous" in answer_lower or "delta g" in answer_lower:
+                return 'GIBBS_SIGN_CONFUSION'
+            if "sign" in error_lower or "sign" in answer_lower or "+w" in answer_lower or "-q" in answer_lower:
+                return 'THERMO_SIGN_CONVENTION'
+            if ("heat" in answer_lower and "internal energy" in answer_lower) or "q vs u" in answer_lower:
+                return 'HEAT_VS_INTERNAL_ENERGY'
+            if "state" in answer_lower or "path" in answer_lower:
+                return 'STATE_VS_PATH_FUNCTION'
+            if "enthalpy" in answer_lower or "h vs u" in answer_lower:
+                return 'ENTHALPY_CONFUSION'
+            if "cp" in answer_lower or "cv" in answer_lower:
+                return 'CP_CV_CONFUSION'
+
+        # Inorganic mappings
+        if any(kw in concept_lower for kw in ["inorganic", "periodic", "d_block", "p_block", "coordination"]):
+            if "trend" in answer_lower or "radius" in answer_lower or "ionization" in answer_lower or "gain enthalpy" in answer_lower:
+                return 'PERIODIC_TREND_CONFUSION'
+            if "oxidation" in answer_lower or "number" in answer_lower:
+                return 'OXIDATION_STATE_ERROR'
+            if "configuration" in answer_lower or "aufbau" in answer_lower or "d-orbital" in answer_lower:
+                return 'ELECTRONIC_CONFIGURATION_ERROR'
+            if "coordination" in answer_lower:
+                return 'COORDINATION_NUMBER_CONFUSION'
+            if "ligand" in answer_lower:
+                return 'LIGAND_CONFUSION'
+            if "redox" in answer_lower or "oxidizing" in answer_lower or "reducing" in answer_lower:
+                return 'REDOX_CONFUSION'
+
+        # General keyword matching across ALL_MISCONCEPTIONS
+        if "sign" in answer_lower or "sign" in error_lower:
+            if "gibbs" in answer_lower:
+                return 'GIBBS_SIGN_CONFUSION'
+            return 'THERMO_SIGN_CONVENTION'
+        if "hess" in answer_lower or "hess" in error_lower:
+            return 'HESS_LAW_DIRECTION'
+        if "gibbs" in answer_lower or "spontaneous" in answer_lower:
+            return 'GIBBS_SIGN_CONFUSION'
+        if "trend" in answer_lower or "radius" in answer_lower:
+            return 'PERIODIC_TREND_CONFUSION'
+        if "oxidation" in answer_lower:
+            return 'OXIDATION_STATE_ERROR'
+        if "configuration" in answer_lower or "aufbau" in answer_lower:
+            return 'ELECTRONIC_CONFIGURATION_ERROR'
+
+        return None
+
     def __init__(self, state_manager: Optional[TutorStateManager] = None):
         self.state_manager = state_manager
         if state_manager:
