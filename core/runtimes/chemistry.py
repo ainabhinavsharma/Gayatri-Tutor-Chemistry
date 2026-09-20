@@ -103,6 +103,17 @@ class ChemistryTutorRuntime:
         try:
             from legacy.agents.default_agents import _build_messages, _get_tutor_context
             from core.rag.retriever import get_ncert_retriever
+            from core.security.prompt import PromptSecurityGuard
+
+            # 0. Inspect user message for prompt injection, extraction, or command manipulation
+            sanitized_msg, is_attack, attack_type = PromptSecurityGuard.inspect_and_sanitize(user_message)
+            if is_attack and (attack_type == "SYSTEM_EXTRACTION" or OutOfDomainGuard.is_out_of_domain(user_message) or not any(k in user_message.lower() for k in ["chem", "thermo", "reaction", "enthalpy", "bond", "atom", "mole", "acid", "base", "gas", "solid", "liquid"])):
+                refusal = PromptSecurityGuard.get_safe_refusal_response(attack_type)
+                def _refusal_gen():
+                    yield refusal
+                return _refusal_gen()
+
+            user_message = sanitized_msg
 
             # 1. Check Out-of-Domain Guard
             if OutOfDomainGuard.is_out_of_domain(user_message):
@@ -111,10 +122,25 @@ class ChemistryTutorRuntime:
                 msgs = _build_messages(system, user_message, getattr(context, "history", None))
                 return get_inference_service().stream_chat(msgs, max_tokens=600)
 
-            # 2. Dynamic Concept & Topic Resolution (Phase 3 P3-T01 to P3-T04)
+            # 2. Dynamic Concept & Topic Resolution (Section 13)
             from core.curriculum.resolver import ConceptResolver
             active_concept_id = getattr(context, "active_concept_id", "") if context else ""
-            resolved = ConceptResolver.resolve_concept(user_message, active_concept_id=active_concept_id)
+            raw_history = getattr(context, "history", None) if context else None
+            recent_context = []
+            if raw_history and isinstance(raw_history, list):
+                for h_item in raw_history:
+                    if isinstance(h_item, dict):
+                        c = h_item.get("content") or h_item.get("text") or ""
+                        if c:
+                            recent_context.append(str(c))
+                    elif isinstance(h_item, str):
+                        recent_context.append(h_item)
+
+            resolved = ConceptResolver.resolve_concept(
+                user_message=user_message,
+                active_concept_id=active_concept_id,
+                recent_context=recent_context or None,
+            )
             if context and hasattr(context, "active_concept_id"):
                 setattr(context, "active_concept_id", resolved.concept_id)
 
@@ -139,6 +165,7 @@ class ChemistryTutorRuntime:
             # 4. Memory summary block
             memory = TutorMemoryManager.build_memory(
                 topic=resolved.topic,
+                subtopic=resolved.subtopic,
                 mastery=eval_result.confidence,
                 difficulty=adaptation.target_difficulty,
             )
@@ -146,13 +173,21 @@ class ChemistryTutorRuntime:
             # 5. RAG Retrieval & Controlled Web Research Fallback
             rag_evidence = ""
             try:
-                from core.rag.schema import ConfidenceLevel
+                from core.rag.schema import ConfidenceLevel, RAGStatus
                 from core.research.policy import ResearchPolicy
                 from core.research.fallback import ResearchFallbackEvaluator
                 from core.research.service import get_web_research_service
 
                 retriever = get_ncert_retriever()
-                rag_ctx = retriever.retrieve(user_message, top_k=2)
+                rag_ctx = retriever.retrieve_concept_aware(
+                    query=user_message,
+                    domain=resolved.domain,
+                    chapter=resolved.chapter,
+                    topic=resolved.topic,
+                    concept_id=resolved.concept_id,
+                    learning_objective="",
+                    top_k=2,
+                )
                 rag_evidence = rag_ctx.formatted_evidence()
 
                 # Controlled Web Research Fallback (P11-T02)
@@ -164,10 +199,17 @@ class ChemistryTutorRuntime:
                         rag_evidence += f"\n\n{web_evidence}"
             except Exception as rag_exc:
                 logger.warning(f"RAG / Web fallback skipped: {rag_exc}")
+                rag_evidence = (
+                    f"[CONTROLLED RAG FALLBACK: RAG_ERROR]\n"
+                    f"Retrieval pipeline exception: {rag_exc}. "
+                    "Do NOT speculate or invent facts beyond verified core NCERT principles."
+                )
+
+            isolated_evidence = PromptSecurityGuard.isolate_retrieved_data(rag_evidence) if rag_evidence else ""
 
             system = _build_chemistry_system_prompt(
                 self._topics or None,
-                rag_evidence=rag_evidence,
+                rag_evidence=isolated_evidence,
                 policy_directive=policy_directive,
                 memory_summary=memory.formatted_summary(),
             )

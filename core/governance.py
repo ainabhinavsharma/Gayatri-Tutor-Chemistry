@@ -1,4 +1,4 @@
-﻿"""Gayatri AI — Teacher & Parent Governance & Controls.
+"""Gayatri AI — Teacher & Parent Governance & Controls.
 
 Provides administrative controls, daily learning time budgeting,
 PIN-protected configuration locks, and exportable student mastery reports.
@@ -7,9 +7,12 @@ PIN-protected configuration locks, and exportable student mastery reports.
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import json
 import logging
+import os
+import secrets
 import sqlite3
 import threading
 from datetime import datetime, date
@@ -21,6 +24,11 @@ from core.knowledge_graph import LearningDependencyGraph
 logger = logging.getLogger("gayatri.governance")
 
 DEFAULT_ADMIN_PIN = "1234"
+
+
+def _hash_pin(pin: str) -> str:
+    """Hash a PIN using SHA-256 for secure non-plaintext storage."""
+    return hashlib.sha256(pin.strip().encode("utf-8")).hexdigest()
 
 
 class GovernanceManager:
@@ -64,19 +72,35 @@ class GovernanceManager:
                 # Seed default admin PIN if not set
                 cur = conn.execute("SELECT val FROM governance_settings WHERE key = 'admin_pin';")
                 if not cur.fetchone():
+                    default_pin = os.environ.get("GAYATRI_ADMIN_PIN", DEFAULT_ADMIN_PIN)
                     conn.execute(
                         "INSERT INTO governance_settings (key, val) VALUES ('admin_pin', ?);",
-                        (DEFAULT_ADMIN_PIN,),
+                        (_hash_pin(default_pin),),
                     )
             conn.close()
 
     def verify_pin(self, entered_pin: str) -> bool:
-        """Verify the parental/teacher administration PIN."""
+        """Verify the parental/teacher administration PIN using timing-safe comparison."""
         with self._lock:
             conn = self._get_conn()
             try:
                 row = conn.execute("SELECT val FROM governance_settings WHERE key = 'admin_pin';").fetchone()
-                return bool(row and row["val"] == entered_pin.strip())
+                if not row:
+                    return False
+                stored = row["val"]
+                entered_hash = _hash_pin(entered_pin)
+                # Check hashed match
+                if secrets.compare_digest(stored, entered_hash):
+                    return True
+                # Legacy plaintext check with automatic migration to hash
+                if secrets.compare_digest(stored, entered_pin.strip()):
+                    with conn:
+                        conn.execute(
+                            "UPDATE governance_settings SET val = ? WHERE key = 'admin_pin';",
+                            (entered_hash,),
+                        )
+                    return True
+                return False
             finally:
                 conn.close()
 
@@ -90,7 +114,7 @@ class GovernanceManager:
                 with conn:
                     conn.execute(
                         "UPDATE governance_settings SET val = ? WHERE key = 'admin_pin';",
-                        (new_pin.strip(),),
+                        (_hash_pin(new_pin),),
                     )
                 return True
             finally:

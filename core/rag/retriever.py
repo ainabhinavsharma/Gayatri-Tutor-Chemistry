@@ -19,13 +19,14 @@ MEDIUM_CONFIDENCE_THRESHOLD = 0.20
 
 SOURCE_PRIORITY_WEIGHTS = {
     "NCERT": 10.0,
+    "APPROVED_CURRICULUM": 5.0,
     "TRUSTED_CURRICULUM": 5.0,
     "FALLBACK": 1.0,
 }
 
 
 class NCERTRetriever:
-    """Concept-aware retriever for querying NCERT knowledge with evidence priority and error observation."""
+    """Concept-aware retriever for querying NCERT knowledge with evidence priority and error observation (Section 19)."""
 
     def __init__(self, store: Optional[RAGStore] = None):
         self.store = store or RAGStore()
@@ -36,47 +37,52 @@ class NCERTRetriever:
 
     def retrieve_concept_aware(
         self,
-        query: str,
+        query: str = "",
         domain: str = "",
         chapter: str = "",
         topic: str = "",
         concept_id: str = "",
+        learning_objective: str = "",
         top_k: int = 3,
+        question: str = "",
+        concept: str = "",
     ) -> RAGContext:
-        """Concept-aware retrieval combining query text and curriculum context (P7-T01)."""
-        if not query or not query.strip():
+        """Multi-factor retrieval combining question, domain, chapter, topic, concept, and learning objective (Section 19)."""
+        q = (query or question).strip()
+        cid = concept_id or concept
+        if not q:
             return RAGContext(
-                query=query,
+                query=q,
                 results=[],
                 confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_STATUS_EMPTY,
+                status=RAGStatus.RAG_EMPTY,
             )
 
-        # Build enriched context query
-        context_parts = [p for p in [domain, chapter, topic, concept_id] if p]
-        enriched_query = f"{query} {' '.join(context_parts)}".strip()
+        # Build enriched context query from all 6 factors (Section 19)
+        context_parts = [p for p in [domain, chapter, topic, cid, learning_objective] if p]
+        enriched_query = f"{q} {' '.join(context_parts)}".strip()
 
         try:
-            matches = self.store.search_similar(enriched_query, top_k=top_k * 2)
+            matches = self.store.search_similar(enriched_query, top_k=max(1, top_k * 2))
         except Exception as e:
             logger.error(f"RAG Store search error: {e}")
             return RAGContext(
-                query=query,
+                query=q,
                 results=[],
                 confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_STATUS_ERROR,
+                status=RAGStatus.RAG_ERROR,
                 error_message=str(e),
             )
 
         if not matches:
             return RAGContext(
-                query=query,
+                query=q,
                 results=[],
                 confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_STATUS_EMPTY,
+                status=RAGStatus.RAG_EMPTY,
             )
 
-        # Process and rank results by source priority (NCERT > TRUSTED > FALLBACK) & score (P7-T03)
+        # Process and rank results by source priority (NCERT > APPROVED_CURRICULUM > FALLBACK) & score (Section 19)
         results: list[RetrievalResult] = []
         for chunk, score in matches:
             if score >= HIGH_CONFIDENCE_THRESHOLD:
@@ -107,15 +113,15 @@ class NCERTRetriever:
             overall_confidence = ConfidenceLevel.LOW
 
         logger.info(
-            f"Concept-aware RAG for '{query[:30]}...' (concept={concept_id}): "
+            f"Concept-aware RAG for '{q[:30]}...' (concept={cid}): "
             f"{len(final_results)} chunks, top_score={top_score:.4f}, confidence={overall_confidence.value}"
         )
 
         return RAGContext(
-            query=query,
+            query=q,
             results=final_results,
             confidence=overall_confidence,
-            status=RAGStatus.RAG_STATUS_OK,
+            status=RAGStatus.RAG_OK,
         )
 
 

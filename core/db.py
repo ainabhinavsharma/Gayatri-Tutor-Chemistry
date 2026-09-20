@@ -4,14 +4,16 @@ Provides a safe way to get an SQLite connection, handling corrupt databases
 by backing them up and creating a fresh one.
 """
 
+import functools
 import logging
 import shutil
 import sqlite3
+import time
 from datetime import datetime
 from pathlib import Path
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 logger = logging.getLogger("gayatri.db")
 
@@ -146,4 +148,48 @@ def run_migrations(
             cur_version = v
 
         return cur_version
+
+
+def with_db_retry(
+    max_retries: int = 3,
+    base_delay: float = 0.05,
+    max_delay: float = 0.5,
+):
+    """Decorator to retry SQLite operations on transient busy/locked errors (Audit #DB-004)."""
+    def decorator(func: Callable):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            delay = base_delay
+            last_err = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except sqlite3.OperationalError as exc:
+                    err_msg = str(exc).lower()
+                    if ("locked" in err_msg or "busy" in err_msg) and attempt < max_retries:
+                        last_err = exc
+                        logger.warning(
+                            f"Database busy/locked in {getattr(func, '__name__', str(func))} "
+                            f"(attempt {attempt + 1}/{max_retries + 1}). Retrying in {delay:.3f}s..."
+                        )
+                        time.sleep(delay)
+                        delay = min(delay * 2, max_delay)
+                    else:
+                        raise
+            if last_err:
+                raise last_err
+        return wrapper
+    return decorator
+
+
+def execute_with_retry(
+    func: Callable,
+    *args,
+    max_retries: int = 3,
+    base_delay: float = 0.05,
+    max_delay: float = 0.5,
+    **kwargs,
+) -> Any:
+    """Execute a callable with retry on transient SQLite busy/locked errors."""
+    return with_db_retry(max_retries=max_retries, base_delay=base_delay, max_delay=max_delay)(func)(*args, **kwargs)
 

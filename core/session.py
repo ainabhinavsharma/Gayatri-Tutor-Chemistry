@@ -18,25 +18,7 @@ from typing import Any
 
 logger = logging.getLogger("gayatri.session")
 
-_SESSION_ID_REGEX = re.compile(r"^[a-zA-Z0-9_\-:]{1,128}$")
-
-
-def validate_session_id(session_id: str) -> str:
-    """Validate that a session ID meets strict security criteria (Audit #132 & #133).
-
-    Prevents path traversal ('../'), command injection, control characters,
-    and null bytes at the persistence boundary.
-    """
-    if not isinstance(session_id, str):
-        raise ValueError(f"Session ID must be a string, got {type(session_id).__name__}")
-    if not session_id or len(session_id) > 128:
-        raise ValueError(f"Session ID length must be between 1 and 128 characters (got {len(session_id)})")
-    if not _SESSION_ID_REGEX.match(session_id):
-        raise ValueError(
-            f"Invalid session ID '{session_id}': must contain only 1-128 alphanumeric characters, "
-            "underscores, hyphens, and colons without path traversal characters."
-        )
-    return session_id
+from core.security.validation import validate_session_id
 
 
 class SessionStore:

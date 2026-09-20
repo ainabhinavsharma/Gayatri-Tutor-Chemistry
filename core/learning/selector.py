@@ -21,6 +21,29 @@ class ConceptSelectionResult:
     candidate_rankings: List[dict]
 
 
+DEFAULT_PREREQUISITES_MAP: Dict[str, List[str]] = {
+    # NCERT standard curriculum IDs
+    'chem_thermo_first_law': ['chem_thermo_system'],
+    'chem_thermo_enthalpy': ['chem_thermo_first_law'],
+    'chem_thermo_hess': ['chem_thermo_enthalpy'],
+    'chem_thermo_heat_cap': ['chem_thermo_first_law'],
+    'chem_thermo_entropy': ['chem_thermo_enthalpy'],
+    'chem_thermo_gibbs': ['chem_thermo_entropy', 'chem_thermo_enthalpy'],
+    'chem_thermo_calorimetry': ['chem_thermo_heat_cap'],
+    'chem_thermo_formation': ['chem_thermo_hess'],
+    'chem_inorg_bonding': ['chem_inorg_periodic'],
+    'chem_inorg_sblock': ['chem_inorg_periodic', 'chem_inorg_bonding'],
+    'chem_inorg_pblock': ['chem_inorg_periodic', 'chem_inorg_bonding'],
+    'chem_balancing': ['chem_inorg_periodic'],
+    'chem_stoichiometry': ['chem_balancing'],
+    # Dot-notation backward compatibility
+    'thermo.hess_law': ['thermo.enthalpy', 'thermo.first_law'],
+    'thermo.gibbs': ['thermo.enthalpy', 'thermo.entropy'],
+    'inorganic.periodicity': ['inorganic.atomic_structure'],
+    'inorganic.coordination': ['inorganic.periodicity', 'inorganic.bonding'],
+}
+
+
 class ConceptSelector:
     """Evidence-driven concept selector for adaptive lesson/practice sequencing."""
 
@@ -30,13 +53,8 @@ class ConceptSelector:
         prerequisites_map: Optional[Dict[str, List[str]]] = None,
     ):
         self.prerequisite_threshold = prerequisite_threshold
-        # Default fallback prerequisite map for Thermodynamics & Inorganic
-        self.prerequisites_map = prerequisites_map or {
-            'thermo.hess_law': ['thermo.enthalpy', 'thermo.first_law'],
-            'thermo.gibbs': ['thermo.enthalpy', 'thermo.entropy'],
-            'inorganic.periodicity': ['inorganic.atomic_structure'],
-            'inorganic.coordination': ['inorganic.periodicity', 'inorganic.bonding'],
-        }
+        # Default prerequisite map for Thermodynamics & Inorganic (NCERT + legacy)
+        self.prerequisites_map = prerequisites_map or DEFAULT_PREREQUISITES_MAP
 
     def evaluate_concept_score(
         self,

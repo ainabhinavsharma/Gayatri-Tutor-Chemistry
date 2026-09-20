@@ -40,7 +40,7 @@ def package_release(
     out.mkdir(parents=True, exist_ok=True)
 
     # Directories and files to include in distribution
-    include_dirs = ["app", "core", "data", "docs"]
+    include_dirs = ["app", "core", "data", "docs", "legacy"]
     include_files = [
         "launch.bat",
         "setup.bat",

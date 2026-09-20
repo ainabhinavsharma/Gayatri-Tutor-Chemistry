@@ -40,10 +40,11 @@ COURSES_DIR: Path = DATA_DIR / "courses"
 DB_PATH: Path = DATA_DIR / "gayatri.db"
 SETTINGS_PATH: Path = DATA_DIR / "settings.json"
 LOG_DIR: Path = DATA_DIR / "logs"
+UPLOADS_DIR: Path = DATA_DIR / "uploads"
 HMAC_KEY_PATH: Path = DATA_DIR / ".hmac_key"
 
 # Ensure dirs exist at import time (idempotent)
-for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR):
+for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR, UPLOADS_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 

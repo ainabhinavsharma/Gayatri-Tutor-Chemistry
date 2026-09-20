@@ -5,6 +5,7 @@ Uses the Gemini API: https://generativelanguage.googleapis.com/v1beta/models/{mo
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from collections.abc import Iterator
@@ -290,7 +291,6 @@ class GoogleProvider(LLMProvider):
                         if not raw or raw == "[DONE]":
                             continue
                         try:
-                            import json
                             chunk = json.loads(raw)
                             candidates = chunk.get("candidates", [])
                             if candidates:
@@ -299,7 +299,8 @@ class GoogleProvider(LLMProvider):
                                     text = p.get("text", "")
                                     if text:
                                         yield text
-                        except (ImportError, Exception):
+                        except Exception as parse_err:
+                            logger.debug("Failed to parse Gemini stream chunk: %s", parse_err)
                             continue
         except Exception as exc:
             from core.errors import sanitize_message

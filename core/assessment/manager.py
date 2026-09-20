@@ -47,7 +47,10 @@ class QuestionBankItem:
                 difficulty=self.difficulty,
                 question_text=self.question,
                 expected_value=val,
+                rubric=self.rubric,
+                hint=self.hint,
                 explanation=self.explanation,
+                common_misconceptions=self.common_misconceptions,
                 source_id=self.source,
             )
         else:
@@ -57,7 +60,10 @@ class QuestionBankItem:
                 difficulty=self.difficulty,
                 question_text=self.question,
                 correct_answer=self.answer,
+                rubric=self.rubric,
+                hint=self.hint,
                 explanation=self.explanation,
+                common_misconceptions=self.common_misconceptions,
                 source_id=self.source,
             )
 
@@ -118,7 +124,10 @@ class AssessmentManager:
         concepts: List[str],
         question_count: int = 5,
     ) -> str:
-        """Create a new assessment session record (P6-T02)."""
+        """Create a new assessment session record (P6-T02) and persist to assessment & assessment_question."""
+        from core.security.rate_limiter import get_governor
+        get_governor().check_assessment(student_id)
+
         assessment_id = f"assess_{uuid.uuid4().hex[:12]}"
         now = datetime.now().isoformat()
 
@@ -129,6 +138,17 @@ class AssessmentManager:
         selected_ids = [q.id for q in matching_q[:question_count]]
 
         with self.state_manager.conn:
+            # Section 17 required table: assessment
+            self.state_manager.conn.execute('''
+                INSERT INTO assessment (
+                    assessment_id, student_id, concepts_json, question_ids_json,
+                    start_time, status, score
+                ) VALUES (?, ?, ?, ?, ?, 'IN_PROGRESS', 0.0)
+            ''', (
+                assessment_id, student_id, json.dumps(concepts),
+                json.dumps(selected_ids), now
+            ))
+            # Legacy table: assessment_sessions
             self.state_manager.conn.execute('''
                 INSERT INTO assessment_sessions (
                     assessment_id, student_id, concepts_json, question_ids_json,
@@ -139,6 +159,32 @@ class AssessmentManager:
                 json.dumps(selected_ids), now
             ))
 
+            # Section 17 required table: assessment_question
+            for q_id in selected_ids:
+                q_item = self.question_map.get(q_id)
+                if q_item:
+                    self.state_manager.conn.execute('''
+                        INSERT OR REPLACE INTO assessment_question (
+                            id, assessment_id, question_id, concept_id, difficulty,
+                            type, question, answer, rubric, hint, explanation,
+                            common_misconceptions, source
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        f"{assessment_id}_{q_item.id}",
+                        assessment_id,
+                        q_item.id,
+                        q_item.concept_id,
+                        q_item.difficulty,
+                        q_item.type,
+                        q_item.question,
+                        str(q_item.answer),
+                        q_item.rubric,
+                        q_item.hint,
+                        q_item.explanation,
+                        json.dumps(q_item.common_misconceptions),
+                        q_item.source,
+                    ))
+
         return assessment_id
 
     def submit_attempt(
@@ -148,7 +194,7 @@ class AssessmentManager:
         question_id: str,
         student_answer: Any,
     ) -> dict:
-        """Grade and record an attempt on a question (P6-T03)."""
+        """Grade and record an attempt on a question (P6-T03) in assessment_attempt & assessment_attempts."""
         item = self.question_map.get(question_id)
         if not item:
             raise ValueError(f"Question ID {question_id} not found in question bank.")
@@ -160,6 +206,17 @@ class AssessmentManager:
         now = datetime.now().isoformat()
 
         with self.state_manager.conn:
+            # Section 17 required table: assessment_attempt
+            self.state_manager.conn.execute('''
+                INSERT INTO assessment_attempt (
+                    attempt_id, assessment_id, student_id, question_id, concept_id,
+                    student_answer, is_correct, score_fraction, feedback, submitted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                attempt_id, assessment_id, student_id, question_id, item.concept_id,
+                str(student_answer), 1 if is_corr else 0, score_frac, feedback, now
+            ))
+            # Legacy table: assessment_attempts
             self.state_manager.conn.execute('''
                 INSERT INTO assessment_attempts (
                     attempt_id, assessment_id, student_id, question_id, concept_id,
@@ -177,6 +234,13 @@ class AssessmentManager:
             tracker = MisconceptionTracker(self.state_manager)
             tracker.record_misconception(student_id, item.concept_id, detected_misconception)
 
+        from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+        actions = DeadEndResolver.resolve_actions(
+            DeadEndScenario.ASSESSMENT,
+            ActionPath.SUCCESS,
+            {"is_completed": False}
+        )
+
         return {
             "attempt_id": attempt_id,
             "question_id": question_id,
@@ -184,17 +248,25 @@ class AssessmentManager:
             "score_fraction": score_frac,
             "feedback": feedback,
             "detected_misconception": detected_misconception,
+            "next_actions": [a.to_dict() for a in actions],
         }
 
     def complete_assessment_session(self, assessment_id: str, student_id: str) -> dict:
-        """Finalize assessment session, compute score, and update learner state (P6-T04)."""
+        """Finalize assessment session, compute score, persist to score table, and update learner state (P6-T04)."""
         cursor = self.state_manager.conn.execute(
-            "SELECT * FROM assessment_attempts WHERE assessment_id = ? AND student_id = ?",
+            "SELECT * FROM assessment_attempt WHERE assessment_id = ? AND student_id = ?",
             (assessment_id, student_id)
         )
         attempts = cursor.fetchall()
         if not attempts:
-            return {"assessment_id": assessment_id, "score": 0.0, "status": "NO_ATTEMPTS"}
+            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            actions = DeadEndResolver.resolve_actions(DeadEndScenario.ASSESSMENT, ActionPath.FAILURE)
+            return {
+                "assessment_id": assessment_id,
+                "score": 0.0,
+                "status": "NO_ATTEMPTS",
+                "next_actions": [a.to_dict() for a in actions],
+            }
 
         total_score = sum(att["score_fraction"] for att in attempts)
         max_possible = len(attempts)
@@ -202,29 +274,56 @@ class AssessmentManager:
 
         now = datetime.now().isoformat()
 
+        concept_scores: Dict[str, List[float]] = {}
+        for att in attempts:
+            cid = att["concept_id"]
+            if cid not in concept_scores:
+                concept_scores[cid] = []
+            concept_scores[cid].append(att["score_fraction"])
+
+        strengths = [cid for cid, scores in concept_scores.items() if (sum(scores) / len(scores)) >= 0.7]
+        weaknesses = [cid for cid, scores in concept_scores.items() if (sum(scores) / len(scores)) < 0.7]
+
         # Update assessment session in DB
+        score_id = f"score_{uuid.uuid4().hex[:10]}"
         with self.state_manager.conn:
+            # Section 17 required table: assessment
+            self.state_manager.conn.execute('''
+                UPDATE assessment
+                SET end_time = ?, status = 'COMPLETED', score = ?
+                WHERE assessment_id = ? AND student_id = ?
+            ''', (now, score_percentage, assessment_id, student_id))
+            # Legacy table: assessment_sessions
             self.state_manager.conn.execute('''
                 UPDATE assessment_sessions
                 SET end_time = ?, status = 'COMPLETED', score = ?
                 WHERE assessment_id = ? AND student_id = ?
             ''', (now, score_percentage, assessment_id, student_id))
+            # Section 17 required table: score
+            self.state_manager.conn.execute('''
+                INSERT OR REPLACE INTO score (
+                    score_id, assessment_id, student_id, total_score, max_possible,
+                    score_percentage, strengths_json, weaknesses_json, completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                score_id,
+                assessment_id,
+                student_id,
+                total_score,
+                float(max_possible),
+                score_percentage,
+                json.dumps(strengths),
+                json.dumps(weaknesses),
+                now,
+            ))
 
-        # Record learning events to mutate student mastery state
+        # Record learning events to mutate student mastery state (Section 17: outcomes become learning events)
         turn_id, ts = generate_turn_id(student_id=student_id, session_id=assessment_id)
-        mastery_calc = MasteryCalculator()
-
-        concept_scores: Dict[str, List[float]] = {}
-        misconceptions_detected: List[str] = []
 
         for att in attempts:
             cid = att["concept_id"]
             is_c = bool(att["is_correct"])
             score_frac = att["score_fraction"]
-
-            if cid not in concept_scores:
-                concept_scores[cid] = []
-            concept_scores[cid].append(score_frac)
 
             correctness_str = "correct" if is_c else ("partially_correct" if score_frac > 0 else "incorrect")
 
@@ -242,8 +341,12 @@ class AssessmentManager:
             )
             self.state_manager.record_learning_event(event)
 
-        strengths = [cid for cid, scores in concept_scores.items() if (sum(scores) / len(scores)) >= 0.7]
-        weaknesses = [cid for cid, scores in concept_scores.items() if (sum(scores) / len(scores)) < 0.7]
+        from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+        actions = DeadEndResolver.resolve_actions(
+            DeadEndScenario.ASSESSMENT,
+            ActionPath.SUCCESS,
+            {"is_completed": True, "strengths": strengths, "weaknesses": weaknesses},
+        )
 
         return {
             "assessment_id": assessment_id,
@@ -253,4 +356,39 @@ class AssessmentManager:
             "strengths": strengths,
             "weaknesses": weaknesses,
             "status": "COMPLETED",
+            "next_actions": [a.to_dict() for a in actions],
         }
+
+    def get_assessment(self, assessment_id: str) -> Optional[dict]:
+        """Fetch assessment session record from assessment table."""
+        cursor = self.state_manager.conn.execute(
+            "SELECT * FROM assessment WHERE assessment_id = ?",
+            (assessment_id,)
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def get_assessment_questions(self, assessment_id: str) -> List[dict]:
+        """Fetch all questions for an assessment from assessment_question table."""
+        cursor = self.state_manager.conn.execute(
+            "SELECT * FROM assessment_question WHERE assessment_id = ? ORDER BY question_id",
+            (assessment_id,)
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+    def get_assessment_attempts(self, assessment_id: str) -> List[dict]:
+        """Fetch all attempts for an assessment from assessment_attempt table."""
+        cursor = self.state_manager.conn.execute(
+            "SELECT * FROM assessment_attempt WHERE assessment_id = ? ORDER BY submitted_at",
+            (assessment_id,)
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+    def get_assessment_score(self, assessment_id: str) -> Optional[dict]:
+        """Fetch score record for an assessment from score table."""
+        cursor = self.state_manager.conn.execute(
+            "SELECT * FROM score WHERE assessment_id = ?",
+            (assessment_id,)
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None

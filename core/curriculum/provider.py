@@ -26,9 +26,11 @@ class CurriculumProvider:
 
     def load_into(self, graph: LearningDependencyGraph) -> int:
         if not self.file_path.exists():
-            logger.error(f'Curriculum file not found: {self.file_path}')
-            return 0
-            
+            raise FileNotFoundError(f"Curriculum file not found: {self.file_path}")
+
+        from core.curriculum.validator import CurriculumValidator
+        CurriculumValidator().validate_or_raise(self.file_path)
+
         with open(self.file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             

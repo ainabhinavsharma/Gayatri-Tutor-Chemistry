@@ -43,8 +43,8 @@ class TutorMemoryManager:
 
     @staticmethod
     def build_memory(
-        topic: str = "Thermodynamics",
-        subtopic: str = "General",
+        topic: str = "",
+        subtopic: str = "",
         mastery: float = 0.5,
         misconceptions: Optional[list[str]] = None,
         difficulty: int = 2,

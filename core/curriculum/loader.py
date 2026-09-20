@@ -15,45 +15,82 @@ from core.curriculum.models import CurriculumDomain, CurriculumManifest
 
 logger = logging.getLogger("gayatri.curriculum.loader")
 
-# Canonical path to the training manifest
-_MANIFEST_PATH = Path(__file__).parent.parent.parent / "training" / "curriculum" / "chemistry" / "curriculum_manifest.json"
+# Canonical paths to the curriculum manifest
+_DATA_CURRICULUM_PATH = Path(__file__).parent.parent.parent / "data" / "curriculum" / "chemistry" / "ncert_class11_12.json"
+_MANIFEST_PATH = Path(__file__).parent.parent.parent / "data" / "curriculum" / "chemistry" / "curriculum_manifest.json"
 
 
 class CurriculumManifestLoader:
     """Loads and queries the NCERT/CBSE chemistry curriculum manifest."""
 
     def __init__(self, manifest_path: str | Path | None = None):
-        self._path = Path(manifest_path) if manifest_path else _MANIFEST_PATH
+        if manifest_path:
+            self._path = Path(manifest_path)
+        elif _MANIFEST_PATH.exists():
+            self._path = _MANIFEST_PATH
+        elif _DATA_CURRICULUM_PATH.exists():
+            self._path = _DATA_CURRICULUM_PATH
+        else:
+            self._path = _MANIFEST_PATH
         self._manifest: Optional[CurriculumManifest] = None
 
     def load_manifest(self) -> CurriculumManifest:
-        """Parse the curriculum_manifest.json into a typed CurriculumManifest.
+        """Parse the curriculum manifest into a typed CurriculumManifest.
         Caches the result after first load.
         """
         if self._manifest is not None:
             return self._manifest
 
         if not self._path.exists():
-            logger.error(f"Curriculum manifest not found at {self._path}")
-            self._manifest = CurriculumManifest(domains=[])
-            return self._manifest
+            raise FileNotFoundError(f"Curriculum manifest not found at {self._path}")
 
-        with open(self._path, encoding="utf-8") as f:
+        with open(self._path, encoding="utf-8-sig") as f:
             data = json.load(f)
 
         domains = []
-        for raw in data.get("domains", []):
-            domains.append(
-                CurriculumDomain(
-                    name=raw.get("name", ""),
-                    classes=raw.get("classes", []),
-                    chapters=raw.get("chapters", []),
-                    topics=raw.get("topics", []),
-                    subtopics=raw.get("subtopics", []),
-                    learning_outcomes=raw.get("learning_outcomes", []),
-                    prerequisites=raw.get("prerequisites", []),
+        if "domains" in data:
+            for raw in data.get("domains", []):
+                domains.append(
+                    CurriculumDomain(
+                        name=raw.get("name", ""),
+                        classes=raw.get("classes", []),
+                        chapters=raw.get("chapters", []),
+                        topics=raw.get("topics", []),
+                        subtopics=raw.get("subtopics", []),
+                        learning_outcomes=raw.get("learning_outcomes", []),
+                        prerequisites=raw.get("prerequisites", []),
+                    )
                 )
-            )
+        elif "concepts" in data:
+            # Parse from ncert_class11_12.json structure
+            concepts = data.get("concepts", [])
+            thermo_concepts = [c for c in concepts if "thermo" in c.get("id", "")]
+            inorg_concepts = [c for c in concepts if "thermo" not in c.get("id", "")]
+
+            if thermo_concepts:
+                domains.append(
+                    CurriculumDomain(
+                        name="Thermodynamics",
+                        classes=["Class 11"],
+                        chapters=["Thermodynamics"],
+                        topics=[c["name"] for c in thermo_concepts],
+                        subtopics=[c.get("description", "") for c in thermo_concepts],
+                        learning_outcomes=["Understand enthalpy, entropy, Gibbs energy, and thermochemical laws"],
+                        prerequisites=["System and Surroundings"],
+                    )
+                )
+            if inorg_concepts:
+                domains.append(
+                    CurriculumDomain(
+                        name="Inorganic Chemistry",
+                        classes=["Class 11", "Class 12"],
+                        chapters=["Classification of Elements", "Chemical Bonding", "s-Block Elements", "p-Block Elements"],
+                        topics=[c["name"] for c in inorg_concepts],
+                        subtopics=[c.get("description", "") for c in inorg_concepts],
+                        learning_outcomes=["Understand periodic trends, bonding, and group element reactions"],
+                        prerequisites=["Periodic Table Trends"],
+                    )
+                )
 
         self._manifest = CurriculumManifest(domains=domains)
         logger.info(
@@ -151,17 +188,15 @@ def get_curriculum_loader() -> CurriculumManifestLoader:
     return _loader
 
 
-# ─── Legacy shim — kept for backward compatibility ─────────────────────────────
 def load_curriculum(graph, curriculum_path: str | Path) -> int:
     """Legacy shim: load a curriculum JSON file into the LDG (old format)."""
     path = Path(curriculum_path)
-    try:
-        import json as _json
-        with open(path) as f:
-            data = _json.load(f)
-    except Exception as exc:
-        logger.error(f"load_curriculum: failed to open {path}: {exc}")
-        return 0
+    if not path.exists():
+        raise FileNotFoundError(f"load_curriculum: curriculum file not found at {path}")
+
+    import json as _json
+    with open(path, encoding="utf-8") as f:
+        data = _json.load(f)
 
     from core.curriculum.provider import CurriculumProvider
     subject = data.get("subject", "unknown")

@@ -38,9 +38,11 @@ class RAGStore:
         return self._db_conn
 
     def _create_schema(self) -> None:
+        from core.db import run_migrations
         conn = self.conn
-        with conn:
-            conn.executescript("""
+
+        def migration_1(c: sqlite3.Connection) -> None:
+            c.executescript("""
                 CREATE TABLE IF NOT EXISTS rag_sources (
                     source_id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -60,11 +62,38 @@ class RAGStore:
                     topic TEXT NOT NULL,
                     subtopic TEXT NOT NULL,
                     page INTEGER NOT NULL,
+                    section TEXT DEFAULT '',
                     text TEXT NOT NULL,
                     embedding_id TEXT DEFAULT '',
+                    provenance_type TEXT DEFAULT 'NCERT',
                     FOREIGN KEY (source_id) REFERENCES rag_sources(source_id) ON DELETE CASCADE
                 );
             """)
+
+        def migration_2(c: sqlite3.Connection) -> None:
+            try:
+                c.execute("ALTER TABLE rag_chunks ADD COLUMN section TEXT DEFAULT '';")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                c.execute("ALTER TABLE rag_chunks ADD COLUMN provenance_type TEXT DEFAULT 'NCERT';")
+            except sqlite3.OperationalError:
+                pass
+
+        def migration_3(c: sqlite3.Connection) -> None:
+            c.executescript("""
+                CREATE INDEX IF NOT EXISTS idx_rag_chunks_source ON rag_chunks(source_id);
+                CREATE INDEX IF NOT EXISTS idx_rag_chunks_chapter_topic ON rag_chunks(chapter, topic);
+            """)
+
+        migrations = {
+            1: ("rag_initial_schema", migration_1),
+            2: ("rag_section_provenance_columns", migration_2),
+            3: ("rag_retrieval_indexes", migration_3),
+        }
+
+        run_migrations(conn, migrations)
 
     def add_source(self, source: SourceMetadata) -> None:
         """Insert or replace a source document metadata record."""
@@ -90,17 +119,22 @@ class RAGStore:
                     VALUES (?, ?, 'Class 11', ?)
                 """, (chk.source_id, f"Source {chk.source_id}", chk.chapter))
 
+                sec = getattr(chk, "section", "")
+                prov = getattr(chk, "provenance_type", "NCERT")
                 self.conn.execute("""
-                    INSERT INTO rag_chunks (chunk_id, source_id, chapter, topic, subtopic, page, text, embedding_id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO rag_chunks (chunk_id, source_id, chapter, topic, subtopic, page, section, text, embedding_id, provenance_type)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(chunk_id) DO UPDATE SET
                         text=excluded.text,
                         topic=excluded.topic,
                         subtopic=excluded.subtopic,
-                        page=excluded.page
+                        page=excluded.page,
+                        section=excluded.section,
+                        provenance_type=excluded.provenance_type
                 """, (
                     chk.chunk_id, chk.source_id, chk.chapter, chk.topic,
-                    chk.subtopic, chk.page, chk.text, chk.embedding_id
+                    chk.subtopic, chk.page, sec, chk.text, chk.embedding_id,
+                    prov
                 ))
         logger.info(f"Stored {len(chunks)} chunks in RAG database")
 
@@ -109,6 +143,7 @@ class RAGStore:
         cursor = self.conn.execute("SELECT * FROM rag_chunks")
         chunks = []
         for row in cursor.fetchall():
+            keys = row.keys() if hasattr(row, "keys") else []
             chunks.append(DocumentChunk(
                 chunk_id=row["chunk_id"],
                 source_id=row["source_id"],
@@ -116,8 +151,10 @@ class RAGStore:
                 topic=row["topic"],
                 subtopic=row["subtopic"],
                 page=row["page"],
+                section=row["section"] if "section" in keys else "",
                 text=row["text"],
-                embedding_id=row["embedding_id"]
+                embedding_id=row["embedding_id"] if "embedding_id" in keys else "",
+                provenance_type=row["provenance_type"] if "provenance_type" in keys else "NCERT",
             ))
         return chunks
 

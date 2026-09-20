@@ -16,12 +16,32 @@ if TYPE_CHECKING:
     from core.tutor.state import LearningEvent
 
 
+DIFFICULTY_LEVELS = {
+    1: "Recall",
+    2: "Basic",
+    3: "Standard",
+    4: "Multi-step",
+    5: "Advanced",
+}
+
+
+def get_difficulty_label(level: int) -> str:
+    """Return the pedagogical label for difficulty levels 1 to 5."""
+    clamped = max(1, min(5, int(round(level))))
+    return DIFFICULTY_LEVELS.get(clamped, "Standard")
+
+
 @dataclass
 class DifficultyDecision:
     new_difficulty: int
     action: str  # 'increase', 'maintain', 'reduce', 'prerequisite_review'
     reason: str
     recommend_prerequisite_review: bool = False
+    difficulty_label: str = ""
+
+    def __post_init__(self):
+        if not self.difficulty_label:
+            self.difficulty_label = get_difficulty_label(self.new_difficulty)
 
 
 class DifficultyPolicy:

@@ -21,25 +21,25 @@ GENERIC_AMBIGUOUS_WORDS = {
 
 @dataclass
 class EvaluationResult:
-    """Structured evaluation metadata for a student answer (P0-02 / P2-T02)."""
+    """Structured evaluation metadata for a student answer (Section 12 / Phase 6)."""
     correctness: str  # "correct", "partially_correct", "incorrect", "uncertain"
     confidence: float  # 0.0 to 1.0
-    concept_understanding: str  # "sound", "shaky", "misconception", "unknown"
-    error_type: str  # "none", "conceptual", "arithmetic", "formula_misuse", "unit_error", "reaction", "notation", "other"
+    error_type: str = "none"  # "none", "conceptual", "arithmetic", "formula", "unit", "reaction", "notation", "other"
     misconception: Optional[str] = None
-    recommended_action: str = "proceed"  # "advance", "reinforce", "remediate", "prerequisite_review"
+    recommended_action: str = "advance"  # "advance", "reinforce", "remediate", "prerequisite_review"
+    concept_understanding: str = "sound"  # backward compat: "sound", "shaky", "misconception", "unknown"
     difficulty_delta: float = 0.0
     evidence: List[str] = field(default_factory=list)
-    next_difficulty_change: str = "maintain"  # "increase", "maintain", "decrease" (legacy compat)
+    next_difficulty_change: str = "maintain"  # legacy compat
 
     def to_dict(self) -> dict:
         return {
             "correctness": self.correctness,
-            "confidence": self.confidence,
-            "concept_understanding": self.concept_understanding,
+            "confidence": round(self.confidence, 2),
             "error_type": self.error_type,
-            "misconception": self.misconception or "",
+            "misconception": self.misconception,
             "recommended_action": self.recommended_action,
+            "concept_understanding": self.concept_understanding,
             "difficulty_delta": self.difficulty_delta,
             "evidence": self.evidence,
             "next_difficulty_change": self.next_difficulty_change,
@@ -47,11 +47,14 @@ class EvaluationResult:
 
 
 class StudentAnswerEvaluator:
-    """Context-aware, evidence-driven student answer evaluator (Phase 2)."""
+    """Context-aware, evidence-driven student answer evaluator (Phase 6 / Section 12)."""
 
     @classmethod
     def evaluate_dict(cls, data: dict) -> EvaluationResult:
-        """Evaluate student answer from a dictionary input contract matching Phase 2 schema."""
+        """Evaluate student answer from a dictionary input contract matching Section 12 schema."""
+        question_id = str(data.get("question_id") or "").strip()
+        concept_id = str(data.get("concept_id") or "").strip()
+        question = str(data.get("question") or "").strip()
         student_ans = str(data.get("student_answer") or data.get("user_answer") or "").strip()
         expected_ans = str(data.get("expected_answer") or data.get("answer") or "").strip()
         qtype = str(data.get("question_type") or data.get("type") or "conceptual").strip()
@@ -66,21 +69,30 @@ class StudentAnswerEvaluator:
             rubric=rubric,
             tolerance=tol,
             expected_unit=exp_unit,
+            concept_id=concept_id,
+            question_id=question_id,
+            question=question,
         )
 
     @staticmethod
     def evaluate(
-        user_answer: str,
+        user_answer: str = "",
         expected_answer: str = "",
         question_type: str = "conceptual",
         rubric: str = "",
         tolerance: float = 0.05,
-        expected_unit: str = ""
+        expected_unit: str = "",
+        concept_id: str = "",
+        question_id: str = "",
+        question: str = "",
+        student_answer: Optional[str] = None,
     ) -> EvaluationResult:
-        """Evaluate student answer using structured criteria & evidence (P2-T01 to P2-T05)."""
+        """Evaluate student answer using structured criteria & evidence (Section 12)."""
         try:
-            text = user_answer.strip()
+            raw_text = student_answer if student_answer is not None else user_answer
+            text = str(raw_text or "").strip()
             clean_text = text.lower()
+            qtype = question_type.strip().lower() if question_type else "conceptual"
 
             if not clean_text:
                 return EvaluationResult(
@@ -92,9 +104,10 @@ class StudentAnswerEvaluator:
                     evidence=["Empty answer submitted"]
                 )
 
-            # P2-T01 & P2-T04: Generic single-word / number answers without context return 'uncertain'
-            if not expected_answer and not rubric:
-                if clean_text in GENERIC_AMBIGUOUS_WORDS or clean_text.isdigit():
+            # Section 12: Generic single-word / number answers alone CANNOT establish correctness
+            is_ambiguous_word = clean_text in GENERIC_AMBIGUOUS_WORDS or (clean_text.isdigit() and qtype != "numeric")
+            if is_ambiguous_word:
+                if not expected_answer and not rubric:
                     return EvaluationResult(
                         correctness="uncertain",
                         confidence=0.0,
@@ -104,11 +117,22 @@ class StudentAnswerEvaluator:
                         next_difficulty_change="maintain",
                         evidence=[f"Ambiguous or generic answer '{text}' provided without question context"]
                     )
+                elif qtype in ("conceptual", "explanation", "short_answer", "formula", "reaction"):
+                    # Generic single words (yes, correct, 400, 0, etc.) cannot prove non-numeric/conceptual questions correct
+                    is_uncertain_word = clean_text in ("yes", "ok", "sure", "idk", "dunno", "maybe")
+                    return EvaluationResult(
+                        correctness="uncertain" if is_uncertain_word else "incorrect",
+                        confidence=0.0 if is_uncertain_word else 0.8,
+                        concept_understanding="unknown" if is_uncertain_word else "shaky",
+                        error_type="other" if is_uncertain_word else "conceptual",
+                        recommended_action="reinforce" if is_uncertain_word else "remediate",
+                        next_difficulty_change="maintain" if is_uncertain_word else "decrease",
+                        evidence=[f"Single word/number '{text}' cannot establish correctness for a {qtype} question"]
+                    )
 
             # -- 1. MCQ Evaluator --
-            if question_type == "mcq" and expected_answer:
+            if qtype == "mcq" and expected_answer:
                 exp_clean = expected_answer.strip().lower()
-                # Extract option letter e.g., 'A', '(b)', 'Option C'
                 user_opt = re.sub(r'[^a-d]', '', clean_text[:5])
                 exp_opt = re.sub(r'[^a-d]', '', exp_clean[:5])
 
@@ -120,7 +144,7 @@ class StudentAnswerEvaluator:
                         error_type="none",
                         recommended_action="advance",
                         next_difficulty_change="increase",
-                        evidence=[f"Selected correct option '{user_answer}' matching '{expected_answer}'"]
+                        evidence=[f"Selected correct option '{text}' matching '{expected_answer}'"]
                     )
                 elif exp_clean in clean_text or clean_text in exp_clean:
                     return EvaluationResult(
@@ -140,12 +164,11 @@ class StudentAnswerEvaluator:
                         error_type="conceptual",
                         recommended_action="remediate",
                         next_difficulty_change="decrease",
-                        evidence=[f"Selected option '{user_answer}', expected '{expected_answer}'"]
+                        evidence=[f"Selected option '{text}', expected '{expected_answer}'"]
                     )
 
             # -- 2. Numeric Evaluator (with Tolerance & Unit Checks) --
-            if question_type == "numeric":
-                # Extract numeric value
+            if qtype == "numeric":
                 num_match = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', text)
                 exp_match = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', expected_answer) if expected_answer else None
 
@@ -156,11 +179,16 @@ class StudentAnswerEvaluator:
                     allowed_err = max(abs(exp_val * tolerance), tolerance)
                     is_num_correct = abs(user_val - exp_val) <= allowed_err
 
-                    # Check units if required
+                    # Check units if specified or extractable from expected_answer
+                    req_unit = expected_unit.strip().lower()
+                    if not req_unit and expected_answer:
+                        unit_sub = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?\s*([a-zA-Z/°]+(?:\^[0-9-]+)?)', expected_answer)
+                        if unit_sub and unit_sub.group(1).strip():
+                            req_unit = unit_sub.group(1).strip().lower()
+
                     unit_err = False
-                    if expected_unit:
-                        exp_unit_clean = expected_unit.strip().lower()
-                        if exp_unit_clean not in clean_text:
+                    if req_unit:
+                        if req_unit not in clean_text:
                             unit_err = True
 
                     if is_num_correct and not unit_err:
@@ -178,10 +206,10 @@ class StudentAnswerEvaluator:
                             correctness="partially_correct",
                             confidence=0.7,
                             concept_understanding="shaky",
-                            error_type="unit_error",
+                            error_type="unit",
                             recommended_action="reinforce",
                             next_difficulty_change="maintain",
-                            evidence=[f"Numeric value {user_val} correct, but unit missing or wrong (expected {expected_unit})"]
+                            evidence=[f"Numeric value {user_val} correct, but unit missing or wrong (expected {req_unit})"]
                         )
                     else:
                         return EvaluationResult(
@@ -193,9 +221,19 @@ class StudentAnswerEvaluator:
                             next_difficulty_change="decrease",
                             evidence=[f"Numeric value {user_val} outside allowed tolerance of {exp_val}"]
                         )
+                elif not exp_match and not rubric:
+                    return EvaluationResult(
+                        correctness="uncertain",
+                        confidence=0.0,
+                        concept_understanding="unknown",
+                        error_type="other",
+                        recommended_action="reinforce",
+                        next_difficulty_change="maintain",
+                        evidence=[f"Numeric answer '{text}' provided without expected answer reference"]
+                    )
 
             # -- 3. Formula / Reaction Evaluator --
-            if question_type in ("formula", "reaction") and expected_answer:
+            if qtype in ("formula", "reaction") and expected_answer:
                 norm_user = re.sub(r'[\s_]', '', clean_text)
                 norm_exp = re.sub(r'[\s_]', '', expected_answer.strip().lower())
 
@@ -207,23 +245,23 @@ class StudentAnswerEvaluator:
                         error_type="none",
                         recommended_action="advance",
                         next_difficulty_change="increase",
-                        evidence=[f"Formula/reaction '{user_answer}' matches expected '{expected_answer}'"]
+                        evidence=[f"Formula/reaction '{text}' matches expected '{expected_answer}'"]
                     )
                 else:
                     return EvaluationResult(
                         correctness="incorrect",
                         confidence=0.85,
                         concept_understanding="shaky",
-                        error_type="reaction" if question_type == "reaction" else "notation",
+                        error_type="reaction" if qtype == "reaction" else "formula",
                         recommended_action="remediate",
                         next_difficulty_change="decrease",
-                        evidence=[f"Formula/reaction '{user_answer}' differs from expected '{expected_answer}'"]
+                        evidence=[f"Formula/reaction '{text}' differs from expected '{expected_answer}'"]
                     )
 
-            # -- 4. Short Answer & Conceptual Evaluator --
+            # -- 4. Short Answer & Conceptual / Explanation Evaluator --
             if expected_answer or rubric:
                 target = (expected_answer + " " + rubric).lower()
-                key_terms = [w for w in re.findall(r'\w{4,}', target) if w not in ("what", "that", "this", "from", "with", "have")]
+                key_terms = [w for w in re.findall(r'[a-zA-Z]{4,}', target) if w not in ("what", "that", "this", "from", "with", "have", "when", "does")]
 
                 matches = [w for w in key_terms if w in clean_text]
                 match_ratio = len(matches) / max(len(key_terms), 1)
@@ -234,16 +272,31 @@ class StudentAnswerEvaluator:
                         confidence=0.85,
                         concept_understanding="sound",
                         error_type="none",
+                        misconception=None,
                         recommended_action="advance",
                         next_difficulty_change="increase",
                         evidence=[f"Key concepts matched: {matches[:3]}"]
                     )
-                elif match_ratio >= 0.2:
+
+                # Check for known chemistry misconceptions when answer is partial or incorrect
+                misconception = None
+                try:
+                    from core.learning.misconceptions import MisconceptionTracker
+                    misconception = MisconceptionTracker.identify_misconception_from_error(
+                        concept_id=concept_id,
+                        student_answer=text,
+                        error_type="conceptual",
+                    )
+                except Exception as m_exc:
+                    logger.debug(f"Misconception lookup error: {m_exc}")
+
+                if match_ratio >= 0.2 and not misconception:
                     return EvaluationResult(
                         correctness="partially_correct",
                         confidence=0.6,
                         concept_understanding="shaky",
                         error_type="conceptual",
+                        misconception=None,
                         recommended_action="reinforce",
                         next_difficulty_change="maintain",
                         evidence=[f"Partial concept match: {matches}"]
@@ -252,11 +305,12 @@ class StudentAnswerEvaluator:
                     return EvaluationResult(
                         correctness="incorrect",
                         confidence=0.75,
-                        concept_understanding="misconception",
+                        concept_understanding="misconception" if misconception else "shaky",
                         error_type="conceptual",
+                        misconception=misconception,
                         recommended_action="remediate",
                         next_difficulty_change="decrease",
-                        evidence=[f"Key concepts missing from response: {key_terms[:3]}"]
+                        evidence=[f"Conceptual mismatch or misconception: {misconception or 'missing key concepts'}"]
                     )
 
             # Default fallback when no answer key is present: check for substantive chemistry discourse
@@ -269,12 +323,12 @@ class StudentAnswerEvaluator:
                     confidence=0.8,
                     concept_understanding="sound",
                     error_type="none",
-                    recommended_action="proceed",
+                    recommended_action="advance",
                     next_difficulty_change="increase",
                     evidence=[f"Substantive response containing relevant chemistry domain concepts: {found_keywords}"]
                 )
             else:
-                # P2-T04: Ambiguous or brief response defaults to 'uncertain' (NEVER 'incorrect')
+                # Ambiguous or brief response defaults to 'uncertain' (NEVER 'incorrect' without key)
                 return EvaluationResult(
                     correctness="uncertain",
                     confidence=0.0,
@@ -287,12 +341,13 @@ class StudentAnswerEvaluator:
 
         except Exception as exc:
             logger.error(f"StudentAnswerEvaluator: evaluation failed unexpectedly: {exc}")
-            # P2-T04: Failure defaults to 'uncertain'
+            # Section 12: Evaluation failure becomes uncertain
             return EvaluationResult(
                 correctness="uncertain",
                 confidence=0.0,
                 concept_understanding="unknown",
                 error_type="other",
+                misconception=None,
                 recommended_action="reinforce",
                 next_difficulty_change="maintain",
                 evidence=[f"Evaluation pipeline exception: {exc}"]

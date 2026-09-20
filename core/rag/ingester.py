@@ -30,8 +30,21 @@ class NCERTIngester:
             logger.error(f"Ingestion file not found: {path}")
             return []
 
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            from core.security.validation import validate_file_extension, validate_file_size, validate_json
+            validate_file_extension(path, allowed_extensions={".json"})
+            validate_file_size(path.stat().st_size)
+
+            with open(path, "rb") as f:
+                content = f.read()
+
+            data = validate_json(content)
+            if not isinstance(data, dict):
+                logger.error(f"Ingestion JSON must be an object: {path}")
+                return []
+        except Exception as err:
+            logger.error(f"Failed to validate/parse ingestion file {path}: {err}")
+            return []
 
         source_id = data.get("source_id", "NCERT_UNKNOWN")
         chapter = data.get("chapter", "Unknown Chapter")

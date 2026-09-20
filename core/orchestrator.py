@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from core.agents.registry import agent_registry
@@ -20,6 +20,7 @@ from core.agents.runtime import AgentContext, AgentRuntime
 from core.config import DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE, ExecutionMode
 from core.conversation import Conversation, ConversationStore
 from core.privacy import get_redactor
+from core.security.validation import validate_query_text, validate_session_id, validate_student_id
 
 logger = logging.getLogger("gayatri.orchestrator")
 
@@ -252,6 +253,7 @@ class TurnOptions:
     model_override: str | None = None
     forced_tier: str | None = None
     forced_agent: str | None = None
+    student_id: str | None = None
 
 
 @dataclass
@@ -265,6 +267,7 @@ class TurnResult:
     agent_name: str = ""
     execution_mode: str = "local_only"  # "local_only" | "cloud_allowed"
     status: str = "SUCCESS"  # "SUCCESS" | "MODEL_UNAVAILABLE" | "ERROR"
+    next_actions: list[dict] = field(default_factory=list)
 
 
 class Orchestrator:
@@ -278,11 +281,19 @@ class Orchestrator:
         conversations: ConversationStore | None = None,
         tutor_engine: Any = None,
         ldg: Any = None,
+        state_manager: Any = None,
     ):
         self.conversations = conversations if conversations is not None else _conversations
         self._tutor_engine = tutor_engine
         self._ldg = ldg
+        self._state_manager = state_manager
         self._lock = threading.RLock()
+
+    def get_state_manager(self) -> Any:
+        if self._state_manager is not None:
+            return self._state_manager
+        from core.tutor.state import TutorStateManager
+        return TutorStateManager()
 
     def get_tutor_engine(self) -> Any:
         if self._tutor_engine is not None:
@@ -319,25 +330,50 @@ class Orchestrator:
         opts = options or TurnOptions()
         start = time.time()
         exec_mode = _get_execution_mode()
-        
-        user_message = _redact_pii(user_message)
-        conv = self._get_conversation(session_id)
 
         try:
+            session_id = validate_session_id(session_id)
+            student_id = getattr(opts, "student_id", None) or session_id
+            validate_student_id(student_id)
+            user_message = validate_query_text(user_message)
             mode = self._validate_mode(opts)
+            user_message = _redact_pii(user_message)
+            conv = self._get_conversation(session_id)
             conv.mode = mode
         
         except ValueError as e:
             from core.errors import sanitize_error
+            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
             sanitized = sanitize_error(e, category="orchestrator_submit")
             latency = (time.time() - start) * 1000
+            actions = DeadEndResolver.resolve_actions(DeadEndScenario.ACTIVE_LEARNING, ActionPath.FAILURE)
             return TurnResult(
                 text=f"I encountered an error: {sanitized.user_message}",
                 model_used="local",
-                routing_reason="mode_validation_failed",
+                routing_reason="input_validation_failed",
                 latency_ms=latency,
                 execution_mode=exec_mode.value,
-                status="ERROR"
+                status="ERROR",
+                next_actions=[a.to_dict() for a in actions],
+            )
+
+        from core.security.rate_limiter import get_governor, RateLimitExceededError
+        governor = get_governor()
+
+        try:
+            governor.check_turn(student_id, session_id)
+        except RateLimitExceededError as rle:
+            latency = (time.time() - start) * 1000
+            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            actions = DeadEndResolver.resolve_actions(DeadEndScenario.ACTIVE_LEARNING, ActionPath.RECOVERY)
+            return TurnResult(
+                text=str(rle),
+                model_used="local",
+                routing_reason="rate_limit_exceeded",
+                latency_ms=latency,
+                execution_mode=exec_mode.value,
+                status="ERROR",
+                next_actions=[a.to_dict() for a in actions],
             )
 
         context = AgentContext(
@@ -352,51 +388,94 @@ class Orchestrator:
         agent_name = mode
         
         try:
-            from core.mode import AppMode
-            if mode == AppMode.CHEMISTRY_TUTOR.value:
-                tutor_eng = self.get_tutor_engine()
-                tutor_txn = None
-                if tutor_eng and hasattr(tutor_eng, "begin_transaction"):
-                    tutor_txn = tutor_eng.begin_transaction(session_id)
+            with governor.concurrency_guard():
+                from core.mode import AppMode
+                if mode == AppMode.CHEMISTRY_TUTOR.value:
+                    from core.tutor.state import TutorStateManager, generate_turn_id
+                    from core.tutor.lifecycle import TurnLifecycleManager, TurnStage
 
-                _evaluate_tutor_response(session_id, user_message, tutor=tutor_eng, ldg=self.get_ldg())
-                _inject_tutor_context(context, session_id, tutor=tutor_eng, ldg=self.get_ldg())
-                
-                from core.runtimes.chemistry import ChemistryTutorRuntime
-                runtime = ChemistryTutorRuntime()
-                try:
+                    student_id = getattr(opts, "student_id", None) or session_id
+                    turn_id, _ = generate_turn_id(student_id=student_id, session_id=session_id)
+                    state_mgr = self.get_state_manager()
+                    lifecycle = TurnLifecycleManager(state_mgr)
+
+                    tutor_eng = self.get_tutor_engine()
+                    tutor_txn = None
+                    if tutor_eng and hasattr(tutor_eng, "begin_transaction"):
+                        tutor_txn = tutor_eng.begin_transaction(session_id)
+
+                    # 1. TURN_STARTED
+                    lifecycle.start_turn(turn_id, student_id, session_id)
+
+                    try:
+                        # 2. EVALUATION_STARTED
+                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_STARTED)
+                        _evaluate_tutor_response(session_id, user_message, tutor=tutor_eng, ldg=self.get_ldg())
+                        _inject_tutor_context(context, session_id, tutor=tutor_eng, ldg=self.get_ldg())
+
+                        from core.runtimes.chemistry import ChemistryTutorRuntime
+                        runtime = ChemistryTutorRuntime()
+                        stream = runtime.stream(user_message, context)
+                        resp_text = "".join([t for t in stream])
+
+                        # 3. RESPONSE_GENERATED
+                        lifecycle.update_stage(turn_id, TurnStage.RESPONSE_GENERATED)
+
+                        # 4. EVALUATION_COMPLETED
+                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_COMPLETED)
+
+                        _post_tutor_response(session_id, tutor=tutor_eng)
+
+                        # 5. LEARNING_STATE_UPDATED
+                        lifecycle.update_stage(turn_id, TurnStage.LEARNING_STATE_UPDATED)
+
+                        if tutor_txn:
+                            tutor_txn.commit()
+
+                        # 6. TURN_COMMITTED
+                        lifecycle.update_stage(turn_id, TurnStage.TURN_COMMITTED)
+                    except Exception as e:
+                        if tutor_txn:
+                            tutor_txn.rollback()
+                        lifecycle.update_stage(turn_id, TurnStage.TURN_ABORTED, error_detail=str(e))
+                        raise e
+                else:
+                    from core.runtimes.general import GeneralAssistantRuntime
+                    runtime = GeneralAssistantRuntime()
                     stream = runtime.stream(user_message, context)
                     resp_text = "".join([t for t in stream])
-                    _post_tutor_response(session_id, tutor=tutor_eng)
-                    if tutor_txn:
-                        tutor_txn.commit()
-                except Exception as e:
-                    if tutor_txn:
-                        tutor_txn.rollback()
-                    raise e
-            else:
-                from core.runtimes.general import GeneralAssistantRuntime
-                runtime = GeneralAssistantRuntime()
-                stream = runtime.stream(user_message, context)
-                resp_text = "".join([t for t in stream])
 
-            conv.add("user", user_message, agent_name=agent_name)
-            conv.add("assistant", resp_text, agent_name=agent_name)
-            
-            return TurnResult(
-                text=resp_text,
-                model_used="local",
-                routing_reason="mode_dispatch",
-                latency_ms=(time.time() - start) * 1000,
-                agent_name=agent_name,
-                execution_mode=exec_mode.value,
-                status="SUCCESS"
-            )
+                conv.add("user", user_message, agent_name=agent_name)
+                conv.add("assistant", resp_text, agent_name=agent_name)
+                
+                from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+                tutor_ctx = self.get_tutor_engine().get_or_create_context(session_id) if self.get_tutor_engine() else None
+                resolved_context = {
+                    "concept_name": tutor_ctx.current_concept_name if tutor_ctx else "Thermodynamics",
+                    "concept_id": tutor_ctx.current_concept_id if tutor_ctx else "thermo.first_law",
+                    "target_mode": mode,
+                }
+                scenario = DeadEndScenario.ACTIVE_LEARNING if mode == AppMode.CHEMISTRY_TUTOR.value else DeadEndScenario.MODE_SWITCH
+                actions = DeadEndResolver.resolve_actions(scenario, ActionPath.SUCCESS, resolved_context)
+                
+                return TurnResult(
+                    text=resp_text,
+                    model_used="local",
+                    routing_reason="mode_dispatch",
+                    latency_ms=(time.time() - start) * 1000,
+                    agent_name=agent_name,
+                    execution_mode=exec_mode.value,
+                    status="SUCCESS",
+                    next_actions=[a.to_dict() for a in actions],
+                )
         except Exception as exc:
             from core.errors import sanitize_error
+            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
             sanitized = sanitize_error(exc, category="orchestrator_submit")
             conv.add("user", user_message)
             latency = (time.time() - start) * 1000
+            sc = DeadEndScenario.LLM_TIMEOUT if isinstance(exc, TimeoutError) else DeadEndScenario.ACTIVE_LEARNING
+            actions = DeadEndResolver.resolve_actions(sc, ActionPath.FAILURE)
             return TurnResult(
                 text=f"I encountered an error: {sanitized.user_message}",
                 model_used="local",
@@ -404,22 +483,35 @@ class Orchestrator:
                 latency_ms=latency,
                 execution_mode=exec_mode.value,
                 status="ERROR",
+                next_actions=[a.to_dict() for a in actions],
             )
 
     def stream(self, user_message: str, session_id: str = "default",
                options: TurnOptions | None = None):
         opts = options or TurnOptions()
         exec_mode = _get_execution_mode()
-        
-        user_message = _redact_pii(user_message)
-        conv = self._get_conversation(session_id)
 
         try:
+            session_id = validate_session_id(session_id)
+            student_id = getattr(opts, "student_id", None) or session_id
+            validate_student_id(student_id)
+            user_message = validate_query_text(user_message)
             mode = self._validate_mode(opts)
+            user_message = _redact_pii(user_message)
+            conv = self._get_conversation(session_id)
             conv.mode = mode
         
         except ValueError as e:
             yield str(e), True
+            return
+
+        from core.security.rate_limiter import get_governor, RateLimitExceededError
+        governor = get_governor()
+
+        try:
+            governor.check_turn(student_id, session_id)
+        except RateLimitExceededError as rle:
+            yield str(rle), True
             return
 
         context = AgentContext(
@@ -433,51 +525,81 @@ class Orchestrator:
         agent_name = mode
         buffer = []
         
-        from core.mode import AppMode
-        if mode == AppMode.CHEMISTRY_TUTOR.value:
-            tutor_eng = self.get_tutor_engine()
-            tutor_txn = None
-            if tutor_eng and hasattr(tutor_eng, "begin_transaction"):
-                tutor_txn = tutor_eng.begin_transaction(session_id)
+        try:
+            with governor.concurrency_guard():
+                from core.mode import AppMode
+                if mode == AppMode.CHEMISTRY_TUTOR.value:
+                    from core.tutor.state import TutorStateManager, generate_turn_id
+                    from core.tutor.lifecycle import TurnLifecycleManager, TurnStage
 
-            _inject_tutor_context(context, session_id, tutor=tutor_eng, ldg=self.get_ldg())
-            
-            import threading
-            def _run_eval():
-                _evaluate_tutor_response(session_id, user_message, tutor=tutor_eng, ldg=self.get_ldg())
-            threading.Thread(target=_run_eval, daemon=True, name="Gayatri-Evaluator").start()
+                    student_id = getattr(opts, "student_id", None) or session_id
+                    turn_id, _ = generate_turn_id(student_id=student_id, session_id=session_id)
+                    state_mgr = self.get_state_manager()
+                    lifecycle = TurnLifecycleManager(state_mgr)
 
-            from core.runtimes.chemistry import ChemistryTutorRuntime
-            runtime = ChemistryTutorRuntime()
-            try:
-                token_stream = runtime.stream(user_message, context)
-                for token in token_stream:
-                    buffer.append(token)
-                    yield token, False
-                _post_tutor_response(session_id, tutor=tutor_eng)
-                if tutor_txn:
-                    tutor_txn.commit()
-            except Exception as e:
-                if tutor_txn:
-                    tutor_txn.rollback()
-                yield str(e), True
-                return
-        else:
-            from core.runtimes.general import GeneralAssistantRuntime
-            runtime = GeneralAssistantRuntime()
-            try:
-                token_stream = runtime.stream(user_message, context)
-                for token in token_stream:
-                    buffer.append(token)
-                    yield token, False
-            except Exception as e:
-                yield str(e), True
-                return
+                    tutor_eng = self.get_tutor_engine()
+                    tutor_txn = None
+                    if tutor_eng and hasattr(tutor_eng, "begin_transaction"):
+                        tutor_txn = tutor_eng.begin_transaction(session_id)
 
-        resp_text = "".join(buffer)
-        conv.add("user", user_message, agent_name=agent_name)
-        conv.add("assistant", resp_text, agent_name=agent_name)
-        yield "", True
+                    # 1. TURN_STARTED
+                    lifecycle.start_turn(turn_id, student_id, session_id)
+
+                    try:
+                        # 2. EVALUATION_STARTED
+                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_STARTED)
+                        _evaluate_tutor_response(session_id, user_message, tutor=tutor_eng, ldg=self.get_ldg())
+                        _inject_tutor_context(context, session_id, tutor=tutor_eng, ldg=self.get_ldg())
+
+                        from core.runtimes.chemistry import ChemistryTutorRuntime
+                        runtime = ChemistryTutorRuntime()
+
+                        token_stream = runtime.stream(user_message, context)
+                        for token in token_stream:
+                            buffer.append(token)
+                            yield token, False
+
+                        # 3. RESPONSE_GENERATED
+                        lifecycle.update_stage(turn_id, TurnStage.RESPONSE_GENERATED)
+
+                        # 4. EVALUATION_COMPLETED
+                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_COMPLETED)
+
+                        _post_tutor_response(session_id, tutor=tutor_eng)
+
+                        # 5. LEARNING_STATE_UPDATED
+                        lifecycle.update_stage(turn_id, TurnStage.LEARNING_STATE_UPDATED)
+
+                        if tutor_txn:
+                            tutor_txn.commit()
+
+                        # 6. TURN_COMMITTED
+                        lifecycle.update_stage(turn_id, TurnStage.TURN_COMMITTED)
+                    except Exception as e:
+                        if tutor_txn:
+                            tutor_txn.rollback()
+                        lifecycle.update_stage(turn_id, TurnStage.TURN_ABORTED, error_detail=str(e))
+                        yield str(e), True
+                        return
+                else:
+                    from core.runtimes.general import GeneralAssistantRuntime
+                    runtime = GeneralAssistantRuntime()
+                    try:
+                        token_stream = runtime.stream(user_message, context)
+                        for token in token_stream:
+                            buffer.append(token)
+                            yield token, False
+                    except Exception as e:
+                        yield str(e), True
+                        return
+
+            resp_text = "".join(buffer)
+            conv.add("user", user_message, agent_name=agent_name)
+            conv.add("assistant", resp_text, agent_name=agent_name)
+            yield "", True
+        except RateLimitExceededError as rle:
+            yield str(rle), True
+            return
 
     def clear_session(self, session_id: str = "default") -> None:
         with self._lock:

@@ -53,6 +53,34 @@ class StudentMisconceptionRecord:
     resolved: bool = False
 
 
+# Remediation Guidance Catalog (Section 15)
+REMEDIATION_GUIDANCE: Dict[str, str] = {
+    'THERMO_SIGN_CONVENTION': 'Recall IUPAC convention: Work done ON system is +w; work done BY system is -w. Heat absorbed by system is +q; heat released is -q.',
+    'HEAT_VS_INTERNAL_ENERGY': 'Heat (q) is energy in transit across boundaries. Internal energy (U) is the total kinetic and potential energy contained within the system. First law: Delta U = q + w.',
+    'STATE_VS_PATH_FUNCTION': 'State functions (U, H, S, G) depend only on initial and final states. Path functions (q, w) depend on the pathway taken.',
+    'ENTHALPY_CONFUSION': 'Enthalpy (H = U + PV) represents total heat content at constant pressure, distinct from internal energy U and free energy G.',
+    'HESS_LAW_DIRECTION': 'When reversing a chemical reaction, the sign of delta H must be reversed (delta H_reverse = -delta H_forward).',
+    'CP_CV_CONFUSION': 'Cp is heat capacity at constant pressure; Cv is at constant volume. For ideal gas, Cp - Cv = R.',
+    'GIBBS_SIGN_CONFUSION': 'For a spontaneous process at constant T and P, delta G must be strictly negative (delta G < 0). If delta G > 0, the reverse process is spontaneous.',
+    'PERIODIC_TREND_CONFUSION': 'Across a period: atomic radius decreases, ionization energy generally increases, electronegativity increases. Down a group: atomic radius increases, ionization energy decreases.',
+    'OXIDATION_STATE_ERROR': 'Oxidation state is the apparent charge of an atom. In neutral compounds, the sum of oxidation numbers is 0. Group 1 is +1, Group 2 is +2, Fluorine is always -1.',
+    'ELECTRONIC_CONFIGURATION_ERROR': 'Follow Aufbau (1s, 2s, 2p, 3s, 3p, 4s, 3d...). Note exceptions: Cr is [Ar] 3d5 4s1 and Cu is [Ar] 3d10 4s1 for extra half-filled/fully-filled stability.',
+    'COORDINATION_NUMBER_CONFUSION': 'Coordination number is the total number of ligand donor atoms directly bonded to the central metal atom/ion, NOT its oxidation state.',
+    'LIGAND_CONFUSION': 'Check denticity: monodentate (Cl-, NH3, H2O), bidentate (oxalate, en), polydentate (EDTA). Strong-field ligands (CN-, CO) cause pairing.',
+    'REDOX_CONFUSION': 'Oxidation is loss of electrons (OIL); reduction is gain of electrons (RIG). An oxidizing agent is itself reduced; a reducing agent is itself oxidized.',
+    'ANOMALOUS_BEHAVIOUR_CONFUSION': 'Second period elements (Li, Be, B, C, N, O, F) show anomalous properties due to extremely small size, high electronegativity, and absence of vacant d-orbitals in valence shell.',
+    'METALLURGY_PROCESS_CONFUSION': 'Calcination: heating ore in absence or limited supply of air (for carbonates/hydrates). Roasting: heating ore in excess air below melting point (for sulfides).',
+}
+
+
+def get_remediation_guidance(misconception_code: str) -> str:
+    """Retrieve targeted pedagogical remediation directive for a misconception."""
+    return REMEDIATION_GUIDANCE.get(
+        misconception_code,
+        "Review the core principles and fundamental definitions of this concept."
+    )
+
+
 class MisconceptionTracker:
     """Manages recording, querying, and resolving student misconception records."""
 
@@ -71,51 +99,63 @@ class MisconceptionTracker:
 
         # Thermodynamics mappings
         if any(kw in concept_lower for kw in ["thermo", "hess", "gibbs", "heat", "enthalpy"]):
-            if "hess" in concept_lower or "direction" in answer_lower or "invert" in answer_lower or "hess" in answer_lower:
+            if "direction" in answer_lower or "invert" in answer_lower or ("hess" in answer_lower and ("same" in answer_lower or "direction" in answer_lower or "stay" in answer_lower or "positive" in answer_lower)):
                 return 'HESS_LAW_DIRECTION'
-            if "gibbs" in concept_lower or "spontaneous" in answer_lower or "delta g" in answer_lower:
+            if ("spontaneous" in answer_lower or "delta g" in answer_lower or "gibbs" in answer_lower) and ("positive" in answer_lower or ">" in answer_lower):
                 return 'GIBBS_SIGN_CONFUSION'
-            if "sign" in error_lower or "sign" in answer_lower or "+w" in answer_lower or "-q" in answer_lower:
+            if "+w" in answer_lower or "-q" in answer_lower or "sign" in error_lower or ("work" in answer_lower and "by the system" in answer_lower and "+w" in answer_lower):
                 return 'THERMO_SIGN_CONVENTION'
             if ("heat" in answer_lower and "internal energy" in answer_lower) or "q vs u" in answer_lower:
                 return 'HEAT_VS_INTERNAL_ENERGY'
             if "state" in answer_lower or "path" in answer_lower:
                 return 'STATE_VS_PATH_FUNCTION'
-            if "enthalpy" in answer_lower or "h vs u" in answer_lower:
+            if ("enthalpy" in answer_lower and "internal energy" in answer_lower) or "h vs u" in answer_lower:
                 return 'ENTHALPY_CONFUSION'
             if "cp" in answer_lower or "cv" in answer_lower:
                 return 'CP_CV_CONFUSION'
 
         # Inorganic mappings
-        if any(kw in concept_lower for kw in ["inorganic", "periodic", "d_block", "p_block", "coordination"]):
-            if "trend" in answer_lower or "radius" in answer_lower or "ionization" in answer_lower or "gain enthalpy" in answer_lower:
-                return 'PERIODIC_TREND_CONFUSION'
-            if "oxidation" in answer_lower or "number" in answer_lower:
-                return 'OXIDATION_STATE_ERROR'
-            if "configuration" in answer_lower or "aufbau" in answer_lower or "d-orbital" in answer_lower:
-                return 'ELECTRONIC_CONFIGURATION_ERROR'
+        if any(kw in concept_lower for kw in ["inorganic", "inorg", "periodic", "d_block", "p_block", "coordination", "metallurgy"]):
             if "coordination" in answer_lower:
                 return 'COORDINATION_NUMBER_CONFUSION'
             if "ligand" in answer_lower:
                 return 'LIGAND_CONFUSION'
+            if "trend" in answer_lower or "radius" in answer_lower or "ionization" in answer_lower or "gain enthalpy" in answer_lower:
+                return 'PERIODIC_TREND_CONFUSION'
+            if "oxidation" in answer_lower:
+                return 'OXIDATION_STATE_ERROR'
+            if "configuration" in answer_lower or "aufbau" in answer_lower or "d-orbital" in answer_lower:
+                return 'ELECTRONIC_CONFIGURATION_ERROR'
             if "redox" in answer_lower or "oxidizing" in answer_lower or "reducing" in answer_lower:
                 return 'REDOX_CONFUSION'
+            if "anomalous" in answer_lower or "diagonal" in answer_lower or "absence of d" in answer_lower:
+                return 'ANOMALOUS_BEHAVIOUR_CONFUSION'
+            if "calcination" in answer_lower or "roasting" in answer_lower or "leaching" in answer_lower or "metallurgy" in answer_lower:
+                return 'METALLURGY_PROCESS_CONFUSION'
 
         # General keyword matching across ALL_MISCONCEPTIONS
-        if "sign" in answer_lower or "sign" in error_lower:
-            if "gibbs" in answer_lower:
-                return 'GIBBS_SIGN_CONFUSION'
+        if "+w" in answer_lower or "-q" in answer_lower or "sign error" in error_lower:
             return 'THERMO_SIGN_CONVENTION'
-        if "hess" in answer_lower or "hess" in error_lower:
+        if ("hess" in answer_lower or "hess" in error_lower) and ("direction" in answer_lower or "invert" in answer_lower or "same" in answer_lower or "positive" in answer_lower):
             return 'HESS_LAW_DIRECTION'
-        if "gibbs" in answer_lower or "spontaneous" in answer_lower:
+        if ("gibbs" in answer_lower or "spontaneous" in answer_lower) and ("positive" in answer_lower or ">" in answer_lower):
             return 'GIBBS_SIGN_CONFUSION'
+        if "coordination" in answer_lower or "coordination" in error_lower:
+            return 'COORDINATION_NUMBER_CONFUSION'
+        if "ligand" in answer_lower or "ligand" in error_lower:
+            return 'LIGAND_CONFUSION'
+        if "redox" in answer_lower or "oxidizing" in answer_lower or "reducing" in answer_lower or "redox" in error_lower:
+            return 'REDOX_CONFUSION'
         if "trend" in answer_lower or "radius" in answer_lower:
             return 'PERIODIC_TREND_CONFUSION'
         if "oxidation" in answer_lower:
             return 'OXIDATION_STATE_ERROR'
         if "configuration" in answer_lower or "aufbau" in answer_lower:
             return 'ELECTRONIC_CONFIGURATION_ERROR'
+        if "anomalous" in answer_lower or "anomalous" in error_lower:
+            return 'ANOMALOUS_BEHAVIOUR_CONFUSION'
+        if "calcination" in answer_lower or "roasting" in answer_lower or "metallurgy" in answer_lower or "metallurgy" in error_lower:
+            return 'METALLURGY_PROCESS_CONFUSION'
 
         return None
 

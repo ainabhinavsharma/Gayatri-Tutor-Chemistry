@@ -162,14 +162,28 @@ class SecretsVault:
             self._save_vault(vault)
             logger.info(f"Key stored: {provider_key}")
 
-    def retrieve_key(self, provider_key: str) -> str | None:
-        """Retrieve a stored API key."""
+    def retrieve_key(self, provider_key: str, check_env: bool = True) -> str | None:
+        """Retrieve a stored API key, falling back to environment variables if enabled."""
         with self._lock:
             vault = self._load_vault()
             key = vault.get(provider_key)
-            if key:
-                logger.debug(f"Key retrieved: {provider_key}")
-            return key
+            if key and key.strip():
+                logger.debug(f"Key retrieved from vault: {provider_key}")
+                return key.strip()
+
+            if check_env:
+                env_map = {
+                    "google": ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                    "anthropic": ["ANTHROPIC_API_KEY"],
+                    "openai": ["OPENAI_API_KEY"],
+                }
+                for env_var in env_map.get(provider_key.lower(), []):
+                    env_val = os.environ.get(env_var)
+                    if env_val and env_val.strip():
+                        logger.debug(f"Key retrieved from environment ({env_var}): {provider_key}")
+                        return env_val.strip()
+
+            return None
 
     def delete_key(self, provider_key: str) -> None:
         """Delete a stored API key."""
@@ -192,9 +206,9 @@ class SecretsVault:
         vault = self._load_vault()
         return list(vault.keys())
 
-    def has_key(self, provider_key: str) -> bool:
-        """Check if a key is stored."""
-        return provider_key in self._load_vault()
+    def has_key(self, provider_key: str, check_env: bool = True) -> bool:
+        """Check if a key is stored in vault or available in environment."""
+        return self.retrieve_key(provider_key, check_env=check_env) is not None
 
     def _load_vault(self) -> dict[str, str]:
         """Load the vault from disk, decrypting each entry."""

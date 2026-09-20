@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING
 
 from core.learning.misconceptions import MisconceptionTracker
 from core.learning.scheduler import SpacedReviewScheduler
+from core.security.validation import validate_concept_id, validate_student_id
 
 if TYPE_CHECKING:
     from core.tutor.state import TutorStateManager
@@ -61,6 +62,8 @@ class ProgressService:
         state_manager: Optional[TutorStateManager] = None,
     ) -> dict:
         """Get detailed progress for a single concept."""
+        student_id = validate_student_id(student_id)
+        concept_id = validate_concept_id(concept_id)
         sm = state_manager or self.state_manager
         if not sm:
             raise ValueError("State manager is required.")
@@ -98,6 +101,7 @@ class ProgressService:
         state_manager: Optional[TutorStateManager] = None,
     ) -> dict:
         """Get comprehensive overall, domain-level, and concept-level student progress."""
+        student_id = validate_student_id(student_id)
         sm = state_manager or self.state_manager
         if not sm:
             raise ValueError("State manager is required.")

@@ -32,6 +32,7 @@ class AssessmentGrader:
         d = question.to_dict()
         # Anti-leakage: remove answer keys & explanations
         d.pop("correct_answer", None)
+        d.pop("answer", None)
         d.pop("explanation", None)
         d.pop("grading_notes", None)
         d.pop("correct_index", None)
@@ -70,16 +71,21 @@ class AssessmentGrader:
         # 2. Numerical Grading
         elif qtype == QuestionType.NUMERICAL:
             try:
-                val = float(re_extract_number(str(student_answer)))
                 exp = float(question.correct_answer)
+            except (ValueError, TypeError) as exp_err:
+                logger.error(f"Grader: question {getattr(question, 'question_id', 'unknown')} has invalid correct_answer: {exp_err}")
+                return False, 0.0, "Internal error: question configuration invalid."
+
+            try:
+                val = float(re_extract_number(str(student_answer)))
                 tol = getattr(question, "tolerance", 0.05) * max(1.0, abs(exp))
 
                 if math.isclose(val, exp, abs_tol=tol):
                     return True, 1.0, "Correct calculation!"
                 else:
                     return False, 0.0, f"Incorrect numerical result. Expected approx {exp}."
-            except Exception:
-                return False, 0.0, f"Invalid numerical answer format. Expected a number."
+            except (ValueError, TypeError):
+                return False, 0.0, "Invalid numerical answer format. Expected a number."
 
         # 3. Assertion / Reasoning Grading
         elif qtype == QuestionType.ASSERTION_REASONING:

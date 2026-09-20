@@ -34,8 +34,9 @@ class StudentAuthorizationGuard:
     def sanitize_log_record(cls, record: Union[str, Dict[str, Any]]) -> Union[str, Dict[str, Any]]:
         """Sanitize sensitive credentials, tokens, and passwords from logs (P12-T03)."""
         if isinstance(record, str):
-            # Mask pattern matches like token=xyz or bearer xyz
-            cleaned = re.sub(r'(?i)(token|bearer|password|api_key|secret)=[\w\-]+', r'\1=***REDACTED***', record)
+            from core.errors import sanitize_message
+            cleaned = sanitize_message(record)
+            cleaned = re.sub(r'(?i)(token|bearer|password|api_key|secret|key)=[\w\-]+', r'\1=***REDACTED***', cleaned)
             return cleaned
 
         if isinstance(record, dict):

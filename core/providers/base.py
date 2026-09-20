@@ -251,8 +251,12 @@ class LLMProvider(ABC):
                 import logging
                 audit_logger = logging.getLogger("gayatri.privacy.audit")
                 audit_logger.info(f"TRANSMISSION_AUDIT: User-approved cloud request sent to provider '{self.name}' ({self.key}) in cloud_allowed mode.")
-            except ImportError:
-                pass
+            except ImportError as exc:
+                # Fail-closed: do not allow cloud transmission if settings/config cannot be imported
+                raise PermissionError(
+                    f"Privacy mode check failed due to import error: {exc}. "
+                    f"Cloud transmission to provider '{self.name}' ({self.key}) blocked by default."
+                ) from exc
 
     def __repr__(self) -> str:
         return f"<LLMProvider {self.name} ({self.key})>"
