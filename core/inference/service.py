@@ -28,15 +28,24 @@ class InferenceService:
     def __init__(self, config: Optional[ModelConfig] = None):
         self.config = config or ModelConfig()
 
-    def stream_chat(self, messages: list[dict[str, str]], max_tokens: int = 400) -> Iterator[str]:
+    def stream_chat(
+        self,
+        messages: list[dict[str, str]],
+        max_tokens: int = 400,
+        temperature: Optional[float] = None,
+        **kwargs,
+    ) -> Iterator[str]:
         """Stream chat tokens from the configured model engine."""
         try:
             from legacy.agents.default_agents import _local_chat_stream
             logger.info(
                 f"InferenceService streaming chat: family={self.config.family}, "
-                f"model_id={self.config.model_id}, max_tokens={max_tokens}"
+                f"model_id={self.config.model_id}, max_tokens={max_tokens}, temperature={temperature}"
             )
-            return _local_chat_stream(messages, max_tokens=max_tokens)
+            extra_params = dict(kwargs)
+            if temperature is not None:
+                extra_params["temperature"] = temperature
+            return _local_chat_stream(messages, max_tokens=max_tokens, **extra_params)
         except Exception as exc:
             logger.error(f"InferenceService stream_chat error: {exc}")
             raise

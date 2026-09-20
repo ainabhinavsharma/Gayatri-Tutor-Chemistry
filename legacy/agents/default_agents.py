@@ -78,7 +78,7 @@ def _local_chat_stream(
     """Stream chat responses via LocalProvider or yield fallback message."""
     try:
         if LocalProvider.is_available():
-            yield from LocalProvider.chat_stream(messages, max_tokens=max_tokens)
+            yield from LocalProvider.chat_stream(messages, max_tokens=max_tokens, **kwargs)
         else:
             fallback = (
                 "Welcome to Gayatri AI Tutor! Local model is currently operating in offline/demo mode. "

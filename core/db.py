@@ -125,27 +125,51 @@ def run_migrations(
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS _schema_migrations (
-                version INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
+                name TEXT PRIMARY KEY,
+                version INTEGER,
                 applied_at TEXT NOT NULL
             );
             """
         )
 
+        # Migrate existing table if version was the primary key
+        pragma_info = conn.execute("PRAGMA table_info(_schema_migrations);").fetchall()
+        is_version_pk = any(col[1] == "version" and col[5] == 1 for col in pragma_info)
+        if is_version_pk:
+            conn.execute("ALTER TABLE _schema_migrations RENAME TO _schema_migrations_old;")
+            conn.execute(
+                """
+                CREATE TABLE _schema_migrations (
+                    name TEXT PRIMARY KEY,
+                    version INTEGER,
+                    applied_at TEXT NOT NULL
+                );
+                """
+            )
+            conn.execute(
+                "INSERT OR IGNORE INTO _schema_migrations (name, version, applied_at) "
+                "SELECT name, version, applied_at FROM _schema_migrations_old;"
+            )
+            conn.execute("DROP TABLE _schema_migrations_old;")
+
         cur_version = conn.execute("PRAGMA user_version;").fetchone()[0]
         logger.debug(f"Current database schema version: {cur_version}")
 
-        sorted_versions = sorted(v for v in migrations if v > cur_version)
+        applied_names = {row[0] for row in conn.execute("SELECT name FROM _schema_migrations;").fetchall()}
+        sorted_versions = sorted(migrations.keys())
         for v in sorted_versions:
             name, fn = migrations[v]
+            if name in applied_names:
+                continue
             logger.info(f"Applying schema migration {v}: {name}")
             fn(conn)
             conn.execute(
-                "INSERT OR REPLACE INTO _schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
-                (v, name, datetime.now().isoformat()),
+                "INSERT OR REPLACE INTO _schema_migrations (name, version, applied_at) VALUES (?, ?, ?);",
+                (name, v, datetime.now().isoformat()),
             )
-            conn.execute(f"PRAGMA user_version = {v};")
-            cur_version = v
+            applied_names.add(name)
+            cur_version = max(cur_version, v)
+            conn.execute(f"PRAGMA user_version = {cur_version};")
 
         return cur_version
 

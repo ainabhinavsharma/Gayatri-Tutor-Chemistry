@@ -207,6 +207,22 @@ class ChemistryTutorRuntime:
 
             isolated_evidence = PromptSecurityGuard.isolate_retrieved_data(rag_evidence) if rag_evidence else ""
 
+            # Check for chemical equation balancing queries
+            import re
+            eq_match = re.search(r"([A-Za-z0-9\(\)]+\s*\+\s*[A-Za-z0-9\(\)]+\s*(?:->|-->|=|⇌)\s*[A-Za-z0-9\(\)\s\+]+)", user_message)
+            if eq_match and any(w in user_message.lower() for w in ["balance", "stoichiometr", "equation"]):
+                from core.tutor.chemistry_tools import ChemicalEquationBalancer
+                b_res = ChemicalEquationBalancer.balance(eq_match.group(1))
+                if b_res.get("success"):
+                    policy_directive += f"\n[VERIFIED STOICHIOMETRIC FACT]: The mathematically balanced equation is: {b_res['balanced_equation']}."
+
+            if isolated_evidence and "AUTHORITATIVE NCERT EVIDENCE" in isolated_evidence:
+                policy_directive += (
+                    "\n[CORE INSTRUCTION]: When stating or explaining scientific definitions and laws, "
+                    "base your explanation strictly on the authoritative NCERT evidence provided above. "
+                    "Ensure definitions are accurate according to NCERT."
+                )
+
             system = _build_chemistry_system_prompt(
                 self._topics or None,
                 rag_evidence=isolated_evidence,
@@ -220,7 +236,9 @@ class ChemistryTutorRuntime:
                 getattr(context, "history", None),
                 dynamic_context=dynamic_ctx,
             )
-            return get_inference_service().stream_chat(msgs, max_tokens=800)
+            # Factual explanation turns benefit from low temperature (0.2) to eliminate hallucination
+            gen_temp = 0.2 if (intent in (TutorIntent.EXPLAIN, TutorIntent.LEARN) or "AUTHORITATIVE NCERT EVIDENCE" in (isolated_evidence or "")) else 0.5
+            return get_inference_service().stream_chat(msgs, max_tokens=800, temperature=gen_temp)
         except Exception as exc:
             logger.error(f"ChemistryTutorRuntime.stream error: {exc}")
             raise

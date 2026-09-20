@@ -30,6 +30,12 @@ class NCERTRetriever:
 
     def __init__(self, store: Optional[RAGStore] = None):
         self.store = store or RAGStore()
+        if store is None:
+            try:
+                from core.rag.seeder import seed_ncert_rag
+                seed_ncert_rag(self.store)
+            except Exception as exc:
+                logger.warning(f"Could not auto-seed RAGStore: {exc}")
 
     def retrieve(self, query: str, top_k: int = 3) -> RAGContext:
         """Legacy retriever wrapper."""

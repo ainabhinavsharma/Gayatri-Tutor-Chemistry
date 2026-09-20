@@ -87,6 +87,16 @@ class LearningDependencyGraph:
         self._create_schema()
         self._cache: dict[str, Concept] = {}
         self._dirty: set[str] = set()
+        if db_path is None:
+            try:
+                with self._conn() as conn:
+                    count = conn.execute("SELECT count(*) FROM ldg_concepts").fetchone()[0]
+                if count == 0:
+                    from core.curriculum.provider import CurriculumProvider
+                    provider = CurriculumProvider(subject="chemistry", grade="ncert_class11_12")
+                    provider.load_into(self)
+            except Exception as exc:
+                logger.warning(f"Could not auto-seed curriculum into LDG: {exc}")
 
     def _conn(self) -> sqlite3.Connection:
         from core.db import get_safe_db_connection
