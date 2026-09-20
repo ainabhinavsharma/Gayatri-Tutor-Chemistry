@@ -38,6 +38,14 @@ class ResolvedConcept:
 CONCEPT_KEYWORD_MAP = [
     # Inorganic Chemistry
     {
+        "keywords": ["electronic configuration", "electronic structure", "aufbau", "valence electrons", "quantum numbers"],
+        "domain": "Inorganic Chemistry",
+        "chapter": "Structure of Atom & Periodicity",
+        "topic": "Electronic Configuration",
+        "subtopic": "Aufbau Principle & Orbitals",
+        "concept_id": "chem_inorg_electronic",
+    },
+    {
         "keywords": ["ionization", "enthalpy of ionization", "ionisation", "periodicity", "periodic table", "atomic radius", "electronegativity"],
         "domain": "Inorganic Chemistry",
         "chapter": "Classification of Elements and Periodicity",
@@ -175,3 +183,19 @@ class ConceptResolver:
             concept_id="chem_thermo_system",
             confidence=0.5,
         )
+
+    @classmethod
+    def resolve_domain(cls, user_message: str, active_concept_id: str = "") -> str:
+        return cls.resolve_concept(user_message, active_concept_id).domain
+
+    @classmethod
+    def resolve_chapter(cls, user_message: str, active_concept_id: str = "") -> str:
+        return cls.resolve_concept(user_message, active_concept_id).chapter
+
+    @classmethod
+    def resolve_topic(cls, user_message: str, active_concept_id: str = "") -> str:
+        return cls.resolve_concept(user_message, active_concept_id).topic
+
+    @classmethod
+    def resolve_subtopic(cls, user_message: str, active_concept_id: str = "") -> str:
+        return cls.resolve_concept(user_message, active_concept_id).subtopic

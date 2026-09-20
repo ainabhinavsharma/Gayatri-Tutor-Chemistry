@@ -1,10 +1,11 @@
 """Gayatri AI - Phase 3 Acceptance Test Suite.
 
 Tests dynamic chemistry concept & topic resolution:
-- Inorganic Chemistry resolution (ionization enthalpy, periodic table, bonding, stoichiometry)
+- Inorganic Chemistry resolution (ionization enthalpy, periodic table, bonding, stoichiometry, electronic configuration)
 - Thermodynamics resolution (Hess's law, Gibbs free energy, entropy, enthalpy)
 - Active concept persistence across multi-turn sessions
 - Explicit topic override over active session concept
+- Level resolution helper methods (resolve_domain, resolve_topic)
 """
 
 import pytest
@@ -18,6 +19,13 @@ def test_resolve_inorganic_ionization_enthalpy():
     assert res.topic == "Periodic Table Trends"
     assert res.concept_id == "chem_inorg_periodic"
     assert res.confidence >= 0.8
+
+
+def test_resolve_inorganic_electronic_configuration():
+    """P3 Re-audit: 'electronic configuration' resolves to Inorganic Chemistry prerequisite."""
+    res = ConceptResolver.resolve_concept("What is the electronic configuration of Chromium?")
+    assert res.domain == "Inorganic Chemistry"
+    assert res.concept_id == "chem_inorg_electronic"
 
 
 def test_resolve_thermo_hess_law():
@@ -49,3 +57,10 @@ def test_new_explicit_topic_overrides_active_topic():
     res = ConceptResolver.resolve_concept("Let us move to Hess's law now", active_concept_id="chem_inorg_periodic")
     assert res.domain == "Thermodynamics"
     assert res.concept_id == "chem_thermo_hess"
+
+
+def test_level_resolution_methods():
+    """P3 Re-audit: Level resolution helper methods."""
+    assert ConceptResolver.resolve_domain("Tell me about Hess's law") == "Thermodynamics"
+    assert ConceptResolver.resolve_domain("Explain electronic configuration") == "Inorganic Chemistry"
+    assert ConceptResolver.resolve_topic("Tell me about Hess's law") == "Hess Law"
