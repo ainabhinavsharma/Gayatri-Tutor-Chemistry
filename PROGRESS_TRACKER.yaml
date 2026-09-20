@@ -1,10 +1,10 @@
 project: Gayatri Tutor Chemistry
 status: IN_PROGRESS
 
-current_phase: 8
-current_task: P8-01
+current_phase: 9
+current_task: P9-01
 
-last_completed_task: P7-01
+last_completed_task: P8-01
 last_verified_commit: "PENDING"
 
 audit:
@@ -17,7 +17,7 @@ baseline:
   git_commit: "PENDING"
   branch: "main"
   test_command: "pytest"
-  tests_passed: 16
+  tests_passed: 22
   tests_failed: 0
   tests_skipped: 0
 
@@ -44,7 +44,7 @@ phases:
   phase_5_misconceptions: DONE
   phase_6_spaced_review: DONE
   phase_7_assessment: DONE
-  phase_8_curriculum_validation: TODO
+  phase_8_curriculum_validation: DONE
   phase_9_rag: TODO
   phase_10_concurrency: TODO
   phase_11_mode_isolation: TODO
@@ -77,11 +77,11 @@ tests:
 
 last_session:
   date: "2026-09-20"
-  summary: "Completed Phase 7: Assessment Engine Re-Audit. Created tests/test_phase7_assessment_engine.py testing anti-leakage sanitizer, MCQ/Numerical/Equation balancing graders, and AssessmentManager session lifecycle (16 passed)."
-  files_changed: ["tests/test_phase7_assessment_engine.py", "PROGRESS_TRACKER.yaml"]
-  tests_run: ["pytest tests/test_phase7_assessment_engine.py", "pytest"]
-  tests_passed: [5, 16]
+  summary: "Completed Phase 8: Curriculum Validation Re-Audit. Created tests/test_phase8_curriculum_validation.py testing duplicate IDs, missing prerequisites, DFS cycle detection, difficulty range validation, and orphan concept warnings (22 passed)."
+  files_changed: ["tests/test_phase8_curriculum_validation.py", "PROGRESS_TRACKER.yaml"]
+  tests_run: ["pytest tests/test_phase8_curriculum_validation.py", "pytest"]
+  tests_passed: [6, 22]
   tests_failed: []
   blockers: []
 
-next_action: "Prepare implementation plan for Phase 8: Curriculum Validation Re-Audit."
+next_action: "Prepare implementation plan for Phase 9: RAG Engine Re-Audit."
