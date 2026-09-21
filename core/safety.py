@@ -1,4 +1,4 @@
-﻿"""Gayatri AI — Age- and Grade-Appropriate Safety & Integrity Policy Engine.
+"""Gayatri AI — Age- and Grade-Appropriate Safety & Integrity Policy Engine.
 
 Evaluates user inputs and model outputs against safety boundaries,
 developmental age appropriateness, and academic integrity guardrails.

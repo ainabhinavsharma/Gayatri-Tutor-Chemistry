@@ -1,4 +1,4 @@
-﻿{
+{
   "subject": "Chemistry",
   "description": "NCERT Chemistry Class 11 & 12 - Thermodynamics and Inorganic Chemistry",
   "concepts": [
@@ -11,6 +11,7 @@
     {"id": "chem_thermo_gibbs", "name": "Gibbs Free Energy", "description": "delta G = delta H minus T delta S; spontaneity criterion; equilibrium constant", "difficulty": 0.6, "prerequisites": ["chem_thermo_entropy", "chem_thermo_enthalpy"]},
     {"id": "chem_thermo_calorimetry", "name": "Calorimetry", "description": "Bomb calorimeter; measuring heat of combustion; constant volume and pressure", "difficulty": 0.5, "prerequisites": ["chem_thermo_heat_cap"]},
     {"id": "chem_thermo_formation", "name": "Standard Enthalpy of Formation", "description": "Standard enthalpy values; calculating reaction enthalpy using formation enthalpies", "difficulty": 0.5, "prerequisites": ["chem_thermo_hess"]},
+    {"id": "chem_inorg_electronic", "name": "Electronic Configuration", "description": "Aufbau principle, Pauli exclusion principle, Hund's rule, quantum numbers, orbitals", "difficulty": 0.3, "prerequisites": []},
     {"id": "chem_inorg_periodic", "name": "Periodic Table Trends", "description": "Periods and groups; atomic radius, ionization energy, electronegativity trends", "difficulty": 0.3, "prerequisites": []},
     {"id": "chem_inorg_bonding", "name": "Chemical Bonding", "description": "Ionic, covalent, metallic bonding; Lewis structures; VSEPR theory", "difficulty": 0.4, "prerequisites": ["chem_inorg_periodic"]},
     {"id": "chem_inorg_sblock", "name": "s-Block Elements", "description": "Group 1 and 2 properties and reactions; sodium, potassium, magnesium, calcium compounds", "difficulty": 0.5, "prerequisites": ["chem_inorg_periodic", "chem_inorg_bonding"]},

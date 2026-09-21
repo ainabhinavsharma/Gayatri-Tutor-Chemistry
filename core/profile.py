@@ -1,4 +1,4 @@
-﻿"""Gayatri AI — Multi-User Profile Architecture.
+"""Gayatri AI — Multi-User Profile Architecture.
 
 Provides thread-safe, SQLite-backed management of local user profiles
 (students, teachers, parents) with isolated learning sessions and curriculum progress.

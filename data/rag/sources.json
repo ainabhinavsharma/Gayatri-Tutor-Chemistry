@@ -12,15 +12,59 @@
       "checksum": "sha256_thermodynamics_ncert_v1"
     },
     {
+      "source_id": "NCERT_CHEM_11_CH02",
+      "title": "NCERT Class 11 Chemistry - Chapter 2: Structure of Atom",
+      "class_level": "Class 11",
+      "chapter": "Structure of Atom & Periodicity",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_structure_atom_ncert_v1"
+    },
+    {
+      "source_id": "NCERT_CHEM_11_CH03",
+      "title": "NCERT Class 11 Chemistry - Chapter 3: Classification of Elements and Periodicity",
+      "class_level": "Class 11",
+      "chapter": "Classification of Elements and Periodicity",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_periodicity_ncert_v1"
+    },
+    {
+      "source_id": "NCERT_CHEM_11_CH04",
+      "title": "NCERT Class 11 Chemistry - Chapter 4: Chemical Bonding and Molecular Structure",
+      "class_level": "Class 11",
+      "chapter": "Chemical Bonding and Molecular Structure",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_chemical_bonding_ncert_v1"
+    },
+    {
       "source_id": "NCERT_CHEM_11_CH10",
       "title": "NCERT Class 11 Chemistry - Chapter 10: s-Block Elements",
       "class_level": "Class 11",
-      "chapter": "The s-Block Elements",
+      "chapter": "s-Block Elements",
       "subject": "Chemistry",
       "source_type": "textbook",
       "version": "NCERT 2023-24 Edition",
       "license": "Educational Use - NCERT Official Curriculum",
       "checksum": "sha256_sblock_ncert_v1"
+    },
+    {
+      "source_id": "NCERT_CHEM_11_CH01",
+      "title": "NCERT Class 11 Chemistry - Chapter 1: Some Basic Concepts of Chemistry",
+      "class_level": "Class 11",
+      "chapter": "Some Basic Concepts of Chemistry",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_basic_concepts_ncert_v1"
     }
   ]
 }

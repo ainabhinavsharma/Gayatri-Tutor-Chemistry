@@ -34,19 +34,7 @@ def seed_ncert_rag(
         logger.warning(f"RAG data directory not found at: {source_dir}")
         return 0
 
-    # 1. Check if store is already populated
-    try:
-        cursor = rag_store.conn.cursor()
-        existing_count = cursor.execute(
-            "SELECT count(*) FROM rag_chunks WHERE provenance_type = 'NCERT'"
-        ).fetchone()[0]
-        if existing_count > 0:
-            logger.debug(f"RAGStore already seeded with {existing_count} NCERT chunks.")
-            return 0
-    except Exception as exc:
-        logger.warning(f"Could not check existing RAG chunks: {exc}")
-
-    # 2. Ingest sources metadata if sources.json exists
+    # 1. Ingest sources metadata if sources.json exists
     sources_file = source_dir / "sources.json"
     if sources_file.is_file():
         try:
@@ -65,21 +53,32 @@ def seed_ncert_rag(
         except Exception as exc:
             logger.warning(f"Failed to seed sources metadata from {sources_file}: {exc}")
 
-    # 3. Ingest textbook section JSONs
+    # 2. Ingest textbook section JSONs with incremental idempotency
     ingester = NCERTIngester()
     total_added = 0
+
+    try:
+        cursor = rag_store.conn.cursor()
+        existing_chunk_ids = set(
+            row[0] for row in cursor.execute("SELECT chunk_id FROM rag_chunks").fetchall()
+        )
+    except Exception as exc:
+        logger.warning(f"Could not check existing RAG chunks: {exc}")
+        existing_chunk_ids = set()
 
     for json_file in sorted(source_dir.glob("*.json")):
         if json_file.name == "sources.json":
             continue
         try:
             chunks = ingester.parse_file(json_file)
-            if chunks:
-                rag_store.add_chunks(chunks)
-                total_added += len(chunks)
-                logger.info(f"Seeded {len(chunks)} chunks from {json_file.name}")
+            new_chunks = [c for c in chunks if c.chunk_id not in existing_chunk_ids]
+            if new_chunks:
+                rag_store.add_chunks(new_chunks)
+                total_added += len(new_chunks)
+                existing_chunk_ids.update(c.chunk_id for c in new_chunks)
+                logger.info(f"Seeded {len(new_chunks)} new chunks from {json_file.name}")
         except Exception as exc:
             logger.error(f"Failed to seed RAG chunks from {json_file}: {exc}")
 
-    logger.info(f"RAG seeding complete. Total chunks ingested: {total_added}")
+    logger.info(f"RAG seeding complete. Total new chunks ingested: {total_added}")
     return total_added

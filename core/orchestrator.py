@@ -43,12 +43,19 @@ def _get_ldg():
                     from core.config import LDG_CURICULUM_DIR
                     from core.knowledge_graph import LearningDependencyGraph, load_curriculum
                     ldg = LearningDependencyGraph()
-                    curriculum_path = LDG_CURICULUM_DIR / "python_basics.json"
-                    if curriculum_path.exists():
-                        load_curriculum(ldg, curriculum_path)
-                        logger.info(f"LDG loaded: {curriculum_path}")
+                    # Priority: canonical chemistry curriculum
+                    chem_curriculum = LDG_CURICULUM_DIR / "chemistry" / "ncert_class11_12.json"
+                    if not chem_curriculum.exists():
+                        chem_curriculum = LDG_CURICULUM_DIR / "ncert_class11_12.json"
+
+                    if chem_curriculum.exists():
+                        if not ldg.list_concepts():
+                            load_curriculum(ldg, chem_curriculum)
+                            logger.info(f"LDG loaded chemistry curriculum: {chem_curriculum}")
+                        else:
+                            logger.info("LDG initialized with existing database concepts")
                     else:
-                        logger.info("LDG initialized (no default curriculum)")
+                        logger.info("LDG initialized (no default curriculum file found)")
                     _ldg = ldg
                 except Exception as exc:
                     logger.error(f"LDG init failed: {exc}")
@@ -131,6 +138,7 @@ def _inject_tutor_context(context: AgentContext, session_id: str,
                 "concept_name": concept.name,
                 "concept_description": concept.description,
                 "mastery_pct": f"{int(concept.mastery * 100)}%",
+                "mastery_raw": float(concept.mastery),
                 "waiting_for_answer": ctx.waiting_for_answer,
                 "prerequisites_not_met": prerequisites_not_met,
                 "prereq_names": prereq_names,

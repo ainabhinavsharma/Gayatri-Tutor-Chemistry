@@ -23,8 +23,8 @@ class MasteryDecayScheduler:
         try:
             with conn:
                 cursor = conn.execute(
-                    'SELECT id, mastery, last_practiced FROM ldg_concepts WHERE subject = ? AND mastery >= 0.4', 
-                    (ctx.subject,)
+                    'SELECT id, mastery, last_practiced FROM ldg_concepts WHERE subject = ? COLLATE NOCASE AND mastery >= 0.4', 
+                    (ctx.subject or "Chemistry",)
                 )
                 rows = cursor.fetchall()
                 now = time.time()

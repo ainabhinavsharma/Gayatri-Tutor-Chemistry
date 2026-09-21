@@ -1,0 +1,48 @@
+{
+  "source_id": "NCERT_CHEM_11_CH03",
+  "chapter": "Classification of Elements and Periodicity",
+  "sections": [
+    {
+      "topic": "Electronic Configuration",
+      "subtopic": "Aufbau Principle & Orbitals",
+      "page": 62,
+      "text": "The electronic configuration of an atom is the distribution of electrons into orbitals. In the ground state of atoms, orbitals are filled in order of their increasing energies (Aufbau Principle). Lower (n + l) orbitals fill before higher (n + l) orbitals. According to the Pauli Exclusion Principle, no two electrons in an atom can have the same set of four quantum numbers (n, l, m_l, m_s). An orbital can hold a maximum of two electrons with opposite spins. Hund's Rule of Maximum Multiplicity states that pairing of electrons in degenerate orbitals (p, d, f) does not take place until each orbital contains one electron with parallel spin."
+    },
+    {
+      "topic": "Periodic Table Trends",
+      "subtopic": "Ionization Enthalpy",
+      "page": 84,
+      "text": "Ionization enthalpy represents the energy required to remove an electron from an isolated gaseous atom in its ground state (X(g) -> X+(g) + e-). Across a period from left to right, ionization enthalpy generally increases due to increasing effective nuclear charge and decreasing atomic radius. Down a group, ionization enthalpy decreases because the outermost electrons are farther from the nucleus (increased shielding effect and higher principal quantum number n). Anomalies occur: Boron has lower ionization enthalpy than Beryllium because removing a 2p electron is easier than removing a paired 2s electron. Oxygen has lower ionization enthalpy than Nitrogen due to electron repulsion in the paired 2p4 orbital compared to the stable half-filled 2p3 configuration."
+    },
+    {
+      "topic": "Periodic Table Trends",
+      "subtopic": "Atomic Radius and Electronegativity",
+      "page": 80,
+      "text": "Atomic radius generally decreases across a period from left to right because the increasing nuclear charge pulls the electron cloud closer to the nucleus. Down a group, atomic radius increases as new electron shells are added. Electronegativity is the qualitative measure of the ability of an atom in a chemical compound to attract a shared pair of electrons towards itself. On the Pauling scale, Fluorine is the most electronegative element with a value of 4.0. Electronegativity increases across a period and decreases down a group."
+    },
+    {
+      "topic": "Chemical Bonding",
+      "subtopic": "Covalent & Ionic Bonding",
+      "page": 105,
+      "text": "Chemical bonds form to achieve a stable noble gas octet configuration. In ionic bonding, complete transfer of one or more valence electrons occurs from an electropositive metal to an electronegative non-metal, creating cations and anions held by electrostatic forces. In covalent bonding, atoms share electron pairs. Lewis structures represent bonding and non-bonding valence electron pairs. Valence Shell Electron Pair Repulsion (VSEPR) theory predicts molecular geometry based on minimizing repulsion between electron pairs: lone pair - lone pair > lone pair - bond pair > bond pair - bond pair. Linear (BeCl2, 180°), trigonal planar (BF3, 120°), and tetrahedral (CH4, 109.5°) geometries arise from sp, sp2, and sp3 orbital hybridization."
+    },
+    {
+      "topic": "s-Block Elements",
+      "subtopic": "Alkali & Alkaline Earth Metals",
+      "page": 298,
+      "text": "The s-block of the periodic table consists of Group 1 (alkali metals: Li, Na, K, Rb, Cs, Fr) having ns1 valence configuration, and Group 2 (alkaline earth metals: Be, Mg, Ca, Sr, Ba, Ra) having ns2 valence configuration. They are soft, highly reactive metals with low ionization enthalpies and strong reducing power. Alkali metals impart characteristic colors to a bunsen flame: Lithium crimson red, Sodium yellow, Potassium violet, Calcium brick red. They react vigorously with water to produce hydroxides and hydrogen gas (2M + 2H2O -> 2MOH + H2)."
+    },
+    {
+      "topic": "Equation Balancing",
+      "subtopic": "Balancing Chemical Equations",
+      "page": 15,
+      "text": "According to the Law of Conservation of Mass, the number of atoms of each element must be conserved across reactants and products in a balanced chemical equation. Balancing by oxidation number method involves identifying oxidized and reduced species, determining the change in oxidation number per atom, multiplying by suitable integers to equalize total increase and decrease in oxidation numbers, and finally balancing hydrogen and oxygen atoms using water molecules and H+ or OH- ions."
+    },
+    {
+      "topic": "Stoichiometry and Mole Concept",
+      "subtopic": "Equation Balancing & Moles",
+      "page": 18,
+      "text": "One mole is the amount of substance containing exactly 6.02214076 x 10^23 elementary entities (Avogadro constant N_A). The molar mass of an element or compound in grams per mole (g/mol) is numerically equal to its atomic or molecular mass in unified atomic mass units (u). Stoichiometric coefficients define the mole ratios of reactants consumed and products formed. The limiting reagent is the reactant that is entirely consumed first in a chemical reaction, thereby limiting the maximum amount of product that can be formed."
+    }
+  ]
+}

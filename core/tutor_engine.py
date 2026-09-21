@@ -44,7 +44,7 @@ class TutorContext:
     current_concept_id: str = ""
     current_concept_name: str = ""
     concept_description: str = ""
-    subject: str = ""
+    subject: str = "Chemistry"
     mastery: float = 0.3
     waiting_for_answer: bool = False
     last_response_type: str = "explain"  # explain, question, practice, feedback
@@ -172,7 +172,7 @@ class TutorEngine:
                         self.session_contexts[session_id] = stored
                         return stored
                 except Exception as exc:
-                    logger.debug(f"Could not load persisted tutor context: {exc}")
+                    logger.warning(f"Could not load persisted tutor context: {exc}")
                 self.session_contexts[session_id] = TutorContext()
             return self.session_contexts[session_id]
 

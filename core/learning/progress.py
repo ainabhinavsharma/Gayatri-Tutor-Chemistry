@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 # Controlled concept domain mapping
 CONCEPT_DOMAINS: Dict[str, str] = {
+    # Legacy / test dot-notation mappings
     "thermo.enthalpy": "Thermodynamics",
     "thermo.first_law": "Thermodynamics",
     "thermo.hess_law": "Thermodynamics",
@@ -30,7 +31,51 @@ CONCEPT_DOMAINS: Dict[str, str] = {
     "inorganic.coordination": "Inorganic Chemistry",
     "inorganic.redox": "Inorganic Chemistry",
     "inorganic.bonding": "Inorganic Chemistry",
+    # Canonical NCERT Chemistry curriculum concepts
+    "chem_thermo_system_surroundings": "Thermodynamics",
+    "chem_thermo_first_law": "Thermodynamics",
+    "chem_thermo_enthalpy": "Thermodynamics",
+    "chem_thermo_hess_law": "Thermodynamics",
+    "chem_thermo_entropy": "Thermodynamics",
+    "chem_thermo_gibbs": "Thermodynamics",
+    "chem_inorg_periodic_trends": "Inorganic Chemistry",
+    "chem_inorg_electronic": "Inorganic Chemistry",
+    "chem_inorg_bonding_lewis": "Inorganic Chemistry",
+    "chem_inorg_vsepr": "Inorganic Chemistry",
+    "chem_inorg_hybridization": "Inorganic Chemistry",
+    "chem_inorg_redox_intro": "Inorganic Chemistry",
+    "chem_inorg_balancing": "Inorganic Chemistry",
+    "chem_balancing": "Inorganic Chemistry",
+    "chem_inorg_periodic": "Inorganic Chemistry",
+    "chem_inorg_bonding": "Inorganic Chemistry",
+    "chem_inorg_sblock": "Inorganic Chemistry",
+    "chem_inorg_pblock": "Inorganic Chemistry",
+    "chem_thermo_system": "Thermodynamics",
+    "chem_thermo_hess": "Thermodynamics",
+    "chem_thermo_heat_cap": "Thermodynamics",
+    "chem_thermo_calorimetry": "Thermodynamics",
+    "chem_thermo_formation": "Thermodynamics",
+    "chem_stoichiometry": "Stoichiometry & Physical",
+    "chem_stoichiometry_mole": "Stoichiometry & Physical",
+    "chem_stoichiometry_limiting": "Stoichiometry & Physical",
 }
+
+
+def get_concept_domain(concept_id: str) -> str:
+    """Resolve domain for a concept ID with prefix fallback."""
+    if concept_id in CONCEPT_DOMAINS:
+        return CONCEPT_DOMAINS[concept_id]
+    cid = concept_id.lower()
+    if "thermo" in cid:
+        return "Thermodynamics"
+    if "inorg" in cid or "periodic" in cid or "bond" in cid or "balance" in cid:
+        return "Inorganic Chemistry"
+    if "stoich" in cid or "mole" in cid:
+        return "Stoichiometry & Physical"
+    if "organic" in cid:
+        return "Organic Chemistry"
+    return "General Chemistry"
+
 
 
 def get_status_label(mastery: float, exposure_count: int, is_due: bool) -> str:
@@ -76,7 +121,7 @@ class ProgressService:
         total_attempts = rec.exposure_count
         accuracy = round(rec.correct_count / total_attempts, 4) if total_attempts > 0 else 0.0
         status = get_status_label(rec.mastery, total_attempts, is_due)
-        domain = CONCEPT_DOMAINS.get(concept_id, "General Chemistry")
+        domain = get_concept_domain(concept_id)
 
         return {
             "student_id": student_id,
@@ -129,8 +174,9 @@ class ProgressService:
 
         for p in concepts_progress:
             d = p["domain"]
-            if d in domain_totals:
-                domain_totals[d].append(p["mastery"])
+            if d not in domain_totals:
+                domain_totals[d] = []
+            domain_totals[d].append(p["mastery"])
 
             if p["is_review_due"]:
                 reviews_due_count += 1

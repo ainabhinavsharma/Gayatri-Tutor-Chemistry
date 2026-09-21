@@ -219,7 +219,7 @@ class LearningDependencyGraph:
         conn = self._conn()
         if subject:
             rows = conn.execute(
-                "SELECT * FROM ldg_concepts WHERE subject = ?", (subject,)
+                "SELECT * FROM ldg_concepts WHERE subject = ? COLLATE NOCASE", (subject,)
             ).fetchall()
         else:
             rows = conn.execute("SELECT * FROM ldg_concepts").fetchall()

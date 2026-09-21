@@ -138,3 +138,105 @@ def test_formula_parser_polyatomic():
     assert FormulaParser.parse_formula("H2O") == {"H": 2, "O": 1}
     assert FormulaParser.parse_formula("Ca(OH)2") == {"Ca": 1, "O": 2, "H": 2}
     assert FormulaParser.parse_formula("Fe2(SO4)3") == {"Fe": 2, "S": 3, "O": 12}
+
+
+def test_case_insensitive_subject_concept_lookup(tmp_path):
+    """Verify get_all_concepts and list_concepts work case-insensitively with COLLATE NOCASE."""
+    from core.knowledge_graph import LearningDependencyGraph
+    db_file = str(tmp_path / "test_case.db")
+    ldg = LearningDependencyGraph(db_path=db_file)
+    ldg.add_concept(concept_id="chem_test_1", name="Test Concept", description="Desc", difficulty=0.3, subject="Chemistry")
+
+    # Lowercase, uppercase, titlecase should all find the concept
+    assert len(ldg.get_all_concepts(subject="chemistry")) == 1
+    assert len(ldg.get_all_concepts(subject="CHEMISTRY")) == 1
+    assert len(ldg.get_all_concepts(subject="Chemistry")) == 1
+    assert len(ldg.list_concepts(subject="chemistry")) == 1
+
+
+def test_inorganic_concept_resolution_and_rag_retrieval(tmp_path):
+    """Verify inorganic concept resolution and NCERT RAG retrieval for electronic configuration and periodic trends."""
+    from core.curriculum.resolver import ConceptResolver
+    from core.rag.retriever import get_ncert_retriever
+    from core.rag.schema import RAGStatus, ConfidenceLevel
+
+    # 1. Resolve Aufbau / electronic configuration
+    res = ConceptResolver.resolve_concept("Can you explain the Aufbau principle and electronic configuration?")
+    assert res.concept_id == "chem_inorg_electronic"
+    assert res.domain == "Inorganic Chemistry"
+
+    # 2. Retrieve NCERT RAG evidence for electronic configuration
+    retriever = get_ncert_retriever()
+    rag_ctx = retriever.retrieve_concept_aware(
+        query="Aufbau principle and Hund's rule for orbitals",
+        domain=res.domain,
+        chapter=res.chapter,
+        topic=res.topic,
+        concept_id=res.concept_id,
+        top_k=2,
+    )
+    assert rag_ctx.status == RAGStatus.RAG_OK
+    assert len(rag_ctx.results) > 0
+    assert any("aufbau" in r.chunk.text.lower() for r in rag_ctx.results)
+
+    # 3. Retrieve NCERT RAG evidence for periodic trends
+    res_periodic = ConceptResolver.resolve_concept("Why does ionization enthalpy increase across a period?")
+    assert res_periodic.concept_id == "chem_inorg_periodic"
+    rag_ctx_periodic = retriever.retrieve_concept_aware(
+        query="Ionization enthalpy periodic trend across a period",
+        domain=res_periodic.domain,
+        chapter=res_periodic.chapter,
+        topic=res_periodic.topic,
+        concept_id=res_periodic.concept_id,
+        top_k=2,
+    )
+    assert rag_ctx_periodic.status == RAGStatus.RAG_OK
+    assert len(rag_ctx_periodic.results) > 0
+    assert any("ionization enthalpy" in r.chunk.text.lower() for r in rag_ctx_periodic.results)
+
+
+def test_chemistry_runtime_preserves_mastery_context():
+    """Verify ChemistryTutorRuntime extracts real student mastery from metadata and does not force 0%."""
+    from core.agents.runtime import AgentContext
+    from core.runtimes.chemistry import ChemistryTutorRuntime
+    from unittest.mock import patch
+
+    runtime = ChemistryTutorRuntime()
+    ctx = AgentContext(
+        session_id="test_runtime_mastery",
+        user_message="What is Hess's Law?",
+        metadata={
+            "tutor": {
+                "concept_id": "chem_thermo_hess",
+                "concept_name": "Hess Law",
+                "mastery_raw": 0.85,
+                "mastery_pct": "85%",
+            }
+        },
+    )
+
+    with patch("core.runtimes.chemistry.get_inference_service") as mock_get_inf:
+        mock_service = mock_get_inf.return_value
+        mock_service.stream_chat.return_value = iter(["Hess's Law ", "states..."])
+        tokens = list(runtime.stream("What is Hess's Law?", ctx))
+        assert "".join(tokens) == "Hess's Law states..."
+
+        # Verify prompt passed to LLM has actual mastery (85%), NOT 0%
+        call_messages = mock_service.stream_chat.call_args[0][0]
+        sys_prompt = next(m["content"] for m in call_messages if m["role"] == "system")
+        assert "Mastery Estimate: 85%" in sys_prompt
+        assert "Mastery Estimate: 0%" not in sys_prompt
+
+
+def test_canonical_concept_domain_mapping():
+    """Verify ProgressService correctly maps canonical NCERT concepts and prefix patterns."""
+    from core.learning.progress import get_concept_domain
+
+    assert get_concept_domain("chem_thermo_first_law") == "Thermodynamics"
+    assert get_concept_domain("chem_thermo_hess") == "Thermodynamics"
+    assert get_concept_domain("chem_inorg_electronic") == "Inorganic Chemistry"
+    assert get_concept_domain("chem_inorg_periodic") == "Inorganic Chemistry"
+    assert get_concept_domain("chem_inorg_sblock") == "Inorganic Chemistry"
+    assert get_concept_domain("chem_stoichiometry_mole") == "Stoichiometry & Physical"
+    assert get_concept_domain("chem_balancing") == "Inorganic Chemistry"
+

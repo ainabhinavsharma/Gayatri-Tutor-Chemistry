@@ -158,15 +158,27 @@ class ChemistryTutorRuntime:
             else:
                 policy_directive = ExplanationPolicy.get_directive(resolved.topic, resolved.subtopic, "medium")
 
-            # 3. Student Answer Evaluation if checking or evaluating
-            eval_result = StudentAnswerEvaluator.evaluate(user_message)
-            adaptation = StudentAdapter.adapt(mastery_score=eval_result.confidence)
+            # 3. Student Mastery & Pedagogical Adaptation
+            tutor_meta = (context.metadata or {}).get("tutor", {}) if hasattr(context, "metadata") and context.metadata else {}
+            current_mastery = tutor_meta.get("mastery_raw")
+            if current_mastery is None:
+                try:
+                    from core.orchestrator import _get_ldg
+                    ldg = _get_ldg()
+                    if ldg and resolved.concept_id:
+                        current_mastery = ldg.get_mastery(resolved.concept_id)
+                except Exception:
+                    pass
+            if current_mastery is None:
+                current_mastery = 0.5
+
+            adaptation = StudentAdapter.adapt(mastery_score=current_mastery)
 
             # 4. Memory summary block
             memory = TutorMemoryManager.build_memory(
                 topic=resolved.topic,
                 subtopic=resolved.subtopic,
-                mastery=eval_result.confidence,
+                mastery=current_mastery,
                 difficulty=adaptation.target_difficulty,
             )
 
