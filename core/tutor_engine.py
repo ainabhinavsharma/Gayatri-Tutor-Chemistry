@@ -185,7 +185,7 @@ class TutorEngine:
                     from core.session import get_session_store
                     get_session_store().save_tutor_context(session_id, ctx)
                 except Exception as exc:
-                    logger.debug(f"Failed to persist tutor context for session {session_id}: {exc}")
+                    logger.warning(f"Failed to persist tutor context for session {session_id}: {exc}")
 
     def set_context(self, session_id: str, context: TutorContext) -> None:
         """Set teaching context for a session and persist it."""

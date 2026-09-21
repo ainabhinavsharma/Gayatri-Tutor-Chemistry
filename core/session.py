@@ -200,93 +200,93 @@ class SessionStore:
             first_preview = messages[0]["content"][:80] if messages else ""
 
             # 1. Ensure parent session record exists first to satisfy FOREIGN KEY constraint
-            conn.execute(
-                """INSERT INTO sessions (id, title, created_at, updated_at, message_count, mode, user_id)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)
-                   ON CONFLICT(id) DO UPDATE SET
-                       title = CASE WHEN sessions.title IS NULL OR sessions.title = '' THEN excluded.title ELSE sessions.title END,
-                       updated_at = excluded.updated_at,
-                       message_count = excluded.message_count,
-                       mode = excluded.mode,
-                       user_id = excluded.user_id""",
-                (session_id, first_preview, now, now, n_msgs, mode, user_id),
-            )
+            with conn:
+                conn.execute(
+                    """INSERT INTO sessions (id, title, created_at, updated_at, message_count, mode, user_id)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(id) DO UPDATE SET
+                           title = CASE WHEN sessions.title IS NULL OR sessions.title = '' THEN excluded.title ELSE sessions.title END,
+                           updated_at = excluded.updated_at,
+                           message_count = excluded.message_count,
+                           mode = excluded.mode,
+                           user_id = excluded.user_id""",
+                    (session_id, first_preview, now, now, n_msgs, mode, user_id),
+                )
 
-            # 2. Check existing message count and latest message for incremental append (Audit #30)
-            row = conn.execute(
-                "SELECT COUNT(*) as cnt FROM messages WHERE session_id = ?",
-                (session_id,),
-            ).fetchone()
-            db_count = row["cnt"] if row else 0
-
-            is_incremental = False
-            if 0 < db_count <= n_msgs:
-                last_db = conn.execute(
-                    "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT 1",
+                # 2. Check existing message count and latest message for incremental append (Audit #30)
+                row = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM messages WHERE session_id = ?",
                     (session_id,),
                 ).fetchone()
-                if (
-                    last_db
-                    and last_db["role"] == messages[db_count - 1]["role"]
-                    and last_db["content"] == messages[db_count - 1]["content"]
-                ):
-                    is_incremental = True
+                db_count = row["cnt"] if row else 0
 
-            if is_incremental:
-                # Incremental append: insert only messages[db_count:] without deleting anything (Audit #30)
-                new_slice = messages[db_count:]
-                if new_slice:
-                    conn.executemany(
-                        "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
-                        "VALUES (?, ?, ?, ?, ?)",
-                        [
-                            (
-                                session_id,
-                                m["role"],
-                                m["content"],
-                                m.get("agent_name", ""),
-                                m.get("timestamp", now),
-                            )
-                            for m in new_slice
-                        ],
-                    )
-            elif db_count == 0:
-                # Brand new session: insert all messages in bulk
-                if messages:
-                    conn.executemany(
-                        "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
-                        "VALUES (?, ?, ?, ?, ?)",
-                        [
-                            (
-                                session_id,
-                                m["role"],
-                                m["content"],
-                                m.get("agent_name", ""),
-                                m.get("timestamp", now),
-                            )
-                            for m in messages
-                        ],
-                    )
-            else:
-                # History diverged or session was cleared/rolled back (Audit #31)
-                conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
-                if messages:
-                    conn.executemany(
-                        "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
-                        "VALUES (?, ?, ?, ?, ?)",
-                        [
-                            (
-                                session_id,
-                                m["role"],
-                                m["content"],
-                                m.get("agent_name", ""),
-                                m.get("timestamp", now),
-                            )
-                            for m in messages
-                        ],
-                    )
+                is_incremental = False
+                if 0 < db_count <= n_msgs:
+                    last_db = conn.execute(
+                        "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT 1",
+                        (session_id,),
+                    ).fetchone()
+                    if (
+                        last_db
+                        and last_db["role"] == messages[db_count - 1]["role"]
+                        and last_db["content"] == messages[db_count - 1]["content"]
+                    ):
+                        is_incremental = True
 
-            conn.commit()
+                if is_incremental:
+                    # Incremental append: insert only messages[db_count:] without deleting anything (Audit #30)
+                    new_slice = messages[db_count:]
+                    if new_slice:
+                        conn.executemany(
+                            "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
+                            "VALUES (?, ?, ?, ?, ?)",
+                            [
+                                (
+                                    session_id,
+                                    m["role"],
+                                    m["content"],
+                                    m.get("agent_name", ""),
+                                    m.get("timestamp", now),
+                                )
+                                for m in new_slice
+                            ],
+                        )
+                elif db_count == 0:
+                    # Brand new session: insert all messages in bulk
+                    if messages:
+                        conn.executemany(
+                            "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
+                            "VALUES (?, ?, ?, ?, ?)",
+                            [
+                                (
+                                    session_id,
+                                    m["role"],
+                                    m["content"],
+                                    m.get("agent_name", ""),
+                                    m.get("timestamp", now),
+                                )
+                                for m in messages
+                            ],
+                        )
+                else:
+                    # History diverged or session was cleared/rolled back (Audit #31)
+                    conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+                    if messages:
+                        conn.executemany(
+                            "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
+                            "VALUES (?, ?, ?, ?, ?)",
+                            [
+                                (
+                                    session_id,
+                                    m["role"],
+                                    m["content"],
+                                    m.get("agent_name", ""),
+                                    m.get("timestamp", now),
+                                )
+                                for m in messages
+                            ],
+                        )
+
             logger.debug(f"Saved session {session_id}: {n_msgs} messages (db had {db_count}, incremental={is_incremental})")
 
             if tutor_context is not None:
@@ -307,27 +307,27 @@ class SessionStore:
             now = timestamp or datetime.now().isoformat()
 
             # Ensure parent session record exists first to satisfy foreign keys
-            conn.execute(
-                """INSERT INTO sessions (id, title, created_at, updated_at, message_count)
-                   VALUES (?, ?, ?, ?, 0)
-                   ON CONFLICT(id) DO UPDATE SET
-                       title = CASE WHEN sessions.title IS NULL OR sessions.title = '' THEN excluded.title ELSE sessions.title END,
-                       updated_at = excluded.updated_at""",
-                (session_id, content[:80], now, now),
-            )
+            with conn:
+                conn.execute(
+                    """INSERT INTO sessions (id, title, created_at, updated_at, message_count)
+                       VALUES (?, ?, ?, ?, 0)
+                       ON CONFLICT(id) DO UPDATE SET
+                           title = CASE WHEN sessions.title IS NULL OR sessions.title = '' THEN excluded.title ELSE sessions.title END,
+                           updated_at = excluded.updated_at""",
+                    (session_id, content[:80], now, now),
+                )
 
-            cursor = conn.execute(
-                "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (session_id, role, content, agent_name, now),
-            )
-            msg_id = cursor.lastrowid
+                cursor = conn.execute(
+                    "INSERT INTO messages (session_id, role, content, agent_name, timestamp) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (session_id, role, content, agent_name, now),
+                )
+                msg_id = cursor.lastrowid
 
-            conn.execute(
-                "UPDATE sessions SET message_count = message_count + 1 WHERE id = ?",
-                (session_id,),
-            )
-            conn.commit()
+                conn.execute(
+                    "UPDATE sessions SET message_count = message_count + 1 WHERE id = ?",
+                    (session_id,),
+                )
             return msg_id
 
     def clear_session_messages(self, session_id: str) -> None:
@@ -336,13 +336,13 @@ class SessionStore:
         with self._lock:
             conn = self.conn
             now = datetime.now().isoformat()
-            conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
-            conn.execute("DELETE FROM tutor_contexts WHERE session_id = ?", (session_id,))
-            conn.execute(
-                "UPDATE sessions SET message_count = 0, title = '', updated_at = ? WHERE id = ?",
-                (now, session_id),
-            )
-            conn.commit()
+            with conn:
+                conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+                conn.execute("DELETE FROM tutor_contexts WHERE session_id = ?", (session_id,))
+                conn.execute(
+                    "UPDATE sessions SET message_count = 0, title = '', updated_at = ? WHERE id = ?",
+                    (now, session_id),
+                )
             logger.info(f"Cleared messages for session: {session_id}")
 
     def save_tutor_context(self, session_id: str, ctx: Any) -> None:
@@ -363,36 +363,42 @@ class SessionStore:
             else:
                 last_correct_int = None
 
-            conn.execute(
-                """INSERT INTO tutor_contexts (
-                       session_id, current_concept_id, current_concept_name,
-                       concept_description, subject, mastery, waiting_for_answer,
-                       last_response_type, last_attempt_correct, updated_at
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                   ON CONFLICT(session_id) DO UPDATE SET
-                       current_concept_id = excluded.current_concept_id,
-                       current_concept_name = excluded.current_concept_name,
-                       concept_description = excluded.concept_description,
-                       subject = excluded.subject,
-                       mastery = excluded.mastery,
-                       waiting_for_answer = excluded.waiting_for_answer,
-                       last_response_type = excluded.last_response_type,
-                       last_attempt_correct = excluded.last_attempt_correct,
-                       updated_at = excluded.updated_at""",
-                (
-                    session_id,
-                    getattr(ctx, "current_concept_id", ""),
-                    getattr(ctx, "current_concept_name", ""),
-                    getattr(ctx, "concept_description", ""),
-                    getattr(ctx, "subject", ""),
-                    float(getattr(ctx, "mastery", 0.3)),
-                    waiting,
-                    getattr(ctx, "last_response_type", "explain"),
-                    last_correct_int,
-                    now,
-                ),
-            )
-            conn.commit()
+            with conn:
+                # Ensure parent session record exists first to satisfy foreign keys
+                conn.execute(
+                    """INSERT OR IGNORE INTO sessions (id, title, created_at, updated_at, message_count)
+                       VALUES (?, ?, ?, ?, 0)""",
+                    (session_id, "New Session", now, now),
+                )
+                conn.execute(
+                    """INSERT INTO tutor_contexts (
+                           session_id, current_concept_id, current_concept_name,
+                           concept_description, subject, mastery, waiting_for_answer,
+                           last_response_type, last_attempt_correct, updated_at
+                       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(session_id) DO UPDATE SET
+                           current_concept_id = excluded.current_concept_id,
+                           current_concept_name = excluded.current_concept_name,
+                           concept_description = excluded.concept_description,
+                           subject = excluded.subject,
+                           mastery = excluded.mastery,
+                           waiting_for_answer = excluded.waiting_for_answer,
+                           last_response_type = excluded.last_response_type,
+                           last_attempt_correct = excluded.last_attempt_correct,
+                           updated_at = excluded.updated_at""",
+                    (
+                        session_id,
+                        getattr(ctx, "current_concept_id", ""),
+                        getattr(ctx, "current_concept_name", ""),
+                        getattr(ctx, "concept_description", ""),
+                        getattr(ctx, "subject", ""),
+                        float(getattr(ctx, "mastery", 0.3)),
+                        waiting,
+                        getattr(ctx, "last_response_type", "explain"),
+                        last_correct_int,
+                        now,
+                    ),
+                )
             logger.debug(f"Saved tutor context for session {session_id}")
 
     def load_tutor_context(self, session_id: str) -> Any:
@@ -514,10 +520,10 @@ class SessionStore:
     def _delete_session_internal(self, session_id: str) -> None:
         with self._lock:
             conn = self.conn
-            conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
-            conn.execute("DELETE FROM tutor_contexts WHERE session_id = ?", (session_id,))
-            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
-            conn.commit()
+            with conn:
+                conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+                conn.execute("DELETE FROM tutor_contexts WHERE session_id = ?", (session_id,))
+                conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             logger.info(f"Deleted session: {session_id}")
 
     def get_session_count(self) -> int:

@@ -173,42 +173,72 @@ def _evaluate_tutor_response(session_id: str, user_message: str,
         if not tutor.is_waiting_for_answer(session_id):
             return
 
-        system_prompt = (
-            f"You are an educational evaluator. The student is learning '{ctx.current_concept_name}'.\n"
-            f"Concept description: {ctx.concept_description}\n\n"
-            "Evaluate the student's answer. Answer ONLY in JSON format: "
-            '{"correct": true, "confidence": 0.9} (use false if incorrect, and null if it is a clarification question or too ambiguous).'
+        # Question / clarification check (Audit #36): if the student asked a question or asked for help,
+        # do not penalize them or treat it as an answer to the previous turn.
+        clean_msg = user_message.strip().lower()
+        is_question = (
+            clean_msg.endswith("?")
+            or clean_msg.startswith((
+                "what", "why", "how", "can you", "could you", "tell me", "explain",
+                "i don't understand", "i dont understand", "idk", "what is", "whats", "who", "which"
+            ))
         )
+        if is_question:
+            logger.info(f"Student asked a question/clarification ('{user_message[:50]}...'). Clearing waiting_for_answer.")
+            ctx.waiting_for_answer = False
+            tutor.save_context(session_id)
+            return
 
         correct = None
         confidence = 1.0
 
+        # Structured / heuristic evaluation first (Phase 6 / Section 12)
         try:
-            from core.providers.local import LocalProvider
-            import json
-            eval_resp = LocalProvider.chat([
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ], max_tokens=20, temperature=0.1)
-            
-            clean_resp = eval_resp.strip()
-            if clean_resp.startswith("```json"):
-                clean_resp = clean_resp[7:]
-            if clean_resp.startswith("```"):
-                clean_resp = clean_resp[3:]
-            if clean_resp.endswith("```"):
-                clean_resp = clean_resp[:-3]
-            clean_resp = clean_resp.strip()
+            from core.tutor.evaluator import StudentAnswerEvaluator
+            eval_result = StudentAnswerEvaluator.evaluate(
+                student_answer=user_message,
+                concept_id=ctx.current_concept_id,
+                question=ctx.concept_description,
+            )
+            if eval_result.correctness == "correct":
+                correct = True
+                confidence = eval_result.confidence
+            elif eval_result.correctness == "incorrect":
+                correct = False
+                confidence = eval_result.confidence
+            else:
+                # If uncertain, attempt quick LLM evaluation only if local provider is available
+                from core.providers.local import LocalProvider
+                if LocalProvider.is_available():
+                    system_prompt = (
+                        f"You are an educational evaluator. The student is learning '{ctx.current_concept_name}'.\n"
+                        f"Concept description: {ctx.concept_description}\n\n"
+                        "Evaluate the student's answer. Answer ONLY in JSON format: "
+                        '{"correct": true, "confidence": 0.9} (use false if incorrect, and null if it is a clarification question or too ambiguous).'
+                    )
+                    import json
+                    eval_resp = LocalProvider.chat([
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ], max_tokens=20, temperature=0.1)
 
-            result = json.loads(clean_resp)
-            correct = result.get("correct")
-            conf = result.get("confidence")
-            if isinstance(conf, (int, float)):
-                confidence = float(conf)
-                
-            logger.info(f"LLM evaluation for '{ctx.current_concept_name}': correct={correct}, confidence={confidence:.2f}")
-        except Exception as llm_exc:
-            logger.warning(f"LLM evaluator failed or returned invalid JSON: {llm_exc}. Defaulting to uncertain.")
+                    clean_resp = eval_resp.strip()
+                    if clean_resp.startswith("```json"):
+                        clean_resp = clean_resp[7:]
+                    if clean_resp.startswith("```"):
+                        clean_resp = clean_resp[3:]
+                    if clean_resp.endswith("```"):
+                        clean_resp = clean_resp[:-3]
+                    clean_resp = clean_resp.strip()
+
+                    result = json.loads(clean_resp)
+                    correct = result.get("correct")
+                    conf = result.get("confidence")
+                    if isinstance(conf, (int, float)):
+                        confidence = float(conf)
+                    logger.info(f"LLM evaluation for '{ctx.current_concept_name}': correct={correct}, confidence={confidence:.2f}")
+        except Exception as eval_exc:
+            logger.debug(f"Evaluator fallback to uncertain: {eval_exc}")
             correct = None
 
         mastery = tutor.record_student_response(
@@ -544,11 +574,18 @@ class Orchestrator:
                         tutor_txn = tutor_eng.begin_transaction(session_id)
 
                     # 1. TURN_STARTED
-                    lifecycle.start_turn(turn_id, student_id, session_id)
+                    try:
+                        lifecycle.start_turn(turn_id, student_id, session_id)
+                    except Exception as lce:
+                        logger.warning(f"Lifecycle start_turn warning: {lce}")
 
                     try:
                         # 2. EVALUATION_STARTED
-                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_STARTED)
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.EVALUATION_STARTED)
+                        except Exception as lce:
+                            logger.warning(f"Lifecycle EVALUATION_STARTED warning: {lce}")
+
                         _evaluate_tutor_response(session_id, user_message, tutor=tutor_eng, ldg=self.get_ldg())
                         _inject_tutor_context(context, session_id, tutor=tutor_eng, ldg=self.get_ldg())
 
@@ -561,25 +598,49 @@ class Orchestrator:
                             yield token, False
 
                         # 3. RESPONSE_GENERATED
-                        lifecycle.update_stage(turn_id, TurnStage.RESPONSE_GENERATED)
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.RESPONSE_GENERATED)
+                        except Exception as lce:
+                            logger.warning(f"Lifecycle RESPONSE_GENERATED warning: {lce}")
 
                         # 4. EVALUATION_COMPLETED
-                        lifecycle.update_stage(turn_id, TurnStage.EVALUATION_COMPLETED)
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.EVALUATION_COMPLETED)
+                        except Exception as lce:
+                            logger.warning(f"Lifecycle EVALUATION_COMPLETED warning: {lce}")
 
-                        _post_tutor_response(session_id, tutor=tutor_eng)
+                        try:
+                            _post_tutor_response(session_id, tutor=tutor_eng)
+                        except Exception as pte:
+                            logger.warning(f"Post tutor response warning: {pte}")
 
                         # 5. LEARNING_STATE_UPDATED
-                        lifecycle.update_stage(turn_id, TurnStage.LEARNING_STATE_UPDATED)
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.LEARNING_STATE_UPDATED)
+                        except Exception as lce:
+                            logger.warning(f"Lifecycle LEARNING_STATE_UPDATED warning: {lce}")
 
                         if tutor_txn:
-                            tutor_txn.commit()
+                            try:
+                                tutor_txn.commit()
+                            except Exception as tce:
+                                logger.warning(f"Tutor transaction commit warning: {tce}")
 
                         # 6. TURN_COMMITTED
-                        lifecycle.update_stage(turn_id, TurnStage.TURN_COMMITTED)
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.TURN_COMMITTED)
+                        except Exception as lce:
+                            logger.warning(f"Lifecycle TURN_COMMITTED warning: {lce}")
                     except Exception as e:
                         if tutor_txn:
-                            tutor_txn.rollback()
-                        lifecycle.update_stage(turn_id, TurnStage.TURN_ABORTED, error_detail=str(e))
+                            try:
+                                tutor_txn.rollback()
+                            except Exception:
+                                pass
+                        try:
+                            lifecycle.update_stage(turn_id, TurnStage.TURN_ABORTED, error_detail=str(e))
+                        except Exception:
+                            pass
                         yield str(e), True
                         return
                 else:

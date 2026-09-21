@@ -676,6 +676,25 @@
     var activeMode = 'chemistry_tutor';
     var markdownDebounceTimer = null;
     var renderRequested = false;
+    var generationWatchdogTimer = null;
+
+    function resetGenerationWatchdog() {
+      clearTimeout(generationWatchdogTimer);
+      generationWatchdogTimer = setTimeout(function() {
+        if (isGenerating) {
+          console.warn("Generation watchdog fired: releasing input lock after 45s timeout.");
+          isGenerating = false;
+          clearTimeout(markdownDebounceTimer);
+          updateLastMessageMarkdown();
+          appendActionChips();
+        }
+      }, 45000);
+    }
+
+    function clearGenerationWatchdog() {
+      clearTimeout(generationWatchdogTimer);
+      generationWatchdogTimer = null;
+    }
 
     // ── QWebChannel setup ──
     new QWebChannel(qt.webChannelTransport, async function(channel) {
@@ -683,6 +702,7 @@
 
       bridge.token.connect(function(idx, text) {
         currentTokens.push(text);
+        resetGenerationWatchdog();
         if (!renderRequested) {
           renderRequested = true;
           window.requestAnimationFrame(updateLastMessageRaw);
@@ -692,6 +712,7 @@
       });
 
       bridge.done.connect(function() {
+        clearGenerationWatchdog();
         isGenerating = false;
         clearTimeout(markdownDebounceTimer);
         updateLastMessageMarkdown();
@@ -699,6 +720,7 @@
       });
 
       bridge.error.connect(function(msg) {
+        clearGenerationWatchdog();
         addMessageToActive('system', 'System Notice: ' + msg);
         isGenerating = false;
         clearTimeout(markdownDebounceTimer);
@@ -897,15 +919,23 @@
 
     // ── Sending & Messaging ──
     function sendMode(modeStr) {
-      if (isGenerating) return;
+      var inputId = (modeStr === 'chemistry_tutor') ? 'userInputChem' : 'userInputGen';
+      var input = document.getElementById(inputId);
+
+      if (isGenerating) {
+        if (input && input.placeholder) {
+          var origPlaceholder = input.placeholder;
+          input.placeholder = "Still generating previous response, please wait...";
+          setTimeout(function() { input.placeholder = origPlaceholder; }, 2000);
+        }
+        return;
+      }
       if (!bridge) {
         addMessageToActive('system', 'Connection initializing. Please wait...');
         return;
       }
 
-      var inputId = (modeStr === 'chemistry_tutor') ? 'userInputChem' : 'userInputGen';
-      var input = document.getElementById(inputId);
-      var msg = input.value.trim();
+      var msg = input ? input.value.trim() : '';
       if (!msg) return;
 
       addMessageToMode(modeStr, 'user', msg);
@@ -913,6 +943,7 @@
       input.value = '';
       isGenerating = true;
       currentTokens = [];
+      resetGenerationWatchdog();
 
       bridge.send_message(msg, modeStr);
     }

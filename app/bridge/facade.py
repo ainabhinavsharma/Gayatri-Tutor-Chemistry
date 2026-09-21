@@ -153,17 +153,20 @@ class Bridge(QObject):
 
                     if is_done:
                         self._save_session_by_id(generation_session_id)
+                        self._generation_active = False
                         self.done.emit()
                         return
 
                 # If generator exhausted without yielding is_done=True
                 if self._session_id == generation_session_id:
                     self._save_session_by_id(generation_session_id)
+                    self._generation_active = False
                     self.done.emit()
             except Exception as exc:
                 from core.errors import sanitize_error
                 sanitized = sanitize_error(exc, category="bridge_send_message")
                 if self._session_id == generation_session_id:
+                    self._generation_active = False
                     self.error.emit(sanitized.user_message)
                     self.done.emit()
             finally:
