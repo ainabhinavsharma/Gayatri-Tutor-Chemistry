@@ -69,6 +69,7 @@ def main():
         sys.exit(0)
 
     from PySide6.QtWidgets import QApplication
+    from PySide6.QtNetwork import QLocalServer, QLocalSocket
     from core.config import WINDOW_HEIGHT, WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, WINDOW_WIDTH
     from core.logging_setup import setup_logging
 
@@ -78,10 +79,40 @@ def main():
     app.setApplicationName("Gayatri AI")
     app.setOrganizationName("Gayatri Education")
 
+    # Single-instance enforcement via QLocalServer
+    server_name = "gayatri_ai_single_instance_lock"
+    probe_socket = QLocalSocket()
+    probe_socket.connectToServer(server_name)
+    if probe_socket.waitForConnected(500):
+        # Notify existing instance to bring window to front and exit
+        probe_socket.write(b"ACTIVATE\n")
+        probe_socket.flush()
+        probe_socket.waitForBytesWritten(500)
+        probe_socket.close()
+        logger.info("Another instance of Gayatri AI is already running. Focused existing instance.")
+        sys.exit(0)
+
+    # Primary instance: create server
+    server = QLocalServer(app)
+    server.removeServer(server_name)  # Clean up any stale pipe/socket from previous unclean exit
+    if not server.listen(server_name):
+        logger.warning(f"Could not bind single instance server: {server.errorString()}")
+
     from app.windows.main_window import MainWindow
     window = MainWindow()
     window.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
     window.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+
+    def _on_new_connection():
+        sock = server.nextPendingConnection()
+        if sock:
+            sock.waitForReadyRead(500)
+            window.showNormal()
+            window.raise_()
+            window.activateWindow()
+            sock.close()
+
+    server.newConnection.connect(_on_new_connection)
 
     # Center on primary screen (frameless windows don't auto-center)
     screen = app.primaryScreen().availableGeometry()

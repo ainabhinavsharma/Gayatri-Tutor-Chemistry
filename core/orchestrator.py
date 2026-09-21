@@ -290,10 +290,11 @@ class Orchestrator:
         self._lock = threading.RLock()
 
     def get_state_manager(self) -> Any:
-        if self._state_manager is not None:
+        with self._lock:
+            if self._state_manager is None:
+                from core.tutor.state import TutorStateManager
+                self._state_manager = TutorStateManager()
             return self._state_manager
-        from core.tutor.state import TutorStateManager
-        return TutorStateManager()
 
     def get_tutor_engine(self) -> Any:
         if self._tutor_engine is not None:
