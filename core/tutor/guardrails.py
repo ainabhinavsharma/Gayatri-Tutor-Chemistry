@@ -45,7 +45,8 @@ PROMPT_INJECTION_PATTERNS = [
 # ── Non-Chemistry Topic Keywords ──────────────────────────────────────────
 
 NON_CHEMISTRY_TOPIC_PATTERNS = [
-    re.compile(r"(?i)\b(write|code|debug|script)\s+(python|javascript|java|c\+\+|html|css|php|rust|sql|bash)\b"),
+    re.compile(r"(?i)\b(write|code|debug|create|build)\b.*?\b(python|javascript|java|c\+\+|html|css|php|rust|sql|bash|code|script)\b"),
+    re.compile(r"(?i)\b(python|javascript|java|c\+\+|html|css|php|rust|sql|bash)\s+(code|script|program)\b"),
     re.compile(r"(?i)\bwho\s+(is|was)\s+(napoleon|hitler|einstein|shakespeare|gandhi|caesar)\b"),
     re.compile(r"(?i)\b(capital\s+of|currency\s+of|prime\s+minister\s+of|president\s+of)\b"),
     re.compile(r"(?i)\b(cricket|football|soccer|basketball|nba|world\s+cup)\s+(score|match|team|player)\b"),

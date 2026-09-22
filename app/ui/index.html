@@ -468,6 +468,170 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
+
+    /* ── Split Chemistry Workspace & Observability Panel (Master Plan Sec 40-43) ── */
+    .chem-body-split {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .chem-conversation-col {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+    }
+    .chem-sidebar {
+      width: 280px;
+      background: #141b34;
+      border-left: 1px solid #2a2a4a;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      gap: 14px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .chem-side-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chem-card-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chem-topic-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chem-topic-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+    .chem-topic-label { color: #b0b0c0; }
+    .chem-topic-val { color: #53a8b6; font-weight: 600; }
+    .chem-active-badge { font-size: 15px; font-weight: bold; color: #ffffff; }
+    .chem-concept-id-tag { font-size: 10px; color: #8a8a9a; font-family: monospace; margin-top: 2px; }
+    .chem-info-row { font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+    .chem-info-label { color: #8a8a9a; }
+    .chem-mode-pill { background: #0f3460; color: #53a8b6; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 10px; }
+    .chem-misconception-text { font-size: 11px; color: #e94560; background: rgba(233, 69, 96, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(233, 69, 96, 0.3); }
+
+    /* ── Collapsible Debug / Telemetry Panel ── */
+    .chem-debug-panel {
+      border-top: 1px solid #2a2a4a;
+      background: #0c1022;
+      flex-shrink: 0;
+    }
+    .chem-debug-toggle {
+      padding: 6px 14px;
+      background: #12182c;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid #1a223e;
+      transition: background 0.15s;
+    }
+    .chem-debug-toggle:hover { background: #171f38; }
+    .debug-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #1a223e;
+      color: #8bb5e8;
+      font-weight: 500;
+    }
+    .chem-debug-body {
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 10px 14px;
+    }
+    .chem-debug-body.collapsed {
+      display: none;
+    }
+    .chem-debug-grid {
+      display: flex;
+      gap: 16px;
+    }
+    .debug-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .debug-col-title {
+      font-weight: 700;
+      color: #8bb5e8;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #1f2847;
+      padding-bottom: 2px;
+    }
+    .debug-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .debug-key { color: #8a8a9a; font-weight: 500; }
+    .debug-val { color: #e0e0e0; font-family: monospace; font-weight: 600; }
+    .debug-rag-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .debug-rag-item {
+      font-size: 11px;
+      color: #cfcfe0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+      background: #13192f;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .rag-rel {
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .rag-rel.high { background: #1b4332; color: #52b788; }
+    .rag-rel.med { background: #4a3800; color: #e9c46a; }
+    .debug-events-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 110px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 10px;
+    }
+    .debug-event-row {
+      display: flex;
+      gap: 8px;
+      color: #a0a0b8;
+      white-space: nowrap;
+    }
+    .event-time { color: #6a6a8a; }
+    .event-type { color: #53a8b6; font-weight: 600; min-width: 140px; }
+    .event-detail { color: #e0e0e0; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -525,24 +689,147 @@
       <div class="tab-view" id="tab-chemistry">
         <div class="mode-header">
           <span class="mode-title-tag">🧪 Chemistry Tutor Mode — NCERT Adaptive Guidance</span>
-          <button class="settings-btn secondary" onclick="startNewChat('chemistry_tutor')" style="padding: 4px 10px; font-size: 11px;">+ New Chemistry Chat</button>
-          <span class="model-badge">
-            <span class="status-dot loading" id="statusDotChem"></span>
-            <span id="statusTextChem">Local Model Ready</span>
-          </span>
-        </div>
-
-        <div class="chat" id="chat-chemistry">
-          <div class="empty-state">
-            <span class="empty-icon">🧪</span>
-            <span class="empty-text">No chemistry sessions active. Ask a question or start a topic like Thermodynamics or s-Block elements!</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="settings-btn secondary" onclick="refreshDemoTelemetry()" style="padding: 4px 10px; font-size: 11px;" title="Refresh student mastery & telemetry">🔄 Telemetry</button>
+            <button class="settings-btn secondary" onclick="startNewChat('chemistry_tutor')" style="padding: 4px 10px; font-size: 11px;">+ New Chemistry Chat</button>
+            <span class="model-badge">
+              <span class="status-dot loading" id="statusDotChem"></span>
+              <span id="statusTextChem">Local Model Ready</span>
+            </span>
           </div>
         </div>
 
-        <div class="input-area">
-          <input type="text" id="userInputChem" placeholder="Ask a chemistry question (e.g., 'What is Hess's Law?')..."
-                 autocomplete="off" onkeydown="if(event.key==='Enter')sendMode('chemistry_tutor')">
-          <button class="send-btn" id="sendBtnChem" onclick="sendMode('chemistry_tutor')">Send</button>
+        <div class="chem-body-split">
+          <!-- Left Conversation Column -->
+          <div class="chem-conversation-col">
+            <div class="chat" id="chat-chemistry">
+              <div class="empty-state">
+                <span class="empty-icon">🧪</span>
+                <span class="empty-text">No chemistry sessions active. Ask a question or explore Thermodynamics, Bonding, or Trends!</span>
+              </div>
+            </div>
+
+            <div class="input-area">
+              <input type="text" id="userInputChem" placeholder="Ask a chemistry question (e.g., 'What is the First Law of Thermodynamics?')..."
+                     autocomplete="off" onkeydown="if(event.key==='Enter')sendMode('chemistry_tutor')">
+              <button class="send-btn" id="sendBtnChem" onclick="sendMode('chemistry_tutor')">Send</button>
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Learning Progress & Active Concept (Sec 40-43) -->
+          <div class="chem-sidebar">
+            <div class="chem-side-card">
+              <div class="chem-card-header">
+                <span>📊 Learning Progress</span>
+                <span style="font-size: 10px; color: #8bb5e8; cursor: pointer;" onclick="refreshDemoTelemetry()">Sync</span>
+              </div>
+              <div class="chem-topic-progress">
+                <div>
+                  <div class="chem-topic-row">
+                    <span class="chem-topic-label">Thermodynamics</span>
+                    <span class="chem-topic-val" id="sbThermoPct">0%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="sbThermoBar" style="width: 0%;"></div></div>
+                </div>
+
+                <div>
+                  <div class="chem-topic-row">
+                    <span class="chem-topic-label">Chemical Bonding</span>
+                    <span class="chem-topic-val" id="sbBondingPct">0%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="sbBondingBar" style="width: 0%; background: #53a8b6;"></div></div>
+                </div>
+
+                <div>
+                  <div class="chem-topic-row">
+                    <span class="chem-topic-label">Periodic Trends</span>
+                    <span class="chem-topic-val" id="sbPeriodicPct">0%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="sbPeriodicBar" style="width: 0%; background: #9b59b6;"></div></div>
+                </div>
+
+                <div>
+                  <div class="chem-topic-row">
+                    <span class="chem-topic-label">Coordination Chem</span>
+                    <span class="chem-topic-val" id="sbCoordPct">0%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="sbCoordBar" style="width: 0%; background: #f39c12;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chem-side-card">
+              <div class="chem-card-header">🎯 Active Concept</div>
+              <div class="chem-active-badge" id="sbActiveConceptName">First Law</div>
+              <div class="chem-concept-id-tag" id="sbActiveConceptId">THERMO_FIRST_LAW</div>
+              <div style="margin-top: 8px;">
+                <div class="chem-topic-row">
+                  <span class="chem-topic-label">Concept Mastery</span>
+                  <span class="chem-topic-val" id="sbConceptMasteryPct">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="sbConceptMasteryBar" style="width: 0%;"></div></div>
+              </div>
+              <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
+                <div class="chem-info-row"><span class="chem-info-label">Tutor Mode:</span> <span class="chem-mode-pill" id="sbCurrentMode">EXPLAIN</span></div>
+                <div class="chem-info-row"><span class="chem-info-label">Prerequisite:</span> <span id="sbPrerequisite" style="font-family: monospace; color: #cfcfe0;">None</span></div>
+                <div class="chem-info-row"><span class="chem-info-label">Next Action:</span> <span id="sbNextAction" style="color: #27c93f; font-weight: 600;">QUESTION</span></div>
+              </div>
+            </div>
+
+            <div class="chem-side-card" id="sbMisconceptionCard" style="display: none;">
+              <div class="chem-card-header" style="color: #e94560;">⚠️ Misconception</div>
+              <div class="chem-misconception-text" id="sbMisconceptionText"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Bottom Debug Panel (Master Plan Sec 40) -->
+        <div class="chem-debug-panel">
+          <div class="chem-debug-toggle" onclick="toggleDebugPanel()">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="debugToggleIcon">▼</span>
+              <span style="font-weight: 600; font-size: 11px; color: #fff;">Observability & Telemetry Panel (Demo Mode)</span>
+              <span class="debug-chip" id="dbgChipModel">Qwen2.5-3B-Instruct</span>
+              <span class="debug-chip" id="dbgChipMode">Mode: EXPLAIN</span>
+              <span class="debug-chip" id="dbgChipGuardrail" style="background: #1b4332; color: #52b788;">Guardrail: PASS</span>
+            </div>
+            <div style="font-size: 10px; color: #8a8a9a;">Click to collapse/expand</div>
+          </div>
+
+          <div class="chem-debug-body" id="chemDebugBody">
+            <div class="chem-debug-grid">
+              <!-- Col 1: Tutor State (Sec 40) -->
+              <div class="debug-col">
+                <div class="debug-col-title">TUTOR STATE</div>
+                <div class="debug-item"><span class="debug-key">MODEL:</span> <span class="debug-val" id="dbgModel">Qwen2.5-3B-Instruct</span></div>
+                <div class="debug-item"><span class="debug-key">CURRENT MODE:</span> <span class="debug-val" id="dbgMode">EXPLAIN</span></div>
+                <div class="debug-item"><span class="debug-key">CURRENT CONCEPT:</span> <span class="debug-val" id="dbgConcept">THERMO_FIRST_LAW</span></div>
+                <div class="debug-item"><span class="debug-key">STUDENT MASTERY:</span> <span class="debug-val" id="dbgMastery">40%</span></div>
+                <div class="debug-item"><span class="debug-key">RETRIEVAL:</span> <span class="debug-val" id="dbgRetrievalCount">3 chunks</span></div>
+                <div class="debug-item"><span class="debug-key">GUARDRAIL:</span> <span class="debug-val" style="color: #27c93f;" id="dbgGuardrail">PASS</span></div>
+                <div class="debug-item"><span class="debug-key">PREREQUISITE:</span> <span class="debug-val" id="dbgPrereq">None</span></div>
+                <div class="debug-item"><span class="debug-key">NEXT ACTION:</span> <span class="debug-val" style="color: #53a8b6;" id="dbgNextAction">QUESTION</span></div>
+              </div>
+
+              <!-- Col 2: RAG Retrieval (Sec 41) -->
+              <div class="debug-col">
+                <div class="debug-col-title">RETRIEVED KNOWLEDGE</div>
+                <div class="debug-rag-list" id="dbgRagList">
+                  <div class="debug-rag-item"><span>1. thermo_first_law_core.md</span> <span class="rag-rel high">high</span></div>
+                  <div class="debug-rag-item"><span>2. thermo_internal_energy.md</span> <span class="rag-rel high">high</span></div>
+                  <div class="debug-rag-item"><span>3. thermo_sign_convention.md</span> <span class="rag-rel med">med</span></div>
+                </div>
+              </div>
+
+              <!-- Col 3: Event Timeline (Sec 43) -->
+              <div class="debug-col" style="flex: 1.4;">
+                <div class="debug-col-title">EVENT TIMELINE</div>
+                <div class="debug-events-timeline" id="dbgEventsList">
+                  <div class="debug-event-row"><span class="event-time">--:--:--</span> <span class="event-type">READY</span> <span class="event-detail">Awaiting user interaction</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -717,6 +1004,7 @@
         clearTimeout(markdownDebounceTimer);
         updateLastMessageMarkdown();
         appendActionChips();
+        updateDemoTelemetry();
       });
 
       bridge.error.connect(function(msg) {
@@ -728,6 +1016,7 @@
       });
 
       updateModelStatus();
+      updateDemoTelemetry();
     });
 
     // ── Mode & Tab Navigation ──
@@ -752,6 +1041,7 @@
       if (tab === 'chemistry') {
         activeMode = 'chemistry_tutor';
         document.getElementById('userInputChem').focus();
+        updateDemoTelemetry();
       } else if (tab === 'general') {
         activeMode = 'general_assistant';
         document.getElementById('userInputGen').focus();
@@ -915,6 +1205,155 @@
           if (detail) detail.textContent = 'Model file not installed: ' + (status.message || 'Needs setup');
         }
       } catch(e) { console.error('Model status check failed:', e); }
+    }
+
+    // ── Chemistry Observability & Demo Telemetry (Master Plan Sec 40-43) ──
+    function toggleDebugPanel() {
+      var body = document.getElementById('chemDebugBody');
+      var icon = document.getElementById('debugToggleIcon');
+      if (body) {
+        body.classList.toggle('collapsed');
+        if (icon) {
+          icon.textContent = body.classList.contains('collapsed') ? '▲' : '▼';
+        }
+      }
+    }
+
+    async function refreshDemoTelemetry() {
+      await updateDemoTelemetry();
+    }
+
+    async function updateDemoTelemetry() {
+      if (!bridge || typeof bridge.get_demo_telemetry !== 'function') return;
+      try {
+        var raw = await bridge.get_demo_telemetry();
+        var data = JSON.parse(raw);
+        if (!data || !data.ok) return;
+
+        // Topic progress gauges
+        var topics = data.topic_scores || {};
+        var tThermo = Math.round((topics['Thermodynamics'] || 0) * 100);
+        var tBond = Math.round((topics['Chemical Bonding'] || 0) * 100);
+        var tPeriod = Math.round((topics['Periodic Trends'] || 0) * 100);
+        var tCoord = Math.round((topics['Coordination Chemistry'] || 0) * 100);
+
+        var elThermoPct = document.getElementById('sbThermoPct');
+        var elThermoBar = document.getElementById('sbThermoBar');
+        if (elThermoPct) elThermoPct.textContent = tThermo + '%';
+        if (elThermoBar) elThermoBar.style.width = tThermo + '%';
+
+        var elBondPct = document.getElementById('sbBondingPct');
+        var elBondBar = document.getElementById('sbBondingBar');
+        if (elBondPct) elBondPct.textContent = tBond + '%';
+        if (elBondBar) elBondBar.style.width = tBond + '%';
+
+        var elPeriodPct = document.getElementById('sbPeriodicPct');
+        var elPeriodBar = document.getElementById('sbPeriodicBar');
+        if (elPeriodPct) elPeriodPct.textContent = tPeriod + '%';
+        if (elPeriodBar) elPeriodBar.style.width = tPeriod + '%';
+
+        var elCoordPct = document.getElementById('sbCoordPct');
+        var elCoordBar = document.getElementById('sbCoordBar');
+        if (elCoordPct) elCoordPct.textContent = tCoord + '%';
+        if (elCoordBar) elCoordBar.style.width = tCoord + '%';
+
+        // Active concept & mastery
+        var conceptName = data.concept_name || 'Thermodynamics Overview';
+        var conceptId = data.concept_id || 'THERMO_FIRST_LAW';
+        var masteryPct = data.concept_mastery_pct || '0%';
+        var masteryNum = Math.round((data.concept_mastery || 0) * 100);
+
+        var elCName = document.getElementById('sbActiveConceptName');
+        var elCId = document.getElementById('sbActiveConceptId');
+        var elCMasteryPct = document.getElementById('sbConceptMasteryPct');
+        var elCMasteryBar = document.getElementById('sbConceptMasteryBar');
+        var elCMode = document.getElementById('sbCurrentMode');
+        var elCPrereq = document.getElementById('sbPrerequisite');
+        var elCNext = document.getElementById('sbNextAction');
+
+        if (elCName) elCName.textContent = conceptName;
+        if (elCId) elCId.textContent = conceptId;
+        if (elCMasteryPct) elCMasteryPct.textContent = masteryPct;
+        if (elCMasteryBar) elCMasteryBar.style.width = masteryNum + '%';
+        if (elCMode) elCMode.textContent = data.mode || 'EXPLAIN';
+        if (elCPrereq) elCPrereq.textContent = data.primary_prerequisite || 'None';
+        if (elCNext) elCNext.textContent = data.next_action || 'QUESTION';
+
+        // Misconception warning
+        var miscCard = document.getElementById('sbMisconceptionCard');
+        var miscText = document.getElementById('sbMisconceptionText');
+        if (data.misconceptions && data.misconceptions.length > 0) {
+          if (miscCard) miscCard.style.display = 'block';
+          if (miscText) miscText.textContent = data.misconceptions[data.misconceptions.length - 1];
+        } else {
+          if (miscCard) miscCard.style.display = 'none';
+        }
+
+        // Debug panel chips
+        var dbgChipModel = document.getElementById('dbgChipModel');
+        var dbgChipMode = document.getElementById('dbgChipMode');
+        var dbgChipGuard = document.getElementById('dbgChipGuardrail');
+        if (dbgChipModel) dbgChipModel.textContent = data.model || 'Qwen2.5-3B-Instruct';
+        if (dbgChipMode) dbgChipMode.textContent = 'Mode: ' + (data.mode || 'EXPLAIN');
+        if (dbgChipGuard) {
+          dbgChipGuard.textContent = 'Guardrail: ' + (data.guardrail_status || 'PASS');
+          dbgChipGuard.style.background = (data.guardrail_status === 'PASS') ? '#1b4332' : '#5c1d24';
+          dbgChipGuard.style.color = (data.guardrail_status === 'PASS') ? '#52b788' : '#e94560';
+        }
+
+        // Debug panel state items
+        var dbgModel = document.getElementById('dbgModel');
+        var dbgMode = document.getElementById('dbgMode');
+        var dbgConcept = document.getElementById('dbgConcept');
+        var dbgMastery = document.getElementById('dbgMastery');
+        var dbgRetrieval = document.getElementById('dbgRetrievalCount');
+        var dbgGuardrail = document.getElementById('dbgGuardrail');
+        var dbgPrereq = document.getElementById('dbgPrereq');
+        var dbgNextAction = document.getElementById('dbgNextAction');
+
+        if (dbgModel) dbgModel.textContent = data.model || 'Qwen2.5-3B-Instruct';
+        if (dbgMode) dbgMode.textContent = data.mode || 'EXPLAIN';
+        if (dbgConcept) dbgConcept.textContent = conceptId;
+        if (dbgMastery) dbgMastery.textContent = masteryPct;
+        if (dbgGuardrail) dbgGuardrail.textContent = data.guardrail_status || 'PASS';
+        if (dbgPrereq) dbgPrereq.textContent = data.primary_prerequisite || 'None';
+        if (dbgNextAction) dbgNextAction.textContent = data.next_action || 'QUESTION';
+
+        // Retrieved knowledge list (Sec 41)
+        var ragList = document.getElementById('dbgRagList');
+        if (ragList && data.rag_info && data.rag_info.length > 0) {
+          ragList.innerHTML = '';
+          data.rag_info.forEach(function(item, idx) {
+            var rDiv = document.createElement('div');
+            rDiv.className = 'debug-rag-item';
+            var relClass = item.relevance === 'high' ? 'high' : 'med';
+            rDiv.innerHTML = '<span>' + (idx + 1) + '. ' + item.chunk_id + '</span><span class="rag-rel ' + relClass + '">' + (item.relevance || 'high') + '</span>';
+            ragList.appendChild(rDiv);
+          });
+          if (dbgRetrieval) dbgRetrieval.textContent = data.rag_info.length + ' chunks';
+        }
+
+        // Real-time Event timeline (Sec 43)
+        var evList = document.getElementById('dbgEventsList');
+        if (evList && data.events && data.events.length > 0) {
+          evList.innerHTML = '';
+          var recentEvents = data.events.slice(-8);
+          recentEvents.forEach(function(ev) {
+            var row = document.createElement('div');
+            row.className = 'debug-event-row';
+            var tStr = ev.timestamp ? ev.timestamp.substring(11, 19) : '--:--:--';
+            var evType = ev.event || ev.event_type || 'EVENT';
+            var detail = ev.concept_id || ev.result || ev.mode || '';
+            if (ev.mastery_delta !== undefined) {
+              detail += ' (Δ ' + (ev.mastery_delta > 0 ? '+' : '') + ev.mastery_delta + ')';
+            }
+            row.innerHTML = '<span class="event-time">' + tStr + '</span><span class="event-type">' + evType + '</span><span class="event-detail">' + detail + '</span>';
+            evList.appendChild(row);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to update telemetry', err);
+      }
     }
 
     // ── Sending & Messaging ──
