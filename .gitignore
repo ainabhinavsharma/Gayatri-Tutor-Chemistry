@@ -56,3 +56,30 @@ Thumbs.db
 scratch/
 temp/
 tmp/
+
+# Private Local MVP Directories (Section 2 Master Plan)
+.private/
+local_data/
+private_data/
+knowledge_private/
+training_private/
+demo_private/
+student_data/
+chat_logs/
+evaluation_private/
+models_local/
+embeddings_local/
+indexes_local/
+PRIVATE_WORK/
+
+# Model formats
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# Local datasets & raw logs
+*.jsonl
+*.csv
