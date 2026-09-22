@@ -6,31 +6,49 @@
       "topic": "Thermodynamic Terms",
       "subtopic": "System and Surroundings",
       "page": 160,
-      "text": "A system in thermodynamics refers to that part of the universe in which observations are made and remaining universe constitutes the surroundings. The surroundings include everything other than the system. System and surroundings together constitute the universe. An open system can exchange both energy and matter with its surroundings. A closed system can exchange energy but not matter with its surroundings. An isolated system can exchange neither energy nor matter with its surroundings."
+      "text": "A system in thermodynamics refers to that part of the universe in which observations are made and the remaining universe constitutes the surroundings. The surroundings include everything other than the system. System and surroundings together constitute the universe. An open system can exchange both energy and matter with its surroundings. A closed system can exchange energy but not matter with its surroundings. An isolated system can exchange neither energy nor matter with its surroundings."
     },
     {
       "topic": "Thermodynamic Terms",
-      "subtopic": "First Law of Thermodynamics",
+      "subtopic": "State Functions and Internal Energy",
+      "page": 161,
+      "text": "The state of a thermodynamic system is described by state variables such as pressure (P), volume (V), temperature (T), and amount of substance (n). State functions depend only upon the initial and final states of the system, not on the path followed to reach that state. Internal energy (U) is a state function and extensive property representing the total microscopic kinetic and potential energy of all atoms, molecules, and chemical bonds within the system. The absolute value of internal energy cannot be measured directly, but changes in internal energy (delta U = U_final - U_initial) are measurable."
+    },
+    {
+      "topic": "First Law of Thermodynamics",
+      "subtopic": "Work of Expansion and Sign Conventions",
+      "page": 162,
+      "text": "Work done on an ideal gas during expansion against external pressure P_ext is given by w = -P_ext * delta V, where delta V = V_final - V_initial. Under standard IUPAC conventions: when work is done BY the system on surroundings during expansion (delta V > 0), work is negative (w < 0) because the system expends energy. When work is done ON the system during compression (delta V < 0), work is positive (w > 0) because energy is transferred to the system. Heat absorbed by the system from surroundings is positive (q > 0), whereas heat released by the system to surroundings is negative (q < 0)."
+    },
+    {
+      "topic": "First Law of Thermodynamics",
+      "subtopic": "First Law Formulation and Isochoric Processes",
       "page": 163,
-      "text": "The First Law of Thermodynamics is the law of conservation of energy. It states that energy can neither be created nor destroyed; it can only be transformed from one form to another. Mathematically, delta U = q + w, where delta U is the change in internal energy of the system, q is the heat added to the system, and w is the work done on the system. For an isolated system, q = 0 and w = 0, so delta U = 0."
+      "text": "The First Law of Thermodynamics states that energy can neither be created nor destroyed; it can only be transformed from one form to another. Mathematically, delta U = q + w. For an expansion against external pressure, delta U = q - P_ext * delta V. In a constant-volume (isochoric) process, delta V = 0, so w = 0 and delta U = q_v, meaning heat supplied at constant volume directly increases the internal energy of the system. For an isolated system, q = 0 and w = 0, so delta U = 0."
     },
     {
-      "topic": "Reaction Enthalpy",
-      "subtopic": "Hess's Law of Constant Heat Summation",
-      "page": 171,
-      "text": "Hess's Law states that if a reaction takes place in several steps, then its standard reaction enthalpy is the sum of the standard enthalpies of the intermediate reactions into which the overall reaction may be divided at the same temperature. Enthalpy is a state function, meaning standard enthalpy change of a reaction is independent of the path taken."
-    },
-    {
-      "topic": "Spontaneity",
-      "subtopic": "Gibbs Energy Change and Equilibrium",
-      "page": 178,
-      "text": "Gibbs energy change (delta G) is related to enthalpy change (delta H) and entropy change (delta S) by the equation delta G = delta H - T * delta S. A process is spontaneous if delta G is negative. If delta G is positive, the process is non-spontaneous. If delta G is zero, the system has reached chemical equilibrium. At equilibrium, delta G° = -R * T * ln(K)."
+      "topic": "Enthalpy",
+      "subtopic": "Enthalpy and Reaction Enthalpy",
+      "page": 165,
+      "text": "Enthalpy (H) is defined as H = U + P * V. Like internal energy, enthalpy is a state function and an extensive property. At constant pressure (isobaric process), heat absorbed by the system equals the change in enthalpy: q_p = delta H = delta U + P * delta V. For gaseous chemical reactions where moles of gaseous products differ from reactants, delta H = delta U + (delta n_g) * R * T, where delta n_g = (moles of gaseous products) - (moles of gaseous reactants) and R is 8.314 J/(mol K). For exothermic reactions, delta H is negative; for endothermic reactions, delta H is positive."
     },
     {
       "topic": "Applications",
-      "subtopic": "Heat Capacity and Specific Heat",
+      "subtopic": "Heat Capacity and Relation Cp - Cv = R",
       "page": 167,
-      "text": "Heat capacity (C) is defined as the amount of heat required to raise the temperature of a system by one degree Celsius or Kelvin. Cp is heat capacity at constant pressure and Cv is heat capacity at constant volume. For one mole of an ideal gas, Cp - Cv = R, where R is the universal gas constant (8.314 J/mol K)."
+      "text": "Heat capacity (C) is defined as the amount of heat required to raise the temperature of a system by one degree Celsius or Kelvin (C = q / delta T). Specific heat capacity is heat capacity per gram, and molar heat capacity is per mole. At constant volume, q_v = Cv * delta T = delta U. At constant pressure, q_p = Cp * delta T = delta H. For one mole of an ideal gas, H = U + PV = U + RT. Differentiating with respect to temperature yields Cp - Cv = R, demonstrating that heat capacity at constant pressure is always greater than at constant volume because extra energy is required to perform expansion work against atmosphere."
+    },
+    {
+      "topic": "Thermochemistry",
+      "subtopic": "Hess's Law of Constant Heat Summation",
+      "page": 171,
+      "text": "Hess's Law states that if a chemical reaction takes place in several steps, then its overall standard reaction enthalpy is the algebraic sum of the standard enthalpies of the intermediate reactions into which the overall reaction can be divided at the same temperature. Enthalpy is a state function, meaning standard enthalpy change of a reaction is independent of the pathway or number of steps taken: delta_r H = sum of delta_f H(products) - sum of delta_f H(reactants)."
+    },
+    {
+      "topic": "Spontaneity",
+      "subtopic": "Entropy and Gibbs Free Energy",
+      "page": 178,
+      "text": "Entropy (S) is a state function measuring microscopic disorder or randomness of a system (delta S = q_rev / T). The Second Law of Thermodynamics states that for any spontaneous process, total entropy of the universe increases: delta S_total = delta S_system + delta S_surroundings > 0. Gibbs free energy (G) combines enthalpy and entropy at constant temperature and pressure: delta G = delta H - T * delta S. Spontaneity criteria: if delta G < 0, the process is spontaneous; if delta G > 0, the process is non-spontaneous in forward direction; if delta G = 0, the system has reached chemical equilibrium (delta G° = -R * T * ln K)."
     }
   ]
 }

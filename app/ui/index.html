@@ -192,6 +192,7 @@
     .chat {
       flex: 1;
       overflow-y: auto;
+      overflow-anchor: auto;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -632,6 +633,277 @@
     .event-time { color: #6a6a8a; }
     .event-type { color: #53a8b6; font-weight: 600; min-width: 140px; }
     .event-detail { color: #e0e0e0; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Student Progress & Mastery Dashboard Styles ── */
+    .dashboard-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1060px;
+      width: 100%;
+      margin: 0 auto;
+      padding-bottom: 30px;
+    }
+    .dash-banner {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .dash-student-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .dash-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e94560, #53a8b6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(233,69,96,0.3);
+      flex-shrink: 0;
+    }
+    .dash-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .dash-name { font-size: 18px; font-weight: 700; color: #fff; }
+    .dash-grade-pill {
+      font-size: 11px;
+      background: #0f3460;
+      color: #53a8b6;
+      border: 1px solid rgba(83,168,182,0.3);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .dash-caption { font-size: 11px; color: #8a8a9a; margin-top: 3px; }
+    .dash-quick-stats {
+      display: flex;
+      gap: 12px;
+    }
+    .dash-stat-card {
+      background: #0f0f23;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 8px 14px;
+      text-align: center;
+      min-width: 90px;
+    }
+    .dash-stat-lbl { font-size: 10px; color: #8a8a9a; text-transform: uppercase; letter-spacing: 0.5px; }
+    .dash-stat-val { font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+    /* Chapter Cards Grid */
+    .dash-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .dash-chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .dash-chapter-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 14px;
+      padding: 16px;
+      transition: all 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dash-chapter-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .dash-chapter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .dash-unit-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+    .dash-chapter-title { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .dash-chapter-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .dash-progress-track {
+      width: 100%;
+      height: 6px;
+      background: #0f0f23;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .dash-progress-bar { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+    .dash-chapter-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #8a8a9a;
+      margin-top: auto;
+    }
+    .dash-action-link { color: #fff; font-weight: 600; text-decoration: none; }
+    .dash-action-link:hover { text-decoration: underline; }
+
+    /* Roadmap Flow */
+    .dash-roadmap-box {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .dash-roadmap-legend {
+      display: flex;
+      gap: 14px;
+      font-size: 11px;
+      color: #8a8a9a;
+      flex-wrap: wrap;
+    }
+    .dash-legend-item { display: flex; align-items: center; gap: 5px; }
+    .dash-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dash-roadmap-scroll {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 14px 4px 6px 4px;
+    }
+    .dash-node-card {
+      min-width: 160px;
+      max-width: 175px;
+      flex-shrink: 0;
+      background: #0f0f23;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 12px;
+      transition: transform 0.2s;
+    }
+    .dash-node-card:hover { transform: scale(1.03); }
+    .dash-node-card.focus {
+      background: #0f3460;
+      border: 2px solid #53a8b6;
+      box-shadow: 0 0 12px rgba(83,168,182,0.3);
+    }
+    .dash-node-card.mastered { border-color: #27c93f; }
+    .dash-node-card.practicing { border-color: #f5c542; }
+    .dash-node-card.locked { border-color: #4a4a68; opacity: 0.6; }
+    .dash-node-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+    .dash-node-name { font-size: 12px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .dash-node-desc { font-size: 10px; color: #8a8a9a; margin-top: 4px; }
+    .dash-node-arrow { font-size: 18px; font-weight: 700; color: #53a8b6; flex-shrink: 0; }
+
+    /* Bottom 2-Col Layout */
+    .dash-two-col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .dash-focus-card {
+      background: #1a1a3e;
+      border: 1px solid #2a2a4a;
+      border-left: 4px solid #e94560;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dash-review-card {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dash-btn-primary {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dash-btn-primary:hover { background: #c73e54; }
+    .dash-btn-secondary {
+      background: #0f3460;
+      color: #53a8b6;
+      border: 1px solid rgba(83,168,182,0.3);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dash-btn-secondary:hover { background: #164273; }
+
+    /* Activity Stream */
+    .dash-stream-box {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .dash-stream-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 12px;
+    }
+    .dash-stream-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .dash-stream-content { flex: 1; min-width: 0; }
+    .dash-stream-header { display: flex; justify-content: space-between; align-items: baseline; }
+    .dash-stream-title { font-weight: 700; color: #fff; }
+    .dash-stream-time { font-size: 10px; color: #8a8a9a; }
+    .dash-stream-desc { font-size: 11px; color: #b0b0c0; margin-top: 2px; }
+    .dash-stream-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .dash-stream-divider { height: 1px; background: #1f2847; }
   </style>
 </head>
 <body>
@@ -642,7 +914,7 @@
       <button class="sidebar-btn active" id="btn-landing" title="Home" onclick="switchTab('landing', this)">🏠</button>
       <button class="sidebar-btn" id="btn-chemistry" title="Chemistry Tutor" onclick="switchTab('chemistry', this)">🧪</button>
       <button class="sidebar-btn" id="btn-general" title="General Assistant" onclick="switchTab('general', this)">🤖</button>
-      <button class="sidebar-btn" id="btn-courses" title="Curriculum Graph" onclick="switchTab('courses', this)">📚</button>
+      <button class="sidebar-btn" id="btn-courses" title="My Progress & Dashboard" onclick="switchTab('courses', this)">📚</button>
       <button class="sidebar-btn" id="btn-settings" title="Settings" onclick="switchTab('settings', this)">⚙️</button>
     </div>
 
@@ -705,7 +977,13 @@
             <div class="chat" id="chat-chemistry">
               <div class="empty-state">
                 <span class="empty-icon">🧪</span>
-                <span class="empty-text">No chemistry sessions active. Ask a question or explore Thermodynamics, Bonding, or Trends!</span>
+                <span class="empty-text" style="max-width: 450px;">Welcome back, Alex! What would you like to explore today?</span>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px;">
+                  <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('Please explain the First Law of Thermodynamics.')">💡 First Law & Energy</button>
+                  <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('Give me a practice problem on expansion work and internal energy.')">📝 Practice Question</button>
+                  <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('Why does NH3 have a pyramidal shape instead of trigonal planar?')">🔬 VSEPR Shapes</button>
+                  <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('How does ionic radius change across isoelectronic ions?')">📈 Periodic Trends</button>
+                </div>
               </div>
             </div>
 
@@ -777,7 +1055,7 @@
             </div>
 
             <div class="chem-side-card" id="sbMisconceptionCard" style="display: none;">
-              <div class="chem-card-header" style="color: #e94560;">⚠️ Misconception</div>
+              <div class="chem-card-header" style="color: #e94560;">⚠️ Identified Misconception</div>
               <div class="chem-misconception-text" id="sbMisconceptionText"></div>
             </div>
           </div>
@@ -787,16 +1065,16 @@
         <div class="chem-debug-panel">
           <div class="chem-debug-toggle" onclick="toggleDebugPanel()">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span id="debugToggleIcon">▼</span>
+              <span id="debugToggleIcon">▲</span>
               <span style="font-weight: 600; font-size: 11px; color: #fff;">Observability & Telemetry Panel (Demo Mode)</span>
               <span class="debug-chip" id="dbgChipModel">Qwen2.5-3B-Instruct</span>
               <span class="debug-chip" id="dbgChipMode">Mode: EXPLAIN</span>
               <span class="debug-chip" id="dbgChipGuardrail" style="background: #1b4332; color: #52b788;">Guardrail: PASS</span>
             </div>
-            <div style="font-size: 10px; color: #8a8a9a;">Click to collapse/expand</div>
+            <div style="font-size: 10px; color: #8a8a9a;">Click to expand / collapse</div>
           </div>
 
-          <div class="chem-debug-body" id="chemDebugBody">
+          <div class="chem-debug-body collapsed" id="chemDebugBody">
             <div class="chem-debug-grid">
               <!-- Col 1: Tutor State (Sec 40) -->
               <div class="debug-col">
@@ -858,41 +1136,127 @@
         </div>
       </div>
 
-      <!-- VIEW 4: COURSES TAB (LDG) -->
+      <!-- VIEW 4: STUDENT PROGRESS & MASTERY DASHBOARD -->
       <div class="tab-view" id="tab-courses">
         <div class="tab-scrollable">
-          <div class="tab-header">
+          <div class="dashboard-container">
+
+            <!-- Top Banner: Student Identity & High-Level Progress -->
+            <div class="dash-banner">
+              <div class="dash-student-info">
+                <div class="dash-avatar" id="dashAvatar">AS</div>
+                <div>
+                  <div class="dash-name-wrap">
+                    <span class="dash-name" id="dashStudentName">Alex Sharma</span>
+                    <span class="dash-grade-pill" id="dashGradeLevel">Class 11 CBSE Chemistry</span>
+                  </div>
+                  <div class="dash-caption" id="dashTargetCaption">Target: NCERT Foundation & Senior Secondary Mastery • Local Offline Learning</div>
+                </div>
+              </div>
+
+              <!-- Quick Summary Stats -->
+              <div class="dash-quick-stats">
+                <div class="dash-stat-card">
+                  <div class="dash-stat-lbl">Overall Mastery</div>
+                  <div class="dash-stat-val" style="color: #53a8b6;" id="dashOverallPct">64%</div>
+                </div>
+                <div class="dash-stat-card">
+                  <div class="dash-stat-lbl">Mastered</div>
+                  <div class="dash-stat-val" style="color: #27c93f;" id="dashMasteredRatio">8 <span style="font-size:10px; color:#8a8a9a;">/ 24</span></div>
+                </div>
+                <div class="dash-stat-card">
+                  <div class="dash-stat-lbl">Streak</div>
+                  <div class="dash-stat-val" style="color: #f5c542;" id="dashStreak">🔥 4 Days</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 1: Chapter Mastery Matrix (4 Core Units) -->
             <div>
-              <div class="tab-title">📚 Courses & Curriculum Graph</div>
-              <div class="tab-subtitle">Learning Dependency Graph progress and concept mastery</div>
-            </div>
-            <button class="settings-btn secondary" onclick="loadCoursesTab()">Refresh</button>
-          </div>
-          <div class="stats-card" id="coursesStats">
-            <div class="stat-box">
-              <span class="stat-val" id="statTotal">0</span>
-              <span class="stat-lbl">Total Concepts</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-val" id="statMastered" style="color:#27c93f;">0</span>
-              <span class="stat-lbl">Mastered</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-val" id="statInProgress" style="color:#f5c542;">0</span>
-              <span class="stat-lbl">In Progress</span>
-            </div>
-            <div style="flex:1; min-width:180px;">
-              <div style="display:flex; justify-content:space-between; font-size:11px; color:#8a8a9a;">
-                <span>Overall Mastery</span>
-                <span id="statPct">0%</span>
+              <div class="dash-section-title">
+                <span>📚</span> Chapter Progress & Mastery
+                <span style="font-size: 11px; color: #8a8a9a; font-weight: normal; margin-left: auto;">Click any chapter to launch targeted tutor session</span>
               </div>
-              <div class="progress-bar">
-                <div class="progress-fill" id="statProgressFill"></div>
+              <div class="dash-chapters-grid" id="dashChaptersGrid">
+                <!-- Dynamically injected chapter cards -->
               </div>
             </div>
-          </div>
-          <div class="concepts-list" id="curriculumContainer">
-            <div style="color: #8a8a9a; font-size: 13px;">Loading curriculum progress...</div>
+
+            <!-- Section 2: Interactive Prerequisite Learning Roadmap DAG -->
+            <div class="dash-roadmap-box">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div class="dash-section-title" style="margin-bottom: 2px;">
+                    <span>🗺️</span> Current Learning Roadmap: <span id="dashRoadmapTopic">Thermodynamics</span>
+                  </div>
+                  <div style="font-size: 11px; color: #8a8a9a;" id="dashRoadmapSubtitle">Sequential prerequisite DAG showing your path through energy concepts</div>
+                </div>
+                <div class="dash-roadmap-legend">
+                  <span class="dash-legend-item"><span class="dash-dot" style="background:#27c93f;"></span> Mastered</span>
+                  <span class="dash-legend-item"><span class="dash-dot" style="background:#53a8b6;"></span> Active Focus</span>
+                  <span class="dash-legend-item"><span class="dash-dot" style="background:#f5c542;"></span> In Progress</span>
+                  <span class="dash-legend-item"><span class="dash-dot" style="background:#4a4a68;"></span> Locked</span>
+                </div>
+              </div>
+              <div class="dash-roadmap-scroll" id="dashRoadmapFlow">
+                <!-- Dynamically injected roadmap nodes -->
+              </div>
+            </div>
+
+            <!-- Section 3: Smart Focus Tip & Spaced Review + Activity Stream -->
+            <div class="dash-two-col">
+
+              <!-- Left Col: Focus Tip & Spaced Review -->
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="dash-section-title">
+                  <span>💡</span> Focus Areas & Smart Practice
+                </div>
+
+                <!-- Misconception Focus Card -->
+                <div class="dash-focus-card" id="dashFocusCard">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: #e94560; text-transform: uppercase; letter-spacing: 0.5px;" id="dashFocusTitle">
+                      ⚠️ Key Concept to Keep in Mind
+                    </span>
+                    <span style="font-size: 10px; color: #8a8a9a;" id="dashFocusTopic">Thermodynamics</span>
+                  </div>
+                  <p style="font-size: 12px; color: #fff; line-height: 1.5;" id="dashFocusTip">
+                    In gas expansion against external pressure, the system does work on the surroundings. Energy leaves the system, so work is negative (w &lt; 0).
+                  </p>
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <button class="dash-btn-primary" id="dashFocusBtn" onclick="launchFocusPractice()">Practice 1 Problem on This</button>
+                    <button class="dash-btn-secondary" onclick="launchFocusExplain()">Read Explanation</button>
+                  </div>
+                </div>
+
+                <!-- Spaced Review Card -->
+                <div class="dash-review-card" id="dashReviewCard">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: #f5c542; display: flex; align-items: center; gap: 4px;">
+                      <span>⏰</span> Recommended Spaced Review
+                    </span>
+                    <span style="font-size: 10px; background: rgba(245, 197, 66, 0.15); color: #f5c542; padding: 2px 6px; border-radius: 4px; font-weight: 600;" id="dashReviewDueTag">Due Today</span>
+                  </div>
+                  <p style="font-size: 12px; color: #cfcfe0; line-height: 1.4;" id="dashReviewDesc">
+                    <strong>Periodic Trends — Ionic Radius:</strong> It's been 3 days since you mastered isoelectronic species trends. Review for 2 minutes to lock it into long-term memory!
+                  </p>
+                  <button class="dash-btn-secondary" style="width: 100%; text-align: center;" onclick="launchSpacedReview()">Start 2-Minute Quick Review</button>
+                </div>
+              </div>
+
+              <!-- Right Col: Learning Journey Stream -->
+              <div>
+                <div class="dash-section-title">
+                  <span>📜</span> Learning Journey Stream
+                  <span style="font-size: 11px; color: #8a8a9a; font-weight: normal; margin-left: auto;">Recent Accomplishments</span>
+                </div>
+                <div class="dash-stream-box" id="dashStreamBox">
+                  <!-- Dynamically injected events -->
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </div>
@@ -959,9 +1323,9 @@
   <script>
     var bridge = null;
     var isGenerating = false;
+    var generatingMode = null;
     var currentTokens = [];
     var activeMode = 'chemistry_tutor';
-    var markdownDebounceTimer = null;
     var renderRequested = false;
     var generationWatchdogTimer = null;
 
@@ -971,8 +1335,9 @@
         if (isGenerating) {
           console.warn("Generation watchdog fired: releasing input lock after 45s timeout.");
           isGenerating = false;
-          clearTimeout(markdownDebounceTimer);
-          updateLastMessageMarkdown();
+          generatingMode = null;
+          renderRequested = false;
+          renderStreamingMessage();
           appendActionChips();
         }
       }, 45000);
@@ -992,31 +1357,33 @@
         resetGenerationWatchdog();
         if (!renderRequested) {
           renderRequested = true;
-          window.requestAnimationFrame(updateLastMessageRaw);
+          window.requestAnimationFrame(renderStreamingMessage);
         }
-        clearTimeout(markdownDebounceTimer);
-        markdownDebounceTimer = setTimeout(updateLastMessageMarkdown, 50);
       });
 
       bridge.done.connect(function() {
         clearGenerationWatchdog();
         isGenerating = false;
-        clearTimeout(markdownDebounceTimer);
-        updateLastMessageMarkdown();
+        generatingMode = null;
+        renderRequested = false;
+        renderStreamingMessage();
         appendActionChips();
         updateDemoTelemetry();
+        loadStudentDashboard();
       });
 
       bridge.error.connect(function(msg) {
         clearGenerationWatchdog();
         addMessageToActive('system', 'System Notice: ' + msg);
         isGenerating = false;
-        clearTimeout(markdownDebounceTimer);
-        updateLastMessageMarkdown();
+        generatingMode = null;
+        renderRequested = false;
+        renderStreamingMessage();
       });
 
       updateModelStatus();
       updateDemoTelemetry();
+      loadStudentDashboard();
     });
 
     // ── Mode & Tab Navigation ──
@@ -1046,60 +1413,212 @@
         activeMode = 'general_assistant';
         document.getElementById('userInputGen').focus();
       } else if (tab === 'courses') {
-        loadCoursesTab();
+        loadStudentDashboard();
       } else if (tab === 'settings') {
         loadSettingsTab();
       }
     }
 
-    // ── Courses Tab ──
-    async function loadCoursesTab() {
-      if (!bridge || typeof bridge.get_curriculum_progress !== 'function') return;
+    // ── Student Progress & Mastery Dashboard (Phase 9 & Demo) ──
+    var currentDashboardData = null;
+
+    async function loadStudentDashboard() {
+      if (!bridge) return;
       try {
-        var res = JSON.parse(await bridge.get_curriculum_progress());
-        if (!res || !res.ok) return;
+        var raw;
+        if (typeof bridge.get_student_dashboard === 'function') {
+          raw = await bridge.get_student_dashboard();
+        }
+        if (!raw) return;
+        var data = JSON.parse(raw);
+        if (!data || !data.ok) return;
+        currentDashboardData = data;
 
-        var stats = res.stats || {};
-        document.getElementById('statTotal').textContent = stats.total || 0;
-        document.getElementById('statMastered').textContent = stats.mastered || 0;
-        document.getElementById('statInProgress').textContent = stats.in_progress || 0;
-        var pct = stats.mastery_pct ? Math.round(stats.mastery_pct) : 0;
-        document.getElementById('statPct').textContent = pct + '%';
-        document.getElementById('statProgressFill').style.width = pct + '%';
+        // 1. Identity & Quick Stats
+        var st = data.student || {};
+        var avatarEl = document.getElementById('dashAvatar');
+        if (avatarEl) avatarEl.textContent = st.initials || 'AS';
+        var nameEl = document.getElementById('dashStudentName');
+        if (nameEl) nameEl.textContent = st.name || 'Alex Sharma';
+        var gradeEl = document.getElementById('dashGradeLevel');
+        if (gradeEl) gradeEl.textContent = st.level || 'Class 11 CBSE Chemistry';
+        var targetEl = document.getElementById('dashTargetCaption');
+        if (targetEl) targetEl.textContent = st.target || 'NCERT Foundation & Senior Secondary Mastery';
+        var pctEl = document.getElementById('dashOverallPct');
+        if (pctEl) pctEl.textContent = (st.overall_mastery || 0) + '%';
+        var ratioEl = document.getElementById('dashMasteredRatio');
+        if (ratioEl) ratioEl.innerHTML = (st.mastered_count || 0) + ' <span style="font-size:10px; color:#8a8a9a;">/ ' + (st.total_concepts || 24) + '</span>';
+        var streakEl = document.getElementById('dashStreak');
+        if (streakEl) streakEl.textContent = '🔥 ' + (st.streak_days || 4) + ' Days';
 
-        var list = document.getElementById('curriculumContainer');
-        list.innerHTML = '';
-        var concepts = res.concepts || [];
-        if (concepts.length === 0) {
-          list.innerHTML = '<div style="color:#8a8a9a;">No concepts tracked yet in LDG. Start learning in Chemistry Tutor mode!</div>';
-          return;
+        // 2. Chapter Cards Grid
+        var chaptersGrid = document.getElementById('dashChaptersGrid');
+        if (chaptersGrid && data.chapters) {
+          chaptersGrid.innerHTML = '';
+          data.chapters.forEach(function(ch) {
+            var card = document.createElement('div');
+            card.className = 'dash-chapter-card';
+            card.style.borderColor = '#2a2a4a';
+            card.onmouseenter = function() { card.style.borderColor = ch.color; };
+            card.onmouseleave = function() { card.style.borderColor = '#2a2a4a'; };
+            card.onclick = function() { launchPractice(ch.target_concept, ch.prompt); };
+
+            card.innerHTML =
+              '<div class="dash-chapter-header">' +
+                '<div>' +
+                  '<span class="dash-unit-tag" style="color:' + ch.color + '">' + ch.unit + '</span>' +
+                  '<div class="dash-chapter-title">' + ch.title + '</div>' +
+                '</div>' +
+                '<span class="dash-chapter-badge" style="background:rgba(233,69,96,0.15); color:' + ch.color + '">' + ch.status_label + '</span>' +
+              '</div>' +
+              '<div class="dash-progress-track">' +
+                '<div class="dash-progress-bar" style="width:' + ch.mastery_pct + '%; background:' + ch.color + '"></div>' +
+              '</div>' +
+              '<div class="dash-chapter-footer">' +
+                '<span>' + ch.status_sub + '</span>' +
+                '<span class="dash-action-link">' + ch.action_text + '</span>' +
+              '</div>';
+            chaptersGrid.appendChild(card);
+          });
         }
 
-        concepts.forEach(function(c) {
-          var item = document.createElement('div');
-          item.className = 'concept-item';
-          var unlockedText = c.unlocked ? '<span style="color:#27c93f;">🔓 Unlocked</span>' : '<span style="color:#f5c542;">🔒 Locked</span>';
-          item.innerHTML =
-            '<div class="concept-info">' +
-              '<div class="concept-title">' + c.name + ' <span class="concept-subject">' + (c.subject || 'Chemistry') + '</span> ' + unlockedText + '</div>' +
-              '<div class="concept-desc">' + (c.description || 'Core concept') + '</div>' +
-            '</div>' +
-            '<div class="concept-mastery">' +
-              '<div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:' + c.mastery_pct + '%;"></div></div>' +
-              '<span>' + c.mastery_pct + '%</span>' +
-            '</div>' +
-            '<button class="concept-btn" onclick="askTutorAbout(\'' + c.name.replace(/'/g, "\\'") + '\')">Ask Tutor</button>';
-          list.appendChild(item);
-        });
+        // 3. Roadmap Flow (Prerequisite DAG)
+        var rm = data.roadmap || {};
+        var rmTopicEl = document.getElementById('dashRoadmapTopic');
+        if (rmTopicEl) rmTopicEl.textContent = rm.topic_title || 'Thermodynamics';
+        var rmSubEl = document.getElementById('dashRoadmapSubtitle');
+        if (rmSubEl) rmSubEl.textContent = rm.topic_subtitle || 'Sequential prerequisite DAG showing your path through energy concepts';
+
+        var flowEl = document.getElementById('dashRoadmapFlow');
+        if (flowEl && rm.nodes) {
+          flowEl.innerHTML = '';
+          rm.nodes.forEach(function(node, idx) {
+            var nodeCard = document.createElement('div');
+            nodeCard.className = 'dash-node-card ' + (node.status || 'practicing');
+            nodeCard.style.cursor = 'pointer';
+            nodeCard.onclick = function() {
+              launchPractice(node.id, 'Can you teach me about ' + node.name + '?');
+            };
+
+            var color = node.status === 'mastered' ? '#27c93f' : (node.status === 'focus' ? '#53a8b6' : (node.status === 'practicing' ? '#f5c542' : '#8a8a9a'));
+
+            nodeCard.innerHTML =
+              '<div class="dash-node-top">' +
+                '<span style="color:' + color + '">' + node.status_text + '</span>' +
+                '<span>' + node.badge_icon + '</span>' +
+              '</div>' +
+              '<div class="dash-node-name">' + node.name + '</div>' +
+              '<div class="dash-node-desc">' + node.desc + '</div>';
+
+            flowEl.appendChild(nodeCard);
+
+            if (idx < rm.nodes.length - 1) {
+              var arrow = document.createElement('span');
+              arrow.className = 'dash-node-arrow';
+              arrow.textContent = '→';
+              flowEl.appendChild(arrow);
+            }
+          });
+        }
+
+        // 4. Focus Area & Spaced Review
+        var fa = data.focus_area || {};
+        var faTitleEl = document.getElementById('dashFocusTitle');
+        if (faTitleEl) faTitleEl.textContent = '⚠️ ' + (fa.title || 'Key Concept to Keep in Mind');
+        var faTopicEl = document.getElementById('dashFocusTopic');
+        if (faTopicEl) faTopicEl.textContent = fa.topic || 'Thermodynamics';
+        var faTipEl = document.getElementById('dashFocusTip');
+        if (faTipEl) faTipEl.textContent = fa.tip || '';
+
+        var sr = data.spaced_review || {};
+        var srDescEl = document.getElementById('dashReviewDesc');
+        if (srDescEl) {
+          srDescEl.innerHTML = '<strong>' + (sr.title || 'Periodic Trends — Ionic Radius') + ':</strong> ' + (sr.description || '');
+        }
+
+        // 5. Activity Stream
+        var streamBox = document.getElementById('dashStreamBox');
+        if (streamBox && data.activity_stream) {
+          streamBox.innerHTML = '';
+          data.activity_stream.forEach(function(item, idx) {
+            var row = document.createElement('div');
+            row.className = 'dash-stream-item';
+            var badgeHtml = item.badge ? '<span class="dash-stream-badge" style="background:rgba(39,201,63,0.15); color:' + item.color + '">' + item.badge + '</span>' : '';
+
+            row.innerHTML =
+              '<div class="dash-stream-icon" style="background:' + item.color + '22; color:' + item.color + '">' + item.icon + '</div>' +
+              '<div class="dash-stream-content">' +
+                '<div class="dash-stream-header">' +
+                  '<span class="dash-stream-title">' + item.title + '</span>' +
+                  '<span class="dash-stream-time">' + item.time + '</span>' +
+                '</div>' +
+                '<div class="dash-stream-desc">' + item.description + '</div>' +
+                badgeHtml +
+              '</div>';
+            streamBox.appendChild(row);
+
+            if (idx < data.activity_stream.length - 1) {
+              var div = document.createElement('div');
+              div.className = 'dash-stream-divider';
+              streamBox.appendChild(div);
+            }
+          });
+        }
       } catch (e) {
-        console.error('Failed to load courses', e);
+        console.error('Failed to load student dashboard', e);
+      }
+    }
+
+    // ── 1-Click Deep Linking Actions ──
+    function launchPractice(conceptId, promptText) {
+      if (bridge && typeof bridge.launch_concept_session === 'function') {
+        bridge.launch_concept_session(conceptId || '', promptText || '');
+      }
+      selectMode('chemistry_tutor');
+      var input = document.getElementById('userInputChem');
+      if (input) {
+        input.value = promptText || ('Can you teach me about ' + conceptId + '?');
+      }
+      sendMode('chemistry_tutor');
+    }
+
+    function launchFocusPractice() {
+      if (currentDashboardData && currentDashboardData.focus_area) {
+        var fa = currentDashboardData.focus_area;
+        launchPractice(fa.concept_id, fa.prompt);
+      } else {
+        launchPractice('THERMO_FIRST_LAW', 'Can we practice a problem on expansion work and the First Law?');
+      }
+    }
+
+    function launchFocusExplain() {
+      if (currentDashboardData && currentDashboardData.focus_area) {
+        var fa = currentDashboardData.focus_area;
+        launchPractice(fa.concept_id, 'Can you explain the conceptual foundation for ' + fa.topic + ' and why the sign conventions are defined this way?');
+      } else {
+        launchPractice('THERMO_FIRST_LAW', 'Can you explain the sign conventions for heat and work?');
+      }
+    }
+
+    function launchSpacedReview() {
+      if (currentDashboardData && currentDashboardData.spaced_review) {
+        var sr = currentDashboardData.spaced_review;
+        launchPractice('PERIOD_IONIC_RADIUS', sr.prompt);
+      } else {
+        launchPractice('PERIOD_IONIC_RADIUS', 'Let\'s do a 2-minute quick review on Periodic Trends: Ionic Radius.');
       }
     }
 
     function askTutorAbout(conceptName) {
+      launchPractice(conceptName, 'Can you teach me about ' + conceptName + '?');
+    }
+
+    function quickPrompt(promptText) {
       selectMode('chemistry_tutor');
       var input = document.getElementById('userInputChem');
-      input.value = 'Can you teach me about ' + conceptName + '?';
+      if (input) {
+        input.value = promptText;
+      }
       sendMode('chemistry_tutor');
     }
 
@@ -1157,25 +1676,72 @@
     }
 
     async function switchSession(sessId, modeStr) {
+      if (isGenerating) return;
       if (bridge && typeof bridge.load_session_id === 'function') {
         bridge.load_session_id(sessId);
         selectMode(modeStr);
-        addMessageToActive('system', 'Restored session (' + sessId.substring(0, 8) + '...)');
+        var chat = (modeStr === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
+        if (chat) {
+          chat.innerHTML = '';
+          if (typeof bridge.get_session_messages === 'function') {
+            try {
+              var raw = await bridge.get_session_messages(sessId);
+              var data = JSON.parse(raw);
+              if (data && data.ok && Array.isArray(data.messages)) {
+                data.messages.forEach(function(m) {
+                  if (m.role === 'user' || m.role === 'assistant') {
+                    addMessageToMode(modeStr, m.role, m.content);
+                  }
+                });
+              }
+            } catch (err) {
+              console.error('Failed to load session messages', err);
+            }
+          }
+          addMessageToMode(modeStr, 'system', 'Restored session (' + sessId.substring(0, 16) + '...)');
+          chat.scrollTop = chat.scrollHeight;
+        }
+        if (modeStr === 'chemistry_tutor') {
+          updateDemoTelemetry();
+        }
       }
     }
 
-    function deleteSession(sessId) {
+    async function deleteSession(sessId) {
       if (bridge && typeof bridge.delete_session === 'function') {
-        bridge.delete_session(sessId);
+        try {
+          await bridge.delete_session(sessId);
+        } catch (e) {
+          console.error('Failed to delete session', e);
+        }
         loadSettingsTab();
       }
     }
 
     function startNewChat(modeStr) {
+      if (isGenerating) return;
       if (bridge && typeof bridge.new_chat === 'function') {
         bridge.new_chat();
         var targetContainer = (modeStr === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
-        targetContainer.innerHTML = '<div class="message system">New conversation started.</div>';
+        if (modeStr === 'chemistry_tutor') {
+          targetContainer.innerHTML =
+            '<div class="empty-state">' +
+              '<span class="empty-icon">🧪</span>' +
+              '<span class="empty-text" style="max-width: 450px;">Welcome back, Alex! What would you like to explore today?</span>' +
+              '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px;">' +
+                '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'Please explain the First Law of Thermodynamics.\')">💡 First Law & Energy</button>' +
+                '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'Give me a practice problem on expansion work and internal energy.\')">📝 Practice Question</button>' +
+                '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'Why does NH3 have a pyramidal shape instead of trigonal planar?\')">🔬 VSEPR Shapes</button>' +
+                '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'How does ionic radius change across isoelectronic ions?\')">📈 Periodic Trends</button>' +
+              '</div>' +
+            '</div>';
+        } else {
+          targetContainer.innerHTML =
+            '<div class="empty-state">' +
+              '<span class="empty-icon">🤖</span>' +
+              '<span class="empty-text">No general conversations active. Start a chat, draft text, summarize, or brainstorm!</span>' +
+            '</div>';
+        }
       }
     }
 
@@ -1284,7 +1850,17 @@
         var miscText = document.getElementById('sbMisconceptionText');
         if (data.misconceptions && data.misconceptions.length > 0) {
           if (miscCard) miscCard.style.display = 'block';
-          if (miscText) miscText.textContent = data.misconceptions[data.misconceptions.length - 1];
+          var info = data.misconception_info;
+          if (info && info.title) {
+            miscText.innerHTML =
+              '<div style="font-weight: 600; color: #fff; margin-bottom: 3px;">' + info.title + '</div>' +
+              '<div style="font-size: 11px; color: #ffb4b4; line-height: 1.4;">' + info.description + '</div>';
+          } else {
+            var rawCode = data.misconceptions[data.misconceptions.length - 1];
+            var friendlyTitle = rawCode.replace('THERMO_', '').replace('BOND_', '').replace('PERIOD_', '').replace('COORD_', '').replace(/_/g, ' ').toLowerCase();
+            friendlyTitle = friendlyTitle.charAt(0).toUpperCase() + friendlyTitle.slice(1);
+            miscText.innerHTML = '<div style="font-weight: 600; color: #fff;">' + friendlyTitle + '</div>';
+          }
         } else {
           if (miscCard) miscCard.style.display = 'none';
         }
@@ -1377,6 +1953,7 @@
       var msg = input ? input.value.trim() : '';
       if (!msg) return;
 
+      generatingMode = modeStr;
       addMessageToMode(modeStr, 'user', msg);
       addMessageToMode(modeStr, 'assistant', '');
       input.value = '';
@@ -1416,34 +1993,39 @@
       return div;
     }
 
-    function updateLastMessageRaw() {
+    function renderStreamingMessage() {
       renderRequested = false;
-      var chat = (activeMode === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
+      var targetMode = generatingMode || activeMode;
+      var chat = (targetMode === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
+      if (!chat) return;
+
       var msgs = chat.querySelectorAll('.message.assistant');
       var last = msgs[msgs.length - 1];
       if (!last) {
-        addMessageToActive('assistant', '');
+        addMessageToMode(targetMode, 'assistant', '');
         last = chat.querySelector('.message.assistant:last-child');
       }
+      if (!last) return;
+
       var content = last.querySelector('.message-content');
-      if (content) {
-        content.textContent = currentTokens.join('');
+      if (!content) return;
+
+      var isNearBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 120;
+      var fullText = currentTokens.join('');
+
+      if (typeof marked !== 'undefined') {
+        content.innerHTML = marked.parse(fullText);
+      } else {
+        content.textContent = fullText;
       }
-      chat.scrollTop = chat.scrollHeight;
+
+      if (isNearBottom) {
+        chat.scrollTop = chat.scrollHeight;
+      }
     }
 
     function updateLastMessageMarkdown() {
-      var chat = (activeMode === 'chemistry_tutor') ? document.getElementById('chat-chemistry') : document.getElementById('chat-general');
-      var msgs = chat.querySelectorAll('.message.assistant');
-      var last = msgs[msgs.length - 1];
-      if (!last) return;
-      var content = last.querySelector('.message-content');
-      if (content && typeof marked !== 'undefined') {
-        content.innerHTML = marked.parse(currentTokens.join(''));
-      } else if (content) {
-        content.textContent = currentTokens.join('');
-      }
-      chat.scrollTop = chat.scrollHeight;
+      renderStreamingMessage();
     }
 
     

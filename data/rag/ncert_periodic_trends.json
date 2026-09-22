@@ -1,0 +1,42 @@
+{
+  "source_id": "NCERT_CHEM_11_CH03",
+  "chapter": "Classification of Elements and Periodicity",
+  "sections": [
+    {
+      "topic": "Atomic Radius Trends",
+      "subtopic": "Covalent, Metallic, and Ionic Radii",
+      "page": 82,
+      "text": "Atomic radius represents the distance from the center of the nucleus to the outermost shell containing electrons. Covalent radius is half the distance between nuclei of two similar atoms covalently bonded. Metallic radius is half the internuclear distance between adjacent metal ions in a metallic lattice. Atomic radius decreases across a period from left to right because effective nuclear charge (Z_eff) increases, pulling the valence electron cloud closer to the nucleus. Down a group, atomic radius increases as principal quantum shell number n increases, and inner electrons shield outer electrons from nuclear pull."
+    },
+    {
+      "topic": "Ionic Radius Trends",
+      "subtopic": "Isoelectronic Species",
+      "page": 84,
+      "text": "A cation is always smaller than its parent neutral atom because loss of electrons leaves excess positive nuclear charge, drawing remaining electrons inward. An anion is always larger than its parent neutral atom because additional electrons increase electron-electron repulsion, causing the electron cloud to expand. Isoelectronic species possess identical numbers of electrons (e.g., O2-, F-, Na+, Mg2+, Al3+ each have 10 electrons). Among isoelectronic ions, ionic radius decreases monotonically with increasing nuclear charge Z: r(O2-) > r(F-) > r(Na+) > r(Mg2+) > r(Al3+)."
+    },
+    {
+      "topic": "Ionization Enthalpy Trends",
+      "subtopic": "General Periodic Variation",
+      "page": 86,
+      "text": "First ionization enthalpy (delta_i H_1) is the minimum energy required to remove the most loosely bound electron from an isolated gaseous atom in its ground state: X(g) -> X+(g) + e-. It is always positive (endothermic). Across a period from left to right, ionization enthalpy generally increases due to increasing effective nuclear charge and smaller atomic size. Down a group, ionization enthalpy decreases due to increasing atomic radius and enhanced screening effect by intervening electron shells."
+    },
+    {
+      "topic": "Ionization Enthalpy Anomalies",
+      "subtopic": "Exceptions in Period 2: B vs Be, and O vs N",
+      "page": 87,
+      "text": "NCERT highlights two critical ionization enthalpy anomalies in Period 2. First anomaly: Boron (Z=5) has a lower first ionization enthalpy (801 kJ/mol) than Beryllium (Z=4, 899 kJ/mol). In Be (1s2 2s2), the electron is removed from a stable, completely filled 2s orbital that penetrates closer to the nucleus. In B (1s2 2s2 2p1), the outermost electron occupies a 2p orbital, which is higher in energy and shielded by inner 2s electrons. Second anomaly: Oxygen (Z=8) has a lower first ionization enthalpy (1314 kJ/mol) than Nitrogen (Z=7, 1402 kJ/mol). Nitrogen has a stable, half-filled 2p3 configuration (one electron in each degenerate 2px, 2py, 2pz orbital). In Oxygen (1s2 2s2 2p4), two electrons pair in the 2px orbital, causing extra electron-electron repulsion that facilitates electron removal."
+    },
+    {
+      "topic": "Electron Gain Enthalpy",
+      "subtopic": "Chlorine vs Fluorine Anomaly",
+      "page": 89,
+      "text": "Electron gain enthalpy (delta_eg H) is the enthalpy change when an electron is added to an isolated gaseous atom to form a univalent anion: X(g) + e- -> X-(g). It generally becomes more negative across a period and less negative down a group. Crucial anomaly: Chlorine has a more negative electron gain enthalpy (-349 kJ/mol) than Fluorine (-328 kJ/mol). The added electron in Fluorine enters the extremely compact 2p subshell where it suffers strong electrostatic repulsion from other electrons. In Chlorine, the electron enters the larger, more diffuse 3p subshell where electron-electron repulsion is significantly reduced."
+    },
+    {
+      "topic": "Electronegativity",
+      "subtopic": "Pauling Scale and Chemical Reactivity",
+      "page": 91,
+      "text": "Electronegativity is the relative tendency of an atom in a bonded chemical molecule to attract shared electron pairs towards itself. It is a dimensionless property. On the Pauling scale, Fluorine has the highest value (4.0), followed by Oxygen (3.5), Nitrogen (3.0), and Chlorine (3.0). Cesium and Francium have the lowest values (0.7). Electronegativity increases across a period with increasing effective nuclear charge and decreases down a group with increasing atomic size. The difference in electronegativity between two bonded atoms determines bond polarity and ionic character."
+    }
+  ]
+}

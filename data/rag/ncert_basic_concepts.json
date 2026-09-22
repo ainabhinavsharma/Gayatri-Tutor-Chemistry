@@ -1,0 +1,30 @@
+{
+  "source_id": "NCERT_CHEM_11_CH01",
+  "chapter": "Some Basic Concepts of Chemistry",
+  "sections": [
+    {
+      "topic": "Mole Concept and Molar Masses",
+      "subtopic": "Avogadro Constant and Moles",
+      "page": 16,
+      "text": "One mole is the amount of substance that contains exactly 6.02214076 x 10^23 elementary entities (atoms, molecules, or ions), known as the Avogadro constant (N_A). The mass of one mole of a substance in grams is called its molar mass. Number of moles (n) can be calculated by: n = (mass in grams) / (molar mass in g/mol), or n = (number of particles) / (6.022 x 10^23). For ideal gases at STP (standard temperature 273.15 K and pressure 1 bar), one mole occupies 22.7 liters (or 22.4 liters at 1 atm)."
+    },
+    {
+      "topic": "Chemical Stoichiometry",
+      "subtopic": "Stoichiometric Calculations and Limiting Reagents",
+      "page": 20,
+      "text": "Stoichiometry deals with the calculation of masses and volumes of reactants and products involved in a balanced chemical equation. Coefficients in a balanced equation represent mole ratios of reacting substances. The reactant that is completely consumed first in a reaction is the limiting reagent (or limiting reactant); it limits the maximum amount of product formed. To find the limiting reagent: calculate the moles of each reactant present, divide each by its stoichiometric coefficient in the balanced equation, and the reactant giving the smallest ratio is the limiting reagent."
+    },
+    {
+      "topic": "Concentration of Solutions",
+      "subtopic": "Molarity, Molality, and Mole Fraction",
+      "page": 22,
+      "text": "Molarity (M) is the number of moles of solute dissolved in one liter of solution: M = (moles of solute) / (volume of solution in liters). Because volume depends on temperature, molarity changes with temperature. Molality (m) is the number of moles of solute dissolved in 1 kilogram (1000 g) of solvent: m = (moles of solute) / (mass of solvent in kg). Molality is temperature-independent because mass does not alter with temperature. Mole fraction (x_A) is the ratio of moles of component A to the total number of moles of all components in the mixture: x_A = n_A / (n_A + n_B), and the sum of mole fractions equals 1."
+    },
+    {
+      "topic": "Formula Determination",
+      "subtopic": "Empirical and Molecular Formulas",
+      "page": 18,
+      "text": "The empirical formula represents the simplest whole-number ratio of various atoms present in a compound, whereas the molecular formula shows the exact number of different types of atoms present in a molecule. To determine the empirical formula: convert mass percentages of elements to grams (assuming a 100 g sample), divide by atomic masses to obtain moles, and divide by the smallest mole value to find whole-number molar ratios. Molecular formula = (Empirical formula)_n, where n = (Molar mass of compound) / (Empirical formula mass)."
+    }
+  ]
+}

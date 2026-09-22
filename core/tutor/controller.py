@@ -223,7 +223,13 @@ class TutorController:
 
     # ── Mode 3: HINT (5-Tier Ladder) ────────────────────────────────────
 
-    def handle_hint(self, concept_id: str, question: str, student_attempt: str) -> TutorResponse:
+    def handle_hint(
+        self,
+        concept_id: str,
+        question: str = "",
+        student_attempt: str = "",
+        hint_level: Optional[int] = None,
+    ) -> TutorResponse:
         """Section 16: Multi-tier hint progression without immediately revealing answers.
         Ladder:
         Level 1 = Conceptual direction
@@ -235,7 +241,10 @@ class TutorController:
         """
         self.current_mode = TutorMode.HINT
         self.student.current_mode = TutorMode.HINT.value
-        self.student.active_hint_level += 1
+        if hint_level is not None:
+            self.student.active_hint_level = hint_level
+        else:
+            self.student.active_hint_level += 1
         level = min(5, self.student.active_hint_level)
 
         evidence, chunk_ids = self.retrieve_grounding(concept_id, "hints misconceptions")
@@ -302,10 +311,12 @@ class TutorController:
         question: str,
         student_answer: str,
         expected_answer: str = "",
+        reference_answer: str = "",
     ) -> TutorResponse:
         """Section 17: Answer evaluation, misconception detection & mastery updates."""
         self.current_mode = TutorMode.EVALUATE
         self.student.current_mode = TutorMode.EVALUATE.value
+        expected = expected_answer or reference_answer
 
         evidence, chunk_ids = self.retrieve_grounding(concept_id, f"evaluation {student_answer}")
 
@@ -314,7 +325,7 @@ class TutorController:
             "concept_id": concept_id,
             "question": question,
             "student_answer": student_answer,
-            "expected_answer": expected_answer,
+            "expected_answer": expected,
             "question_type": "conceptual",
         })
 

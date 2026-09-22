@@ -1,15 +1,15 @@
 {
   "sources": [
     {
-      "source_id": "NCERT_CHEM_11_CH06",
-      "title": "NCERT Class 11 Chemistry - Chapter 6: Thermodynamics",
+      "source_id": "NCERT_CHEM_11_CH01",
+      "title": "NCERT Class 11 Chemistry - Chapter 1: Some Basic Concepts of Chemistry",
       "class_level": "Class 11",
-      "chapter": "Thermodynamics",
+      "chapter": "Some Basic Concepts of Chemistry",
       "subject": "Chemistry",
       "source_type": "textbook",
       "version": "NCERT 2023-24 Edition",
       "license": "Educational Use - NCERT Official Curriculum",
-      "checksum": "sha256_thermodynamics_ncert_v1"
+      "checksum": "sha256_basic_concepts_ncert_v1"
     },
     {
       "source_id": "NCERT_CHEM_11_CH02",
@@ -45,6 +45,28 @@
       "checksum": "sha256_chemical_bonding_ncert_v1"
     },
     {
+      "source_id": "NCERT_CHEM_11_CH06",
+      "title": "NCERT Class 11 Chemistry - Chapter 6: Thermodynamics",
+      "class_level": "Class 11",
+      "chapter": "Thermodynamics",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_thermodynamics_ncert_v1"
+    },
+    {
+      "source_id": "NCERT_CHEM_11_CH07",
+      "title": "NCERT Class 11 Chemistry - Chapter 7: Equilibrium",
+      "class_level": "Class 11",
+      "chapter": "Equilibrium",
+      "subject": "Chemistry",
+      "source_type": "textbook",
+      "version": "NCERT 2023-24 Edition",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_equilibrium_ncert_v1"
+    },
+    {
       "source_id": "NCERT_CHEM_11_CH10",
       "title": "NCERT Class 11 Chemistry - Chapter 10: s-Block Elements",
       "class_level": "Class 11",
@@ -56,15 +78,26 @@
       "checksum": "sha256_sblock_ncert_v1"
     },
     {
-      "source_id": "NCERT_CHEM_11_CH01",
-      "title": "NCERT Class 11 Chemistry - Chapter 1: Some Basic Concepts of Chemistry",
-      "class_level": "Class 11",
-      "chapter": "Some Basic Concepts of Chemistry",
+      "source_id": "NCERT_CHEM_12_CH09",
+      "title": "NCERT Class 12 Chemistry - Chapter 9: Coordination Compounds",
+      "class_level": "Class 12",
+      "chapter": "Coordination Compounds",
       "subject": "Chemistry",
       "source_type": "textbook",
       "version": "NCERT 2023-24 Edition",
       "license": "Educational Use - NCERT Official Curriculum",
-      "checksum": "sha256_basic_concepts_ncert_v1"
+      "checksum": "sha256_coordination_ncert_v1"
+    },
+    {
+      "source_id": "NCERT_CHEM_LAB_SAFETY",
+      "title": "NCERT Chemistry Laboratory Safety Manual & Good Laboratory Practices",
+      "class_level": "Classes 11 & 12",
+      "chapter": "Laboratory Safety and Good Laboratory Practices",
+      "subject": "Chemistry",
+      "source_type": "safety_guide",
+      "version": "NCERT Official Guidelines",
+      "license": "Educational Use - NCERT Official Curriculum",
+      "checksum": "sha256_lab_safety_ncert_v1"
     }
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "source_id": "NCERT_CHEM_11_CH07",
+  "chapter": "Equilibrium",
+  "sections": [
+    {
+      "topic": "Chemical Equilibrium and Law of Mass Action",
+      "subtopic": "Equilibrium Constants Kc and Kp",
+      "page": 192,
+      "text": "Chemical equilibrium is a dynamic state where the rate of the forward reaction equals the rate of the reverse reaction, resulting in constant concentrations of reactants and products. For a general reversible reaction aA + bB <=> cC + dD, the equilibrium constant in terms of molar concentrations is Kc = ([C]^c * [D]^d) / ([A]^a * [B]^b). For gaseous reactions, the equilibrium constant in partial pressures is Kp = (P_C^c * P_D^d) / (P_A^a * P_B^b). The relationship between Kp and Kc is given by Kp = Kc * (R * T)^(delta n_g), where delta n_g = (c + d) - (a + b) represents the change in moles of gaseous species."
+    },
+    {
+      "topic": "Le Chatelier's Principle",
+      "subtopic": "Shifts in Equilibrium State",
+      "page": 204,
+      "text": "Le Chatelier's Principle states that if a dynamic equilibrium system is subjected to a change in concentration, temperature, or pressure, the system will adjust itself in a way that partially counteracts the applied change. 1. Concentration: Adding a reactant shifts equilibrium in the forward direction. 2. Pressure: Increasing total pressure shifts equilibrium toward the side having fewer moles of gas (smaller volume). 3. Temperature: For exothermic reactions (delta H < 0), increasing temperature shifts equilibrium backward, lowering K; for endothermic reactions (delta H > 0), increasing temperature shifts equilibrium forward, increasing K. 4. Catalyst: A catalyst increases rates of both forward and reverse reactions equally, reaching equilibrium faster without altering the numerical value of K."
+    },
+    {
+      "topic": "Ionic Equilibrium",
+      "subtopic": "pH, Buffer Solutions, and Common Ion Effect",
+      "page": 215,
+      "text": "Water auto-ionizes as H2O <=> H+ + OH-, with ionic product Kw = [H+][OH-] = 1.0 x 10^-14 at 298 K. pH is defined as pH = -log10[H+], and pH + pOH = 14 at 25°C. A buffer solution resists drastic changes in pH upon addition of small quantities of acid or base. An acidic buffer consists of a weak acid and its conjugate salt (e.g., CH3COOH + CH3COONa); its pH is calculated via the Henderson-Hasselbalch equation: pH = pKa + log10([Salt] / [Acid]). The common ion effect suppresses ionization of a weak electrolyte by the addition of a strong electrolyte containing a common ion."
+    }
+  ]
+}

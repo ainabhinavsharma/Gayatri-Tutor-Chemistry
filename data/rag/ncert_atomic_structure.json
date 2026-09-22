@@ -1,0 +1,24 @@
+{
+  "source_id": "NCERT_CHEM_11_CH02",
+  "chapter": "Structure of Atom",
+  "sections": [
+    {
+      "topic": "Quantum Mechanical Model",
+      "subtopic": "Four Quantum Numbers",
+      "page": 54,
+      "text": "The state of an electron in an atom is completely characterized by four quantum numbers. Principal quantum number (n = 1, 2, 3...) defines shell size and primary energy level. Azimuthal or orbital angular momentum quantum number (l = 0 to n-1) defines orbital shape: l=0 is s (spherical), l=1 is p (dumbbell), l=2 is d (double dumbbell), l=3 is f. Magnetic quantum number (m_l = -l to +l) defines spatial orientation of orbitals (total 2l + 1 orientations). Electron spin quantum number (m_s = +1/2 or -1/2) defines the intrinsic spin angular momentum of the electron."
+    },
+    {
+      "topic": "Orbital Filling Principles",
+      "subtopic": "Aufbau, Pauli, and Hund's Rules",
+      "page": 58,
+      "text": "Three fundamental rules govern electronic configurations. 1. Aufbau Principle: Orbitals are filled in order of increasing energy, governed by the (n + l) rule; if two orbitals have the same (n + l) sum, the orbital with lower n has lower energy. 2. Pauli Exclusion Principle: No two electrons in an atom can have the same set of four quantum numbers; an orbital can hold a maximum of two electrons, and they must possess opposite spins. 3. Hund's Rule of Maximum Multiplicity: Pairing of electrons in degenerate orbitals (orbitals with equal energy, such as px, py, pz) does not occur until each subshell orbital is singly occupied with parallel spins."
+    },
+    {
+      "topic": "Electronic Configuration Anomalies",
+      "subtopic": "Stability of Half-Filled and Completely Filled Subshells: Cr and Cu",
+      "page": 63,
+      "text": "Chromium (Z=24) and Copper (Z=29) display anomalous electronic configurations that violate expected Aufbau filling. Expected Chromium: [Ar] 3d4 4s2; actual configuration: [Ar] 3d5 4s1. Expected Copper: [Ar] 3d9 4s2; actual configuration: [Ar] 3d10 4s1. The extra stability of half-filled (d5) and completely filled (d10) subshells arises from two physical effects: 1. Symmetrical distribution of electrons: spherical symmetry leads to lower energy and greater stability. 2. Maximum exchange energy: electrons with parallel spins in degenerate orbitals can exchange positions, releasing stabilizing exchange energy. The exchange energy for d5 (10 possible exchanges) and d10 exceeds the energy required to promote one 4s electron into 3d."
+    }
+  ]
+}

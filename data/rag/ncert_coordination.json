@@ -1,0 +1,24 @@
+{
+  "source_id": "NCERT_CHEM_12_CH09",
+  "chapter": "Coordination Compounds",
+  "sections": [
+    {
+      "topic": "Coordination Entities & Ligands",
+      "subtopic": "Definitions and Classification of Ligands",
+      "page": 244,
+      "text": "A coordination compound consists of a central metal atom or ion surrounded by a set of bound ions or neutral molecules termed ligands. Ligands donate electron pairs to the central metal via coordinate covalent (dative) bonds. Monodentate (unidentate) ligands bind through a single donor atom (e.g., Cl-, H2O, NH3, CN-). Didentate ligands bind through two donor atoms (e.g., oxalate C2O4(2-), ethylenediamine en). Polydentate ligands bind through multiple donor atoms; hexadentate EDTA(4-) binds through 2 nitrogen and 4 oxygen atoms, forming stable chelate rings. Ambidentate ligands possess two different potential donor atoms but coordinate through only one at a time (e.g., NO2- can bind via N as nitro or via O as nitrito; SCN- can bind via S as thiocyanato or via N as isothiocyanato)."
+    },
+    {
+      "topic": "Werner's Coordination Theory",
+      "subtopic": "Primary and Secondary Valencies",
+      "page": 241,
+      "text": "Alfred Werner formulated the foundational theory of coordination chemistry in 1893. Postulates: Metals exhibit two types of valency in coordination compounds: 1. Primary valency: ionizable, corresponds to the oxidation state of the central metal atom, and is satisfied strictly by negative ions. 2. Secondary valency: non-ionizable, corresponds to the coordination number of the central metal, and is satisfied by neutral molecules or negative ions. Secondary valencies are directed towards fixed positions in three-dimensional space, giving coordination complexes definite stereochemistry (such as octahedral or square planar geometries)."
+    },
+    {
+      "topic": "Nomenclature and Oxidation State",
+      "subtopic": "IUPAC Rules for Coordination Complexes",
+      "page": 248,
+      "text": "IUPAC rules for naming coordination complexes: 1. The cation is named first in both positively and negatively charged coordination entities. 2. In naming the coordination sphere, ligands are named in alphabetical order before the name of the central metal. 3. Names of anionic ligands end in -o (chlorido, cyanido, oxalato), while neutral ligands use specific names (aqua for H2O, ammine for NH3, carbonyl for CO). 4. If the complex ion is an anion, the metal name ends in the suffix -ate (e.g., ferrate for Fe, platinate for Pt). 5. The oxidation state of the metal is indicated by Roman numerals in parentheses immediately following the metal name."
+    }
+  ]
+}

@@ -130,8 +130,34 @@ def run_demo_scenarios() -> bool:
             print(f"  Result:   FAIL\n")
             all_passed = False
 
+    # Step 11: Validate Student Progress & Mastery Dashboard (Phase 9 & Demo)
+    print("-" * 70)
+    print("STEP 11: VALIDATING LIVE STUDENT PROGRESS & MASTERY DASHBOARD")
+    print("-" * 70)
+    from core.learning.progress import build_student_dashboard_payload
+    dashboard_data = build_student_dashboard_payload()
+    if not dashboard_data.get("ok"):
+        print("  DASHBOARD VERIFICATION FAILED: Payload returned ok=False")
+        all_passed = False
+    elif not dashboard_data.get("chapters") or len(dashboard_data["chapters"]) != 4:
+        print("  DASHBOARD VERIFICATION FAILED: Missing 4 NCERT chapters")
+        all_passed = False
+    elif not dashboard_data.get("activity_stream"):
+        print("  DASHBOARD VERIFICATION FAILED: Empty activity stream")
+        all_passed = False
+    else:
+        st = dashboard_data["student"]
+        ch_titles = [c["title"] for c in dashboard_data["chapters"]]
+        print(f"  Student:          {st['name']} ({st['level']})")
+        print(f"  Overall Mastery:  {st['overall_mastery']}% ({st['mastered_count']}/{st['total_concepts']} mastered)")
+        print(f"  Active Chapters:  {', '.join(ch_titles)}")
+        print(f"  Roadmap Topic:    {dashboard_data['roadmap']['topic_title']} ({len(dashboard_data['roadmap']['nodes'])} DAG nodes)")
+        print(f"  Smart Focus Tip:  {dashboard_data['focus_area']['tip'][:65]}...")
+        print(f"  Activity Stream:  {len(dashboard_data['activity_stream'])} events humanized successfully")
+        print(f"  Result:           PASS\n")
+
     print("=" * 70)
-    final_status = "PASS — All 10 demo scenarios executed successfully and deterministically" if all_passed else "FAIL — Some scenarios did not meet expectations"
+    final_status = "PASS — All 10 demo scenarios and Student Dashboard validated successfully" if all_passed else "FAIL — Some scenarios did not meet expectations"
     print(f"OVERALL STATUS: {final_status}")
     print("=" * 70)
     return all_passed

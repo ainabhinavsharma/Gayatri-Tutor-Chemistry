@@ -1,0 +1,42 @@
+{
+  "source_id": "NCERT_CHEM_11_CH04",
+  "chapter": "Chemical Bonding and Molecular Structure",
+  "sections": [
+    {
+      "topic": "Lewis Structures & Octet Rule",
+      "subtopic": "Covalent Bonding and Formal Charge",
+      "page": 102,
+      "text": "Atoms combine either by transfer of valence electrons or by sharing of electrons to achieve an octet configuration resembling the nearest noble gas. Lewis symbols represent valence electrons as dots around the chemical symbol. Formal charge on an atom in a Lewis structure is calculated as: Formal Charge = (Total valence electrons in free atom) - (Total non-bonding/lone pair electrons) - 0.5 * (Total bonding/shared electrons). In general, the lowest energy structure is the one with the smallest formal charges on the atoms, with negative formal charges residing on more electronegative atoms."
+    },
+    {
+      "topic": "VSEPR Theory",
+      "subtopic": "Postulates and Repulsion Hierarchy",
+      "page": 109,
+      "text": "The Valence Shell Electron Pair Repulsion (VSEPR) theory predicts three-dimensional molecular geometry by minimizing electrostatic repulsion among electron pairs surrounding the central atom. Electron pairs stay as far apart as possible in space. The repulsive interaction decreases in the order: Lone pair - Lone pair (lp - lp) > Lone pair - Bond pair (lp - bp) > Bond pair - Bond pair (bp - bp). Lone pairs occupy more space around the central atom than bonding pairs because lone pairs are attracted by only one nucleus, whereas bonding pairs are shared between two nuclei."
+    },
+    {
+      "topic": "VSEPR Theory",
+      "subtopic": "Molecular Geometries of NH3 and H2O",
+      "page": 111,
+      "text": "Molecules with steric number 4 have tetrahedral electron pair geometry. In Methane (CH4), there are 4 bonding pairs and 0 lone pairs, giving a regular tetrahedral geometry with H-C-H bond angle of 109.5°. In Ammonia (NH3), nitrogen has 3 bonding pairs and 1 lone pair. The lone pair - bond pair repulsion compresses the H-N-H bond angle from 109.5° down to 107.0°, resulting in a trigonal pyramidal molecular shape. In Water (H2O), oxygen has 2 bonding pairs and 2 lone pairs. Strong lp-lp and lp-bp repulsions compress the H-O-H bond angle down to 104.5°, producing a bent or V-shaped angular geometry."
+    },
+    {
+      "topic": "VSEPR Theory",
+      "subtopic": "Five and Six Electron Pair Geometries: PCl5 and SF6",
+      "page": 113,
+      "text": "Molecules with 5 electron pairs around the central atom, such as Phosphorus Pentachloride (PCl5), exhibit trigonal bipyramidal geometry with sp3d hybridization. The three equatorial P-Cl bonds lie in one plane with 120° angles, while the two axial P-Cl bonds are oriented at 90° above and below the plane. Axial bonds experience more repulsive interactions from equatorial pairs, making axial bonds slightly longer and weaker than equatorial bonds. Molecules with 6 electron pairs, such as Sulfur Hexafluoride (SF6), form regular octahedral geometry with sp3d2 hybridization and 90° bond angles throughout."
+    },
+    {
+      "topic": "Hybridization",
+      "subtopic": "Types of Hybridization: sp, sp2, and sp3",
+      "page": 118,
+      "text": "Hybridization is the concept of mixing atomic orbitals of equivalent energy (s, p, d) on the same atom to form new hybrid orbitals having identical shapes, energies, and directional orientation. sp hybridization involves one s and one p orbital, producing 2 linear hybrid orbitals at 180° (e.g., BeCl2, C2H2). sp2 hybridization mixes one s and two p orbitals to form 3 trigonal planar hybrid orbitals at 120° (e.g., BF3, C2H4). sp3 hybridization mixes one s and three p orbitals to form 4 tetrahedral hybrid orbitals at 109.5° (e.g., CH4, NH3, H2O)."
+    },
+    {
+      "topic": "Molecular Polarity",
+      "subtopic": "Dipole Moment and Molecular Symmetry",
+      "page": 107,
+      "text": "A dipole moment (mu) arises in any chemical bond between atoms of differing electronegativities: mu = q * d, measured in Debye units (1 D = 3.33564 x 10^-30 C m). Dipole moment is a vector quantity pointing from electropositive to electronegative center. A polyatomic molecule may contain polar bonds yet possess a net zero dipole moment if its molecular geometry is highly symmetrical, causing individual bond dipoles to cancel vectorially (e.g., CO2 linear mu = 0; BF3 trigonal planar mu = 0; CCl4 tetrahedral mu = 0). Conversely, asymmetrical molecules like NH3 (mu = 1.47 D) and H2O (mu = 1.85 D) have net non-zero dipole moments."
+    }
+  ]
+}

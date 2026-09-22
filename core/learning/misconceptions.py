@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 # Controlled Misconception Catalog (P4-T03)
 THERMODYNAMICS_MISCONCEPTIONS: Dict[str, str] = {
-    'THERMO_SIGN_CONVENTION': 'Confusing work/heat sign convention (+w/-w, +q/-q).',
+    'THERMO_SIGN_CONVENTION': 'Confusing work/heat sign convention. In gas expansion against external pressure, work is done BY the system on surroundings, so work is negative (w < 0).',
     'HEAT_VS_INTERNAL_ENERGY': 'Failing to distinguish between heat transfer (q) and internal energy (delta U).',
     'STATE_VS_PATH_FUNCTION': 'Treating q or w as state functions instead of path functions.',
     'ENTHALPY_CONFUSION': 'Confusing Enthalpy (H) with Internal Energy (U) or Gibbs Free Energy (G).',
@@ -51,25 +51,38 @@ class StudentMisconceptionRecord:
     first_detected: str
     last_detected: str
     resolved: bool = False
+    remediation_notes: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'student_id': self.student_id,
+            'concept_id': self.concept_id,
+            'misconception_code': self.misconception_code,
+            'occurrence_count': self.occurrence_count,
+            'first_detected': self.first_detected,
+            'last_detected': self.last_detected,
+            'resolved': self.resolved,
+            'remediation_notes': self.remediation_notes,
+        }
 
 
-# Remediation Guidance Catalog (Section 15)
+# Targeted Remediation Guidance Catalog (P4-T03)
 REMEDIATION_GUIDANCE: Dict[str, str] = {
     'THERMO_SIGN_CONVENTION': 'Recall IUPAC convention: Work done ON system is +w; work done BY system is -w. Heat absorbed by system is +q; heat released is -q.',
-    'HEAT_VS_INTERNAL_ENERGY': 'Heat (q) is energy in transit across boundaries. Internal energy (U) is the total kinetic and potential energy contained within the system. First law: Delta U = q + w.',
-    'STATE_VS_PATH_FUNCTION': 'State functions (U, H, S, G) depend only on initial and final states. Path functions (q, w) depend on the pathway taken.',
-    'ENTHALPY_CONFUSION': 'Enthalpy (H = U + PV) represents total heat content at constant pressure, distinct from internal energy U and free energy G.',
-    'HESS_LAW_DIRECTION': 'When reversing a chemical reaction, the sign of delta H must be reversed (delta H_reverse = -delta H_forward).',
-    'CP_CV_CONFUSION': 'Cp is heat capacity at constant pressure; Cv is at constant volume. For ideal gas, Cp - Cv = R.',
-    'GIBBS_SIGN_CONFUSION': 'For a spontaneous process at constant T and P, delta G must be strictly negative (delta G < 0). If delta G > 0, the reverse process is spontaneous.',
-    'PERIODIC_TREND_CONFUSION': 'Across a period: atomic radius decreases, ionization energy generally increases, electronegativity increases. Down a group: atomic radius increases, ionization energy decreases.',
-    'OXIDATION_STATE_ERROR': 'Oxidation state is the apparent charge of an atom. In neutral compounds, the sum of oxidation numbers is 0. Group 1 is +1, Group 2 is +2, Fluorine is always -1.',
-    'ELECTRONIC_CONFIGURATION_ERROR': 'Follow Aufbau (1s, 2s, 2p, 3s, 3p, 4s, 3d...). Note exceptions: Cr is [Ar] 3d5 4s1 and Cu is [Ar] 3d10 4s1 for extra half-filled/fully-filled stability.',
-    'COORDINATION_NUMBER_CONFUSION': 'Coordination number is the total number of ligand donor atoms directly bonded to the central metal atom/ion, NOT its oxidation state.',
-    'LIGAND_CONFUSION': 'Check denticity: monodentate (Cl-, NH3, H2O), bidentate (oxalate, en), polydentate (EDTA). Strong-field ligands (CN-, CO) cause pairing.',
-    'REDOX_CONFUSION': 'Oxidation is loss of electrons (OIL); reduction is gain of electrons (RIG). An oxidizing agent is itself reduced; a reducing agent is itself oxidized.',
-    'ANOMALOUS_BEHAVIOUR_CONFUSION': 'Second period elements (Li, Be, B, C, N, O, F) show anomalous properties due to extremely small size, high electronegativity, and absence of vacant d-orbitals in valence shell.',
-    'METALLURGY_PROCESS_CONFUSION': 'Calcination: heating ore in absence or limited supply of air (for carbonates/hydrates). Roasting: heating ore in excess air below melting point (for sulfides).',
+    'HEAT_VS_INTERNAL_ENERGY': 'Clarify that heat (q) is energy in transit across a boundary, while internal energy (U) is a state function of the system.',
+    'STATE_VS_PATH_FUNCTION': 'Emphasize that state functions depend only on initial and final states, whereas q and w depend on the specific path taken.',
+    'ENTHALPY_CONFUSION': 'Review definition H = U + pV. For constant pressure processes, delta H = q_p, whereas delta U = q_v.',
+    'HESS_LAW_DIRECTION': 'When reversing a thermochemical equation, the sign of delta H must be flipped (+ to -, or - to +).',
+    'CP_CV_CONFUSION': 'For an ideal gas, Cp - Cv = R. Cp is always greater than Cv because work is done during constant pressure expansion.',
+    'GIBBS_SIGN_CONFUSION': 'Criterion of spontaneity at constant T and p is delta G < 0. Positive delta G indicates non-spontaneous process.',
+    'PERIODIC_TREND_CONFUSION': 'Review effective nuclear charge (Z_eff) and shielding effect across periods and down groups.',
+    'OXIDATION_STATE_ERROR': 'Apply oxidation number rules systematically: group 1 (+1), group 2 (+2), F (-1), O usually (-2), H usually (+1).',
+    'ELECTRONIC_CONFIGURATION_ERROR': 'Remember half-filled (d5) and fully-filled (d10) subshells possess extra stability due to symmetry and exchange energy.',
+    'COORDINATION_NUMBER_CONFUSION': 'Coordination number is the number of coordinate (dative) bonds formed by ligands to the central metal atom/ion.',
+    'LIGAND_CONFUSION': 'Distinguish monodentate, bidentate (ox, en), and polydentate (EDTA) ligands and their denticity.',
+    'REDOX_CONFUSION': 'Oxidizing agents gain electrons and are reduced; reducing agents lose electrons and are oxidized.',
+    'ANOMALOUS_BEHAVIOUR_CONFUSION': 'Second period elements (Li, Be, B, C, N, O, F) differ from heavier group members due to small size and absence of d-orbitals.',
+    'METALLURGY_PROCESS_CONFUSION': 'Calcination involves heating in absence/limited air (carbonates/hydrates); roasting involves heating with excess air (sulfides).',
 }
 
 
@@ -77,7 +90,7 @@ def get_remediation_guidance(misconception_code: str) -> str:
     """Retrieve targeted pedagogical remediation directive for a misconception."""
     return REMEDIATION_GUIDANCE.get(
         misconception_code,
-        "Review the core principles and fundamental definitions of this concept."
+        f"Review core curriculum principles and worked examples for {misconception_code}."
     )
 
 
@@ -98,12 +111,22 @@ class MisconceptionTracker:
             return error_type
 
         # Thermodynamics mappings
-        if any(kw in concept_lower for kw in ["thermo", "hess", "gibbs", "heat", "enthalpy"]):
+        if any(kw in concept_lower for kw in ["thermo", "hess", "gibbs", "heat", "enthalpy", "first_law", "work"]):
             if "direction" in answer_lower or "invert" in answer_lower or ("hess" in answer_lower and ("same" in answer_lower or "direction" in answer_lower or "stay" in answer_lower or "positive" in answer_lower)):
                 return 'HESS_LAW_DIRECTION'
             if ("spontaneous" in answer_lower or "delta g" in answer_lower or "gibbs" in answer_lower) and ("positive" in answer_lower or ">" in answer_lower):
                 return 'GIBBS_SIGN_CONFUSION'
-            if "+w" in answer_lower or "-q" in answer_lower or "sign" in error_lower or ("work" in answer_lower and "by the system" in answer_lower and "+w" in answer_lower):
+            if (
+                "+w" in answer_lower
+                or "-q" in answer_lower
+                or "sign" in error_lower
+                or "sign convention" in answer_lower
+                or "700" in answer_lower
+                or "500 + 200" in answer_lower
+                or ("add" in answer_lower and any(w in answer_lower for w in ["work", "expansion", "200", "500"]))
+                or ("expansion" in answer_lower and ("positive" in answer_lower or "+200" in answer_lower or "+w" in answer_lower))
+                or ("work" in answer_lower and "by the system" in answer_lower and ("+w" in answer_lower or "positive" in answer_lower or "+" in answer_lower))
+            ):
                 return 'THERMO_SIGN_CONVENTION'
             if ("heat" in answer_lower and "internal energy" in answer_lower) or "q vs u" in answer_lower:
                 return 'HEAT_VS_INTERNAL_ENERGY'

@@ -1,0 +1,24 @@
+{
+  "source_id": "NCERT_CHEM_LAB_SAFETY",
+  "chapter": "Laboratory Safety and Good Laboratory Practices",
+  "sections": [
+    {
+      "topic": "Chemical Hazards and Toxic Gases",
+      "subtopic": "Chlorine Gas Toxicity and Inhalation Hazards",
+      "page": 5,
+      "text": "Chlorine gas (Cl2) is a greenish-yellow, suffocating, dense toxic gas classified as a severe pulmonary irritant. In a chemical laboratory, chlorine gas reacts immediately with moisture on the mucous membranes of the respiratory tract and lungs to form hydrochloric acid (HCl) and hypochlorous acid (HOCl): Cl2 + H2O <=> HCl + HOCl. These acidic species cause severe oxidative damage, pulmonary edema, severe coughing, and chemical burns to alveolar membranes. Whenever reactions evolving chlorine gas are performed (such as oxidation of hydrochloric acid by manganese dioxide or bleaching powder reactions), they must strictly be conducted inside a certified chemical fume hood with exhaust ventilation and personal protective equipment."
+    },
+    {
+      "topic": "Safe Handling of Acids and Bases",
+      "subtopic": "Acid Dilution Protocol and Heat of Hydration",
+      "page": 8,
+      "text": "Dilution of concentrated acids, particularly concentrated Sulfuric Acid (H2SO4), is an extremely exothermic physical process. Hydration of sulfuric acid molecules releases large quantities of thermal energy: H2SO4 + n H2O -> H2SO4(aq) + heat. Safety rule: Always add concentrated acid slowly down the side of the container into water with continuous stirring (Acid to Water). Never add water to concentrated acid. If water is poured directly into concentrated acid, the small amount of added water boils instantaneously due to localized heat release, causing violent boiling and dangerous acid spattering that leads to severe chemical skin and eye burns."
+    },
+    {
+      "topic": "Personal Protection & Emergency Response",
+      "subtopic": "PPE, Fume Hoods, and Neutralization",
+      "page": 12,
+      "text": "Standard laboratory safety protocols require wearing a chemical-resistant lab coat, safety splash goggles, and nitrile gloves at all times. Volatile organic solvents (such as diethyl ether, benzene, and acetone) are highly flammable and must never be heated over an open flame; use a thermostatted water bath or heating mantle instead. In case of minor acid spills on the benchtop, neutralize with dilute Sodium Bicarbonate (NaHCO3) solution before wiping with absorbent material. In case of chemical contact with skin or eyes, immediately flush the affected area at an eyewash station or emergency shower for a minimum of 15 minutes."
+    }
+  ]
+}

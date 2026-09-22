@@ -331,6 +331,39 @@ class Bridge(QObject):
             return json.dumps({"ok": False, "error": sanitized.user_message, "stats": {}, "concepts": []})
 
     @Slot(result=str)
+    def get_student_dashboard(self) -> str:
+        """Return comprehensive student-facing progress & mastery dashboard payload."""
+        try:
+            from core.learning.progress import build_student_dashboard_payload
+            payload = build_student_dashboard_payload()
+            return json.dumps(payload)
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_get_student_dashboard")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    @Slot(str, str)
+    def launch_concept_session(self, concept_id: str, prompt_text: str):
+        """Align active student concept in profile when launching from dashboard."""
+        try:
+            from core.tutor.adaptive import StudentProfile
+            student = StudentProfile.load_from_file()
+            if concept_id:
+                student.current_concept = concept_id
+                cid = concept_id.upper()
+                if "THERMO" in cid:
+                    student.current_topic = "Thermodynamics"
+                elif "BOND" in cid:
+                    student.current_topic = "Chemical Bonding"
+                elif "PERIOD" in cid:
+                    student.current_topic = "Periodic Trends"
+                elif "COORD" in cid:
+                    student.current_topic = "Coordination Chemistry"
+                student.save_to_file()
+        except Exception as exc:
+            logger.warning(f"Failed to align student concept on launch: {exc}")
+
+    @Slot(result=str)
     def get_demo_telemetry(self) -> str:
         """Return real-time demo telemetry (Section 40) for UI observability."""
         try:
@@ -410,6 +443,31 @@ class Bridge(QObject):
                     {"chunk_id": f"{curr_concept.lower()}_worked_example.md", "relevance": "medium"}
                 ]
 
+            # Humanized active misconception info
+            misconception_info = None
+            if student.misconceptions:
+                active_code = student.misconceptions[-1]
+                from core.learning.misconceptions import ALL_MISCONCEPTIONS
+                desc = ALL_MISCONCEPTIONS.get(
+                    active_code,
+                    "In gas expansion against external pressure, work is done BY the system on surroundings, so work is negative (w < 0)."
+                    if "SIGN_CONVENTION" in active_code else "Review foundational concepts."
+                )
+                clean_title = (
+                    active_code.replace("THERMO_", "")
+                    .replace("BOND_", "")
+                    .replace("PERIOD_", "")
+                    .replace("COORD_", "")
+                    .replace("INORG_", "")
+                    .replace("_", " ")
+                    .title()
+                )
+                misconception_info = {
+                    "code": active_code,
+                    "title": clean_title,
+                    "description": desc,
+                }
+
             return json.dumps({
                 "ok": True,
                 "model": "Qwen2.5-3B-Instruct",
@@ -424,6 +482,7 @@ class Bridge(QObject):
                 "topic_scores": topic_scores,
                 "active_hint_level": student.active_hint_level,
                 "misconceptions": student.misconceptions,
+                "misconception_info": misconception_info,
                 "guardrail_status": "PASS",
                 "rag_info": rag_info,
                 "events": events,
@@ -719,6 +778,20 @@ class Bridge(QObject):
             from core.errors import sanitize_error
             sanitized = sanitize_error(exc, category="bridge_load_session")
             self.error.emit(f"Failed to load session: {sanitized.user_message}")
+
+    @Slot(str, result=str)
+    def get_session_messages(self, session_id: str) -> str:
+        """Return all stored messages for a session as JSON."""
+        try:
+            from core.session import get_session_store, validate_session_id
+            session_id = validate_session_id(session_id)
+            store = get_session_store()
+            msgs = store.load_session(session_id)
+            return json.dumps({"ok": True, "session_id": session_id, "messages": msgs})
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_get_session_messages")
+            return json.dumps({"ok": False, "error": sanitized.user_message, "messages": []})
 
     @Slot(str, result=str)
     def delete_session(self, session_id: str) -> str:

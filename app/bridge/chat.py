@@ -36,6 +36,10 @@ class ChatBridge(QObject):
         self.facade.load_session_id(session_id)
 
     @Slot(str, result=str)
+    def get_session_messages(self, session_id: str) -> str:
+        return self.facade.get_session_messages(session_id)
+
+    @Slot(str, result=str)
     def delete_session(self, session_id: str) -> str:
         return self.facade.delete_session(session_id)
 
