@@ -60,12 +60,17 @@ def create_windows_shortcuts(ico_path: Path) -> None:
     project_lnk = PROJECT_ROOT / "Gayatri Chemistry Tutor.lnk"
     desktop_lnk = Path.home() / "Desktop" / "Gayatri Chemistry Tutor.lnk"
 
+    pythonw_path = PROJECT_ROOT / ".venv" / "Scripts" / "pythonw.exe"
+    target_path = pythonw_path if pythonw_path.exists() else bat_path
+    arguments = "-m app.main" if pythonw_path.exists() else ""
+
     vbs_content = f'''
 Set oWS = CreateObject("WScript.Shell")
 
 ' 1. Project Folder Shortcut
 Set oLink1 = oWS.CreateShortcut("{project_lnk}")
-oLink1.TargetPath = "{bat_path}"
+oLink1.TargetPath = "{target_path}"
+oLink1.Arguments = "{arguments}"
 oLink1.WorkingDirectory = "{PROJECT_ROOT}"
 oLink1.IconLocation = "{ico_path},0"
 oLink1.Description = "Gayatri Chemistry Tutor — NCERT Adaptive Learning"
@@ -74,7 +79,8 @@ oLink1.Save
 
 ' 2. Desktop Shortcut
 Set oLink2 = oWS.CreateShortcut("{desktop_lnk}")
-oLink2.TargetPath = "{bat_path}"
+oLink2.TargetPath = "{target_path}"
+oLink2.Arguments = "{arguments}"
 oLink2.WorkingDirectory = "{PROJECT_ROOT}"
 oLink2.IconLocation = "{ico_path},0"
 oLink2.Description = "Gayatri Chemistry Tutor — NCERT Adaptive Learning"
