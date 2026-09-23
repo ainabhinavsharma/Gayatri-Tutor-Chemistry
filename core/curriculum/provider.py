@@ -16,8 +16,14 @@ class CurriculumProvider:
         self.version = version
         
         # Determine paths
-        # Data is in data/curriculum/<subject>/<grade>.json (simple convention for now)
-        base_dir = Path(__file__).parent.parent.parent / 'data' / 'curriculum'
+        # Data is in data/curriculum/<subject>/<grade>.json
+        from core.config import BASE_DIR, DATA_DIR
+        candidate_dirs = [
+            BASE_DIR / 'data' / 'curriculum',
+            DATA_DIR / 'curriculum',
+            Path(__file__).resolve().parent.parent.parent / 'data' / 'curriculum',
+        ]
+        base_dir = next((d for d in candidate_dirs if d.exists()), candidate_dirs[0])
         # Special case python beginner for now
         if subject == 'python' and grade == 'beginner':
             self.file_path = base_dir / 'python' / 'beginner.json'

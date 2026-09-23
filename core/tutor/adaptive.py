@@ -20,9 +20,9 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("gayatri.tutor.adaptive")
 
 # Default paths
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_STUDENT_FILE = PROJECT_ROOT / "PRIVATE_WORK" / "demo" / "demo_student.json"
-DEFAULT_EVENT_LOG = PROJECT_ROOT / "PRIVATE_WORK" / "logs" / "events.jsonl"
+from core.config import DATA_DIR
+DEFAULT_STUDENT_FILE = DATA_DIR / "student_profile.json"
+DEFAULT_EVENT_LOG = DATA_DIR / "events.jsonl"
 
 
 # ── Section 21: Mastery Model Constants ─────────────────────────────────
@@ -42,8 +42,8 @@ MASTERY_MAX: float = 1.0
 @dataclass
 class StudentProfile:
     """Persistent student profile matching Section 20 of Master Plan."""
-    student_id: str = "demo_student_001"
-    name: str = "Demo Student"
+    student_id: str = "student_001"
+    name: str = "Student"
     level: str = "class_11"
     target: str = "chemistry_foundation"
     current_topic: str = "Thermodynamics"
@@ -54,7 +54,7 @@ class StudentProfile:
     active_hint_level: int = 0
     current_mode: str = "EXPLAIN"
 
-    def get_mastery(self, concept_id: str, default: float = 0.40) -> float:
+    def get_mastery(self, concept_id: str, default: float = 0.0) -> float:
         """Get current mastery score for a concept, defaulting to initial foundation."""
         return self.mastery.get(concept_id, default)
 
@@ -88,34 +88,8 @@ class StudentProfile:
                 return cls(**data)
             except Exception as exc:
                 logger.warning(f"Failed to load student from {target}: {exc}; creating default")
-        # Default seeded demo student
+        # Clean-slate student profile for self-testing
         inst = cls()
-        inst.mastery = {
-            "THERMO_SYSTEM": 0.90,
-            "THERMO_HEAT": 0.70,
-            "THERMO_WORK": 0.50,
-            "THERMO_INTERNAL_ENERGY": 0.40,
-            "THERMO_SIGN_CONVENTION": 0.35,
-            "THERMO_FIRST_LAW": 0.42,
-            "THERMO_ENTHALPY": 0.20,
-            "BOND_LEWIS": 0.85,
-            "BOND_LONE_PAIRS": 0.75,
-            "BOND_VSEPR": 0.55,
-            "BOND_GEOMETRY": 0.50,
-            "BOND_HYBRIDISATION": 0.30,
-            "PERIOD_ATOMIC_RADIUS": 0.80,
-            "PERIOD_IONIC_RADIUS": 0.75,
-            "PERIOD_IONISATION_ENERGY": 0.70,
-            "PERIOD_ELECTRON_AFFINITY": 0.65,
-            "PERIOD_ELECTRONEGATIVITY": 0.80,
-            "PERIOD_TRENDS_OVERVIEW": 0.60,
-            "COORD_ENTITY": 0.45,
-            "COORD_LIGAND": 0.40,
-            "COORD_NUMBER": 0.35,
-            "COORD_OXIDATION_STATE": 0.30,
-            "COORD_NOMENCLATURE": 0.25,
-            "COORD_GEOMETRY": 0.20,
-        }
         inst.save_to_file(target)
         return inst
 

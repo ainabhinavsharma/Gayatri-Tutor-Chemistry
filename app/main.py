@@ -68,6 +68,14 @@ def main():
         print("[OK] Startup verification passed. All essential dependencies and configurations are healthy.")
         sys.exit(0)
 
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("gayatri.chemistry.tutor.v3")
+        except Exception:
+            pass
+
+    from PySide6.QtGui import QIcon
     from PySide6.QtWidgets import QApplication
     from PySide6.QtNetwork import QLocalServer, QLocalSocket
     from core.config import WINDOW_HEIGHT, WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, WINDOW_WIDTH
@@ -78,6 +86,10 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Gayatri AI")
     app.setOrganizationName("Gayatri Education")
+
+    icon_path = PROJECT_ROOT / "gai3.ico" if (PROJECT_ROOT / "gai3.ico").exists() else PROJECT_ROOT / "gai3.png"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     # Single-instance enforcement via QLocalServer
     server_name = "gayatri_ai_single_instance_lock"

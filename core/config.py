@@ -7,6 +7,7 @@ No hardcoding anywhere else in the codebase.
 from __future__ import annotations
 
 import os
+import sys
 from enum import Enum
 from pathlib import Path
 
@@ -24,11 +25,17 @@ def _data_dir() -> Path:
     override = os.environ.get("GAYATRI_DATA_DIR")
     if override:
         return Path(override)
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        if (exe_dir / "data").exists():
+            return exe_dir / "data"
     return Path(os.environ.get("LOCALAPPDATA", ".")) / "GayatriAI"
 
 
 def _project_root() -> Path:
-    """Root of the source tree."""
+    """Root of the source tree or frozen application bundle."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent.parent
 
 
@@ -50,12 +57,66 @@ for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR, UPLOADS_DIR):
 
 # ── Model configuration ────────────────────────────────────────────────
 
-# Primary local model (fine-tuned GGUF)
-# Place your downloaded GGUF file in MODELS_DIR and set LOCAL_MODEL_FILE to match the filename
-# Training notebook outputs: gayatri-Q4_K_M.gguf (~500MB, Q4_K_M quantized gemma-2-2b-it)
-LOCAL_MODEL_FILE: str = "Gayatri-Tutor-v3-Q4_K_M.gguf"
+# Primary local model locations
 _PROJECT_MODEL_DIR: Path = BASE_DIR / "GayatriAI" / "models" / "gayatri"
-LOCAL_MODEL_DIR: Path = _PROJECT_MODEL_DIR if (_PROJECT_MODEL_DIR / LOCAL_MODEL_FILE).exists() and not (MODELS_DIR / LOCAL_MODEL_FILE).exists() else MODELS_DIR
+_PORTABLE_MODEL_DIR: Path = BASE_DIR / "models" / "gayatri"
+
+def _detect_initial_model_file() -> str:
+    env_override = os.environ.get("GAYATRI_MODEL_FILE")
+    if env_override:
+        return env_override
+    # Default to 3B Qwen2.5 model
+    v3_name = "Gayatri-Tutor-v3-Q4_K_M.gguf"
+    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+        if (d / v3_name).exists():
+            return v3_name
+    return v3_name
+
+LOCAL_MODEL_FILE: str = _detect_initial_model_file()
+
+def _get_best_model_dir() -> Path:
+    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+        if (d / LOCAL_MODEL_FILE).exists():
+            return d
+    return _PORTABLE_MODEL_DIR if _PORTABLE_MODEL_DIR.exists() else MODELS_DIR
+
+LOCAL_MODEL_DIR: Path = _get_best_model_dir()
+
+def get_active_model_path() -> Path:
+    """Return the absolute path to the currently active GGUF model."""
+    global LOCAL_MODEL_FILE, LOCAL_MODEL_DIR
+    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+        if (d / LOCAL_MODEL_FILE).exists():
+            LOCAL_MODEL_DIR = d
+            return d / LOCAL_MODEL_FILE
+    LOCAL_MODEL_DIR = _PORTABLE_MODEL_DIR if _PORTABLE_MODEL_DIR.exists() else MODELS_DIR
+    return LOCAL_MODEL_DIR / LOCAL_MODEL_FILE
+
+def set_active_model_file(filename: str) -> Path:
+    """Switch the active local GGUF model filename."""
+    global LOCAL_MODEL_FILE, LOCAL_MODEL_DIR
+    LOCAL_MODEL_FILE = filename
+    return get_active_model_path()
+
+def list_installed_models() -> list[dict]:
+    """Scan all model directories for available GGUF files."""
+    found: dict[str, Path] = {}
+    active_path = get_active_model_path()
+    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+        if d.exists():
+            for p in d.glob("*.gguf"):
+                if p.is_file() and p.stat().st_size > 1024 * 1024:
+                    found[p.name] = p
+    results = []
+    for name, path in sorted(found.items()):
+        size_mb = round(path.stat().st_size / (1024 * 1024), 1)
+        results.append({
+            "filename": name,
+            "size_mb": size_mb,
+            "active": (name == active_path.name),
+            "path": str(path),
+        })
+    return results
 
 LOCAL_MODEL_CONTEXT: int = 8192
 LOCAL_MODEL_GPU_LAYERS: int = -1  # -1 = all layers on GPU if available

@@ -386,30 +386,44 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
         })
 
     # 3. Smart Focus Area (Pedagogical Misconception Tip)
-    active_misc = student.misconceptions[0] if student.misconceptions else "THERMO_SIGN_CONVENTION"
-    focus_topic = "Chemical Thermodynamics"
-    focus_title = "Key Concept to Keep in Mind"
-    
-    if "SIGN_CONVENTION" in active_misc or "EXPANSION_WORK" in active_misc:
-        focus_tip = (
-            "In gas expansion against external pressure, the system does work on the surroundings. "
-            "Energy leaves the system, so work is negative (w < 0)."
-        )
-        practice_prompt = "A gas expands from 2.0 L to 5.0 L against 1.0 atm external pressure while absorbing 400 J of heat. What is delta U?"
-    elif active_misc in REMEDIATION_GUIDANCE:
-        focus_tip = REMEDIATION_GUIDANCE[active_misc]
-        practice_prompt = f"Can we review the key distinction for {active_misc.replace('_', ' ').lower()}?"
+    if student.misconceptions:
+        active_misc = student.misconceptions[0]
+        focus_topic = "Chemical Thermodynamics"
+        focus_title = "Focus Area: Active Misconception"
+        if "SIGN_CONVENTION" in active_misc or "EXPANSION_WORK" in active_misc:
+            focus_tip = (
+                "In gas expansion against external pressure, the system does work on the surroundings. "
+                "Energy leaves the system, so work is negative (w < 0)."
+            )
+            practice_prompt = "A gas expands from 2.0 L to 5.0 L against 1.0 atm external pressure while absorbing 400 J of heat. What is delta U?"
+        elif active_misc in REMEDIATION_GUIDANCE:
+            focus_tip = REMEDIATION_GUIDANCE[active_misc]
+            practice_prompt = f"Can we review the key distinction for {active_misc.replace('_', ' ').lower()}?"
+        else:
+            focus_tip = "Remember that state functions depend only on initial and final states, while heat (q) and work (w) depend on the exact pathway taken."
+            practice_prompt = "Can you give me a question testing whether heat and work are state functions or path functions?"
     else:
-        focus_tip = "Remember that state functions depend only on initial and final states, while heat (q) and work (w) depend on the exact pathway taken."
-        practice_prompt = "Can you give me a question testing whether heat and work are state functions or path functions?"
+        active_misc = None
+        focus_topic = "Chemical Thermodynamics"
+        focus_title = "Ready to Begin"
+        focus_tip = "Start with the First Law of Thermodynamics to explore energy conservation, heat transfer, and expansion work."
+        practice_prompt = "Please explain the First Law of Thermodynamics and how work and heat are related."
 
     # 4. Spaced Review Due
-    spaced_review = {
-        "title": "Periodic Trends — Ionic Radius",
-        "due_label": "Due Today",
-        "description": "It's been 3 days since you mastered isoelectronic species trends. Review for 2 minutes to lock it into long-term memory!",
-        "prompt": "Let's do a 2-minute quick review on Periodic Trends: Ionic Radius across isoelectronic species.",
-    }
+    if student.mastery:
+        spaced_review = {
+            "title": "Thermodynamics Review",
+            "due_label": "Recommended",
+            "description": "Reinforce concepts you've practiced to lock them into long-term memory!",
+            "prompt": "Let's do a quick check on the concepts we just discussed.",
+        }
+    else:
+        spaced_review = {
+            "title": "Welcome to Chemistry",
+            "due_label": "Getting Started",
+            "description": "Begin by asking a question on Thermodynamics, Bonding, or Periodic Trends.",
+            "prompt": "Can you explain the First Law of Thermodynamics?",
+        }
 
     # 5. Humanized Learning Journey Stream
     humanized_stream = []
@@ -493,53 +507,31 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
             break
 
     # Default fallback events if event log is sparse
+    # Clean fallback event if event log is empty
     if not humanized_stream:
         humanized_stream = [
             {
-                "icon": "✓",
-                "color": "#27c93f",
-                "title": "First Law Practice Complete",
-                "time": "Today",
-                "description": "Calculated internal energy change with correct expansion work sign.",
-                "badge": "+5% Mastery Boost (63% → 68%)",
-            },
-            {
-                "icon": "💡",
+                "icon": "✨",
                 "color": "#53a8b6",
-                "title": "Unlocked Hint Level 2",
-                "time": "Today",
-                "description": "Identified IUPAC sign conventions without giving away final answer.",
-                "badge": None,
-            },
-            {
-                "icon": "🔄",
-                "color": "#f5c542",
-                "title": "Reinforced Prerequisite: Internal Energy",
-                "time": "Today",
-                "description": "Reviewed bank account analogy for internal energy before First Law.",
-                "badge": None,
-            },
-            {
-                "icon": "🏆",
-                "color": "#9b59b6",
-                "title": "Milestone: VSEPR Molecular Shapes Mastered",
-                "time": "Yesterday",
-                "description": "Achieved 85%+ mastery on water, ammonia, and methane geometries.",
-                "badge": None,
-            },
+                "title": "Welcome to Gayatri Chemistry Tutor",
+                "time": "Just now",
+                "description": "Start asking questions or practicing problems to build your personalized mastery roadmap!",
+                "badge": "Ready to Start",
+            }
         ]
 
+    student_display_name = student.name if student.name and student.name not in ("Demo Student", "Alex Sharma") else "Student"
     return {
         "ok": True,
         "student": {
-            "name": student.name if student.name != "Demo Student" else "Alex Sharma",
-            "initials": "".join([part[0].upper() for part in (student.name if student.name != "Demo Student" else "Alex Sharma").split()][:2]),
+            "name": student_display_name,
+            "initials": "".join([part[0].upper() for part in student_display_name.split()][:2]) or "ST",
             "level": "Class 11 CBSE Chemistry",
             "target": "NCERT Foundation & Senior Secondary Mastery • Local Offline Learning",
             "overall_mastery": overall_mastery_pct,
             "mastered_count": total_mastered,
             "total_concepts": total_concepts,
-            "streak_days": 4,
+            "streak_days": 1,
         },
         "chapters": chapter_cards,
         "roadmap": {

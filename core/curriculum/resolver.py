@@ -54,12 +54,42 @@ CONCEPT_KEYWORD_MAP = [
         "concept_id": "chem_inorg_periodic",
     },
     {
-        "keywords": ["bonding", "covalent", "ionic bond", "vsepr", "lewis structure", "octet"],
+        "keywords": [
+            "vsepr", "molecular geometry", "molecular shape", "trigonal pyramidal",
+            "trigonal planar", "tetrahedral", "bent", "pyramidal", "lone pair", "lone pairs",
+            "bond pair", "bond pairs", "nh3", "ammonia", "bcl3", "ch4", "h2o", "water",
+            "repulsion order", "lp-lp", "lp-bp", "bp-bp", "shape of nh3", "geometry of nh3",
+            "bond angle", "hybridization", "hybridisation"
+        ],
+        "domain": "Inorganic Chemistry",
+        "chapter": "Chemical Bonding and Molecular Structure",
+        "topic": "VSEPR Theory & Molecular Geometry",
+        "subtopic": "Molecular Geometries of NH3 and H2O",
+        "concept_id": "chem_inorg_vsepr",
+    },
+    {
+        "keywords": ["bonding", "covalent", "ionic bond", "lewis structure", "octet", "formal charge", "resonance"],
         "domain": "Inorganic Chemistry",
         "chapter": "Chemical Bonding and Molecular Structure",
         "topic": "Chemical Bonding",
         "subtopic": "Covalent & Ionic Bonding",
         "concept_id": "chem_inorg_bonding",
+    },
+    {
+        "keywords": ["coordination", "complex", "ligand", "ligands", "coordination number", "coordination entity", "cisplatin", "chelate", "chelating", "coordination sphere"],
+        "domain": "Inorganic Chemistry",
+        "chapter": "Coordination Compounds",
+        "topic": "Coordination Chemistry",
+        "subtopic": "Ligands and Coordination Number",
+        "concept_id": "chem_inorg_coordination",
+    },
+    {
+        "keywords": ["equilibrium", "le chatelier", "le chatelier's principle", "kc", "kp", "equilibrium constant", "buffer", "solubility product", "ksp", "common ion"],
+        "domain": "Physical Chemistry",
+        "chapter": "Equilibrium",
+        "topic": "Chemical and Ionic Equilibrium",
+        "subtopic": "Le Chatelier's Principle & Buffer Solutions",
+        "concept_id": "chem_equilibrium",
     },
     {
         "keywords": ["s-block", "alkali", "alkaline earth", "sodium", "potassium", "magnesium", "calcium"],

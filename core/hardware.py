@@ -86,11 +86,11 @@ def recommend_llama_params(profile: HardwareProfile, model_size_mb: int = 1600) 
     """
     params = LlamaParams()
 
-    # Context size: larger if we have RAM
+    # The 3B Q4_K_M model uses ~1.9GB, so 8GB machines have ample headroom for 4096 tokens
     if profile.ram_mb > 16384:  # 16GB+
+        params.n_ctx = 8192
+    elif profile.ram_mb > 4096:  # 4GB+
         params.n_ctx = 4096
-    elif profile.ram_mb > 8192:  # 8GB+
-        params.n_ctx = 2048
     else:
         params.n_ctx = 2048
 

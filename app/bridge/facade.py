@@ -468,9 +468,17 @@ class Bridge(QObject):
                     "description": desc,
                 }
 
+            import core.config
+            active_model_name = getattr(core.config, "LOCAL_MODEL_FILE", "Gayatri-Tutor-v3-Q4_K_M.gguf").replace(".gguf", "")
+            display_name = active_model_name
+            for suffix in ("-Q4_K_M", "_Q4_K_M", "-Q4_0", "_Q4_0", "-Q8_0", "_Q8_0", "-F16", "_F16"):
+                if display_name.endswith(suffix):
+                    display_name = display_name[:-len(suffix)]
+                    break
+
             return json.dumps({
                 "ok": True,
-                "model": "Qwen2.5-3B-Instruct",
+                "model": display_name,
                 "mode": student.current_mode,
                 "concept_id": curr_concept,
                 "concept_name": curr_concept.replace("_", " ").title(),
@@ -556,12 +564,21 @@ class Bridge(QObject):
         """Return local model status as JSON."""
         try:
             from core.providers.local import LocalProvider
-            from core.config import LOCAL_MODEL_FILE
+            import core.config
             health = LocalProvider.health()
+
+            active_model_name = getattr(core.config, "LOCAL_MODEL_FILE", "Gayatri-Tutor-v3-Q4_K_M.gguf")
+            clean_name = active_model_name.replace(".gguf", "")
+            display_name = clean_name
+            for suffix in ("-Q4_K_M", "_Q4_K_M", "-Q4_0", "_Q4_0", "-Q8_0", "_Q8_0", "-F16", "_F16"):
+                if display_name.endswith(suffix):
+                    display_name = display_name[:-len(suffix)]
+                    break
 
             status = {
                 "installed": health["available"],
-                "name": LOCAL_MODEL_FILE.replace(".gguf", ""),
+                "name": clean_name,
+                "display_name": display_name,
                 "provider": "local",
                 "reason_code": health["reason_code"],
                 "message": health["message"],
@@ -575,6 +592,60 @@ class Bridge(QObject):
             from core.errors import sanitize_error
             sanitized = sanitize_error(exc, category="bridge_get_local_model_status")
             return json.dumps({"installed": False, "error": sanitized.user_message, "reason_code": "unknown_error"})
+
+    @Slot(result=str)
+    def get_available_models(self) -> str:
+        """List all available local GGUF models and indicate which one is currently active."""
+        try:
+            from core.providers.local import LocalProvider
+            models = LocalProvider.list_available_models()
+            return json.dumps({"ok": True, "models": models})
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_get_models")
+            return json.dumps({"ok": False, "error": sanitized.user_message, "models": []})
+
+    @Slot(str, result=str)
+    def set_active_model(self, model_filename: str) -> str:
+        """Switch the active local GGUF model dynamically."""
+        if self._generation_active:
+            return json.dumps({"ok": False, "error": "Cannot switch models while response is generating."})
+        try:
+            from core.providers.local import LocalProvider
+            result = LocalProvider.switch_model(model_filename)
+            return json.dumps(result)
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_set_model")
+    @Slot(str, result=str)
+    def set_tutor_mode(self, mode: str) -> str:
+        """Switch the tutor mode dynamically (EXPLAIN, QUESTION, HINT, EVALUATE, REMEDIATE, SUMMARY)."""
+        try:
+            from core.tutor.adaptive import EventLogger, StudentProfile
+            student = StudentProfile.load_from_file()
+            mode_upper = mode.strip().upper()
+            valid_modes = ["EXPLAIN", "QUESTION", "HINT", "EVALUATE", "REMEDIATE", "SUMMARY"]
+            if mode_upper not in valid_modes:
+                return json.dumps({"ok": False, "error": f"Invalid mode: {mode}"})
+
+            student.current_mode = mode_upper
+            if mode_upper == "REMEDIATE":
+                student.current_concept = "THERMO_INTERNAL_ENERGY"
+            elif mode_upper == "EVALUATE" and not student.misconceptions:
+                student.misconceptions.append("THERMO_SIGN_CONVENTION")
+
+            event_logger = EventLogger()
+            event_logger.log_event(
+                event_type="MODE_TRANSITION",
+                student_id=student.student_id,
+                concept_id=student.current_concept,
+                details={"mode": mode_upper, "source": "user_ui_selection"}
+            )
+            student.save_to_file()
+            logger.info(f"Tutor mode explicitly set to: {mode_upper}")
+            return json.dumps({"ok": True, "mode": mode_upper})
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc)})
 
     @Slot(result=str)
     def get_providers(self) -> str:

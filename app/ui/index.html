@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' qrc:; script-src 'self' 'unsafe-inline' qrc:; style-src 'self' 'unsafe-inline'; img-src 'self' data: qrc:; object-src 'none'; base-uri 'none'; connect-src 'self' qrc: http://localhost:* http://127.0.0.1:*;">
   <title>Gayatri AI</title>
+  <link rel="icon" type="image/x-icon" href="gai3.ico">
+  <link rel="shortcut icon" href="gai3.ico">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -205,6 +207,11 @@
       font-size: 14px;
       line-height: 1.5;
       word-wrap: break-word;
+      contain: layout style;
+    }
+    .message-content {
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     .message-content p { margin-bottom: 8px; }
     .message-content p:last-child { margin-bottom: 0; }
@@ -240,6 +247,83 @@
       font-size: 12px;
       max-width: 90%;
       text-align: center;
+    }
+
+    /* ── Chemistry Thinking Indicator (Waiting / TTFT State) ── */
+    .thinking-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 6px;
+      color: #b0b4d0;
+      user-select: none;
+    }
+    .thinking-flask {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      animation: flask-pulse 2s ease-in-out infinite;
+    }
+    @keyframes flask-pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(233, 69, 96, 0.4)); }
+      50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.7)); }
+    }
+    .bubble {
+      position: absolute;
+      background: #00d2ff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: bubble-rise 1.8s infinite ease-in;
+    }
+    .bubble.b1 { width: 4px; height: 4px; left: 4px; animation-delay: 0.1s; }
+    .bubble.b2 { width: 5px; height: 5px; left: 12px; animation-delay: 0.7s; }
+    .bubble.b3 { width: 4px; height: 4px; left: 20px; animation-delay: 1.3s; }
+    @keyframes bubble-rise {
+      0% { bottom: 4px; opacity: 0; transform: translateY(0) scale(0.5); }
+      40% { opacity: 0.8; }
+      100% { bottom: 28px; opacity: 0; transform: translateY(-12px) scale(1.2); }
+    }
+    .thinking-text-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .thinking-label {
+      background: linear-gradient(90deg, #e0e0e0 0%, #00d2ff 50%, #e94560 100%);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: shimmer-text 2.2s linear infinite;
+    }
+    @keyframes shimmer-text {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    .thinking-dots {
+      display: inline-flex;
+      gap: 3px;
+      align-items: center;
+    }
+    .thinking-dots .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: #00d2ff;
+      animation: wave-dot 1.4s infinite ease-in-out both;
+    }
+    .thinking-dots .dot:nth-child(1) { animation-delay: -0.32s; }
+    .thinking-dots .dot:nth-child(2) { animation-delay: -0.16s; }
+    .thinking-dots .dot:nth-child(3) { animation-delay: 0s; }
+    @keyframes wave-dot {
+      0%, 80%, 100% { transform: scale(0.2); opacity: 0.3; }
+      40% { transform: scale(1.2); opacity: 1; }
     }
 
     /* ── Empty State ── */
@@ -528,6 +612,27 @@
     .chem-info-row { font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
     .chem-info-label { color: #8a8a9a; }
     .chem-mode-pill { background: #0f3460; color: #53a8b6; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 10px; }
+    .chem-mode-select {
+      background: #0f3460;
+      color: #53a8b6;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      border: 1px solid rgba(83, 168, 182, 0.4);
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chem-mode-select:hover {
+      border-color: #53a8b6;
+      box-shadow: 0 0 8px rgba(83, 168, 182, 0.3);
+    }
+    .chem-mode-select option {
+      background: #1a1a2e;
+      color: #e0e0e8;
+      padding: 4px;
+    }
     .chem-misconception-text { font-size: 11px; color: #e94560; background: rgba(233, 69, 96, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(233, 69, 96, 0.3); }
 
     /* ── Collapsible Debug / Telemetry Panel ── */
@@ -910,7 +1015,9 @@
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="sidebar-logo" onclick="switchTab('landing')" title="Gayatri AI Home">G</div>
+      <div class="sidebar-logo" onclick="switchTab('landing')" title="Gayatri AI Home" style="background: transparent; padding: 0; overflow: hidden; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px;">
+        <img src="gai3.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 9px;" alt="Gayatri AI">
+      </div>
       <button class="sidebar-btn active" id="btn-landing" title="Home" onclick="switchTab('landing', this)">🏠</button>
       <button class="sidebar-btn" id="btn-chemistry" title="Chemistry Tutor" onclick="switchTab('chemistry', this)">🧪</button>
       <button class="sidebar-btn" id="btn-general" title="General Assistant" onclick="switchTab('general', this)">🤖</button>
@@ -964,9 +1071,9 @@
           <div style="display: flex; gap: 8px; align-items: center;">
             <button class="settings-btn secondary" onclick="refreshDemoTelemetry()" style="padding: 4px 10px; font-size: 11px;" title="Refresh student mastery & telemetry">🔄 Telemetry</button>
             <button class="settings-btn secondary" onclick="startNewChat('chemistry_tutor')" style="padding: 4px 10px; font-size: 11px;">+ New Chemistry Chat</button>
-            <span class="model-badge">
+            <span class="model-badge" title="Local AI Model">
               <span class="status-dot loading" id="statusDotChem"></span>
-              <span id="statusTextChem">Local Model Ready</span>
+              <span id="statusTextChem">Gayatri-Tutor-v3</span>
             </span>
           </div>
         </div>
@@ -977,7 +1084,7 @@
             <div class="chat" id="chat-chemistry">
               <div class="empty-state">
                 <span class="empty-icon">🧪</span>
-                <span class="empty-text" style="max-width: 450px;">Welcome back, Alex! What would you like to explore today?</span>
+                <span class="empty-text" style="max-width: 450px;">Welcome to Gayatri Chemistry Tutor! What would you like to explore today?</span>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px;">
                   <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('Please explain the First Law of Thermodynamics.')">💡 First Law & Energy</button>
                   <button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt('Give me a practice problem on expansion work and internal energy.')">📝 Practice Question</button>
@@ -1048,7 +1155,17 @@
                 <div class="progress-bar"><div class="progress-fill" id="sbConceptMasteryBar" style="width: 0%;"></div></div>
               </div>
               <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
-                <div class="chem-info-row"><span class="chem-info-label">Tutor Mode:</span> <span class="chem-mode-pill" id="sbCurrentMode">EXPLAIN</span></div>
+                <div class="chem-info-row">
+                  <span class="chem-info-label">Tutor Mode:</span>
+                  <select id="sbCurrentMode" class="chem-mode-select" onchange="onTutorModeChange(this.value)" title="Switch pedagogical mode">
+                    <option value="EXPLAIN">📖 EXPLAIN</option>
+                    <option value="QUESTION">❓ QUESTION</option>
+                    <option value="HINT">💡 HINT</option>
+                    <option value="EVALUATE">⚖️ EVALUATE</option>
+                    <option value="REMEDIATE">🔄 REMEDIATE</option>
+                    <option value="SUMMARY">📋 SUMMARY</option>
+                  </select>
+                </div>
                 <div class="chem-info-row"><span class="chem-info-label">Prerequisite:</span> <span id="sbPrerequisite" style="font-family: monospace; color: #cfcfe0;">None</span></div>
                 <div class="chem-info-row"><span class="chem-info-label">Next Action:</span> <span id="sbNextAction" style="color: #27c93f; font-weight: 600;">QUESTION</span></div>
               </div>
@@ -1066,8 +1183,8 @@
           <div class="chem-debug-toggle" onclick="toggleDebugPanel()">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span id="debugToggleIcon">▲</span>
-              <span style="font-weight: 600; font-size: 11px; color: #fff;">Observability & Telemetry Panel (Demo Mode)</span>
-              <span class="debug-chip" id="dbgChipModel">Qwen2.5-3B-Instruct</span>
+              <span style="font-weight: 600; font-size: 11px; color: #fff;">Pedagogical Observability & Telemetry Panel</span>
+              <span class="debug-chip" id="dbgChipModel">Gayatri-Tutor-v3</span>
               <span class="debug-chip" id="dbgChipMode">Mode: EXPLAIN</span>
               <span class="debug-chip" id="dbgChipGuardrail" style="background: #1b4332; color: #52b788;">Guardrail: PASS</span>
             </div>
@@ -1079,7 +1196,7 @@
               <!-- Col 1: Tutor State (Sec 40) -->
               <div class="debug-col">
                 <div class="debug-col-title">TUTOR STATE</div>
-                <div class="debug-item"><span class="debug-key">MODEL:</span> <span class="debug-val" id="dbgModel">Qwen2.5-3B-Instruct</span></div>
+                <div class="debug-item"><span class="debug-key">MODEL:</span> <span class="debug-val" id="dbgModel">Gayatri-Tutor-v3</span></div>
                 <div class="debug-item"><span class="debug-key">CURRENT MODE:</span> <span class="debug-val" id="dbgMode">EXPLAIN</span></div>
                 <div class="debug-item"><span class="debug-key">CURRENT CONCEPT:</span> <span class="debug-val" id="dbgConcept">THERMO_FIRST_LAW</span></div>
                 <div class="debug-item"><span class="debug-key">STUDENT MASTERY:</span> <span class="debug-val" id="dbgMastery">40%</span></div>
@@ -1116,9 +1233,9 @@
         <div class="mode-header">
           <span class="mode-title-tag">🤖 General Assistant Mode — Chat, Write & Brainstorm</span>
           <button class="settings-btn secondary" onclick="startNewChat('general_assistant')" style="padding: 4px 10px; font-size: 11px;">+ New General Chat</button>
-          <span class="model-badge">
+          <span class="model-badge" title="Local AI Model">
             <span class="status-dot loading" id="statusDotGen"></span>
-            <span id="statusTextGen">Local Model Ready</span>
+            <span id="statusTextGen">Gayatri-Tutor-v3</span>
           </span>
         </div>
 
@@ -1144,10 +1261,10 @@
             <!-- Top Banner: Student Identity & High-Level Progress -->
             <div class="dash-banner">
               <div class="dash-student-info">
-                <div class="dash-avatar" id="dashAvatar">AS</div>
+                <div class="dash-avatar" id="dashAvatar">ST</div>
                 <div>
                   <div class="dash-name-wrap">
-                    <span class="dash-name" id="dashStudentName">Alex Sharma</span>
+                    <span class="dash-name" id="dashStudentName">Student</span>
                     <span class="dash-grade-pill" id="dashGradeLevel">Class 11 CBSE Chemistry</span>
                   </div>
                   <div class="dash-caption" id="dashTargetCaption">Target: NCERT Foundation & Senior Secondary Mastery • Local Offline Learning</div>
@@ -1288,12 +1405,25 @@
 
           <!-- Local AI Model Management -->
           <div class="settings-section">
-            <div class="settings-section-title">Local AI Model Status</div>
+            <div class="settings-section-title">Local AI Model & Weights</div>
             <div class="settings-row">
               <div class="settings-label-block">
-                <span class="settings-label" id="localModelTitle">Local Model Status</span>
+                <span class="settings-label">Active GGUF Model</span>
+                <span class="settings-caption">Switch between fine-tuned SLM and baseline quantized model weights</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <select class="settings-select" id="modelSelect" onchange="onModelSelectChange()" style="min-width: 240px;">
+                  <option value="">Scanning installed models...</option>
+                </select>
+                <button class="settings-btn secondary" onclick="refreshModelList()" title="Refresh models list" style="padding: 6px 12px; font-size: 13px;">↻</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-label-block">
+                <span class="settings-label" id="localModelTitle">Model Health & Verification</span>
                 <span class="settings-caption" id="localModelDetail">Checking local model file...</span>
               </div>
+              <span id="modelHealthBadge" style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: #1f2847; color: #8a8a9a;">Checking...</span>
             </div>
           </div>
 
@@ -1348,6 +1478,13 @@
       generationWatchdogTimer = null;
     }
 
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({ breaks: true, gfm: true });
+    }
+
+    var lastRenderTime = 0;
+    var renderThrottleMs = 45; // Smooth 22fps re-render throttling during token stream to eliminate flicker
+
     // ── QWebChannel setup ──
     new QWebChannel(qt.webChannelTransport, async function(channel) {
       bridge = channel.objects.bridge;
@@ -1355,9 +1492,15 @@
       bridge.token.connect(function(idx, text) {
         currentTokens.push(text);
         resetGenerationWatchdog();
+        var now = performance.now();
         if (!renderRequested) {
           renderRequested = true;
-          window.requestAnimationFrame(renderStreamingMessage);
+          var elapsed = now - lastRenderTime;
+          var delay = Math.max(0, renderThrottleMs - elapsed);
+          setTimeout(function() {
+            lastRenderTime = performance.now();
+            window.requestAnimationFrame(renderStreamingMessage);
+          }, delay);
         }
       });
 
@@ -1382,6 +1525,7 @@
       });
 
       updateModelStatus();
+      loadAvailableModels();
       updateDemoTelemetry();
       loadStudentDashboard();
     });
@@ -1437,9 +1581,9 @@
         // 1. Identity & Quick Stats
         var st = data.student || {};
         var avatarEl = document.getElementById('dashAvatar');
-        if (avatarEl) avatarEl.textContent = st.initials || 'AS';
+        if (avatarEl) avatarEl.textContent = st.initials || 'ST';
         var nameEl = document.getElementById('dashStudentName');
-        if (nameEl) nameEl.textContent = st.name || 'Alex Sharma';
+        if (nameEl) nameEl.textContent = st.name || 'Student';
         var gradeEl = document.getElementById('dashGradeLevel');
         if (gradeEl) gradeEl.textContent = st.level || 'Class 11 CBSE Chemistry';
         var targetEl = document.getElementById('dashTargetCaption');
@@ -1628,7 +1772,8 @@
       try {
         var mode = JSON.parse(await bridge.get_setting('privacy_mode'));
         if (mode) document.getElementById('privacyModeSelect').value = mode;
-        updateModelStatus();
+        await updateModelStatus();
+        await loadAvailableModels();
         loadModeSessionsList('chemistry_tutor', 'chemSessionsContainer');
         loadModeSessionsList('general_assistant', 'genSessionsContainer');
       } catch (e) {
@@ -1727,7 +1872,7 @@
           targetContainer.innerHTML =
             '<div class="empty-state">' +
               '<span class="empty-icon">🧪</span>' +
-              '<span class="empty-text" style="max-width: 450px;">Welcome back, Alex! What would you like to explore today?</span>' +
+              '<span class="empty-text" style="max-width: 450px;">Welcome to Gayatri Chemistry Tutor! What would you like to explore today?</span>' +
               '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px;">' +
                 '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'Please explain the First Law of Thermodynamics.\')">💡 First Law & Energy</button>' +
                 '<button class="settings-btn secondary" style="padding: 5px 12px; font-size: 11px; border-radius: 20px;" onclick="quickPrompt(\'Give me a practice problem on expansion work and internal energy.\')">📝 Practice Question</button>' +
@@ -1745,32 +1890,134 @@
       }
     }
 
-    // ── Model status ──
+    // ── Model status & Dynamic Switcher ──
     async function updateModelStatus() {
       try {
         var status = JSON.parse(await bridge.get_local_model_status());
         var detail = document.getElementById('localModelDetail');
+        var badge = document.getElementById('modelHealthBadge');
 
         var dotChem = document.getElementById('statusDotChem');
         var textChem = document.getElementById('statusTextChem');
         var dotGen = document.getElementById('statusDotGen');
         var textGen = document.getElementById('statusTextGen');
 
+        var rawName = status.display_name || status.name || 'Gayatri-Tutor-v3';
+        var modelDisplay = rawName.replace(/[-_]Q[0-9]+[A-Za-z0-9_]*$/i, '').replace(/[-_]f16$/i, '');
+        if (!modelDisplay) modelDisplay = 'Gayatri-Tutor-v3';
+
         if (status.installed) {
-          var size = (status.size_mb / 1024).toFixed(1) + ' GB';
+          var size = status.size_mb ? (status.size_mb / 1024).toFixed(1) + ' GB' : '1.8 GB';
           if (dotChem) dotChem.className = 'status-dot ready';
-          if (textChem) textChem.textContent = 'Ready (' + size + ')';
+          if (textChem) {
+            textChem.textContent = modelDisplay;
+            if (textChem.parentElement) textChem.parentElement.title = modelDisplay + ' (' + size + ') — Local Model Active & Ready';
+          }
           if (dotGen) dotGen.className = 'status-dot ready';
-          if (textGen) textGen.textContent = 'Ready (' + size + ')';
-          if (detail) detail.textContent = 'Local model ready (' + size + ') at ' + (status.path || 'local storage');
+          if (textGen) {
+            textGen.textContent = modelDisplay;
+            if (textGen.parentElement) textGen.parentElement.title = modelDisplay + ' (' + size + ') — Local Model Active & Ready';
+          }
+          if (detail) detail.textContent = 'Active model: ' + modelDisplay + ' (' + size + ')';
+          if (badge) {
+            badge.style.background = '#1a3a2a';
+            badge.style.color = '#52c41a';
+            badge.textContent = '✓ Verified & Ready';
+          }
         } else {
           if (dotChem) dotChem.className = 'status-dot error';
-          if (textChem) textChem.textContent = 'Model Offline';
+          if (textChem) {
+            textChem.textContent = modelDisplay + ' (Offline)';
+            if (textChem.parentElement) textChem.parentElement.title = 'Model file not installed: ' + (status.message || 'Needs setup');
+          }
           if (dotGen) dotGen.className = 'status-dot error';
-          if (textGen) textGen.textContent = 'Model Offline';
+          if (textGen) {
+            textGen.textContent = modelDisplay + ' (Offline)';
+            if (textGen.parentElement) textGen.parentElement.title = 'Model file not installed: ' + (status.message || 'Needs setup');
+          }
           if (detail) detail.textContent = 'Model file not installed: ' + (status.message || 'Needs setup');
+          if (badge) {
+            badge.style.background = '#3a1a22';
+            badge.style.color = '#e94560';
+            badge.textContent = 'Offline';
+          }
         }
       } catch(e) { console.error('Model status check failed:', e); }
+    }
+
+    async function loadAvailableModels() {
+      if (!bridge || typeof bridge.get_available_models !== 'function') return;
+      var sel = document.getElementById('modelSelect');
+      if (!sel) return;
+      try {
+        var raw = await bridge.get_available_models();
+        var res = JSON.parse(raw);
+        if (!res || !res.ok || !res.models || res.models.length === 0) {
+          sel.innerHTML = '<option value="">No local models found in models/gayatri</option>';
+          return;
+        }
+        sel.innerHTML = '';
+        var activeFound = false;
+        res.models.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m.filename;
+          var sizeStr = (m.size_mb > 1024) ? (m.size_mb / 1024).toFixed(2) + ' GB' : m.size_mb + ' MB';
+          opt.textContent = m.filename + ' (' + sizeStr + ')' + (m.active ? '  ★ Active' : '');
+          if (m.active) {
+            opt.selected = true;
+            activeFound = true;
+          }
+          sel.appendChild(opt);
+        });
+        if (!activeFound && res.models.length > 0) {
+          sel.selectedIndex = 0;
+        }
+      } catch (e) {
+        console.error('Failed to load available models:', e);
+      }
+    }
+
+    async function onModelSelectChange() {
+      var sel = document.getElementById('modelSelect');
+      if (!sel || !bridge || typeof bridge.set_active_model !== 'function') return;
+      var filename = sel.value;
+      if (!filename) return;
+
+      var detail = document.getElementById('localModelDetail');
+      if (detail) detail.textContent = 'Switching active model to ' + filename + '...';
+
+      try {
+        var raw = await bridge.set_active_model(filename);
+        var res = JSON.parse(raw);
+        if (res && res.ok) {
+          await updateModelStatus();
+          await loadAvailableModels();
+          await updateDemoTelemetry();
+        } else {
+          alert('Failed to switch model: ' + (res.error || 'Unknown error'));
+          await loadAvailableModels();
+        }
+      } catch (e) {
+        console.error('Error switching active model:', e);
+      }
+    }
+
+    async function onTutorModeChange(newMode) {
+      if (!bridge || typeof bridge.set_tutor_mode !== 'function') return;
+      try {
+        var raw = await bridge.set_tutor_mode(newMode);
+        var res = JSON.parse(raw);
+        if (res && res.ok) {
+          await updateDemoTelemetry();
+        }
+      } catch (e) {
+        console.error('Failed to switch tutor mode:', e);
+      }
+    }
+
+    async function refreshModelList() {
+      await loadAvailableModels();
+      await updateModelStatus();
     }
 
     // ── Chemistry Observability & Demo Telemetry (Master Plan Sec 40-43) ──
@@ -1841,7 +2088,13 @@
         if (elCId) elCId.textContent = conceptId;
         if (elCMasteryPct) elCMasteryPct.textContent = masteryPct;
         if (elCMasteryBar) elCMasteryBar.style.width = masteryNum + '%';
-        if (elCMode) elCMode.textContent = data.mode || 'EXPLAIN';
+        if (elCMode) {
+          if (elCMode.tagName === 'SELECT') {
+            elCMode.value = data.mode || 'EXPLAIN';
+          } else {
+            elCMode.textContent = data.mode || 'EXPLAIN';
+          }
+        }
         if (elCPrereq) elCPrereq.textContent = data.primary_prerequisite || 'None';
         if (elCNext) elCNext.textContent = data.next_action || 'QUESTION';
 
@@ -1869,7 +2122,7 @@
         var dbgChipModel = document.getElementById('dbgChipModel');
         var dbgChipMode = document.getElementById('dbgChipMode');
         var dbgChipGuard = document.getElementById('dbgChipGuardrail');
-        if (dbgChipModel) dbgChipModel.textContent = data.model || 'Qwen2.5-3B-Instruct';
+        if (dbgChipModel) dbgChipModel.textContent = data.model || 'Gayatri-Tutor-v3';
         if (dbgChipMode) dbgChipMode.textContent = 'Mode: ' + (data.mode || 'EXPLAIN');
         if (dbgChipGuard) {
           dbgChipGuard.textContent = 'Guardrail: ' + (data.guardrail_status || 'PASS');
@@ -1887,7 +2140,7 @@
         var dbgPrereq = document.getElementById('dbgPrereq');
         var dbgNextAction = document.getElementById('dbgNextAction');
 
-        if (dbgModel) dbgModel.textContent = data.model || 'Qwen2.5-3B-Instruct';
+        if (dbgModel) dbgModel.textContent = data.model || 'Gayatri-Tutor-v3';
         if (dbgMode) dbgMode.textContent = data.mode || 'EXPLAIN';
         if (dbgConcept) dbgConcept.textContent = conceptId;
         if (dbgMastery) dbgMastery.textContent = masteryPct;
@@ -1981,7 +2234,26 @@
       var content = document.createElement('div');
       content.className = 'message-content';
 
-      if (typeof marked !== 'undefined' && role !== 'system') {
+      if (role === 'assistant' && (!text || text.trim() === '')) {
+        var labelText = (modeStr === 'chemistry_tutor') ? 'Formulating chemistry explanation' : 'Synthesizing response';
+        var flaskEmoji = (modeStr === 'chemistry_tutor') ? '⚗️' : '💡';
+        content.innerHTML = '<div class="thinking-indicator">' +
+          '<div class="thinking-flask">' +
+            '<span>' + flaskEmoji + '</span>' +
+            '<span class="bubble b1"></span>' +
+            '<span class="bubble b2"></span>' +
+            '<span class="bubble b3"></span>' +
+          '</div>' +
+          '<div class="thinking-text-wrap">' +
+            '<span class="thinking-label">' + labelText + '</span>' +
+            '<span class="thinking-dots">' +
+              '<span class="dot"></span>' +
+              '<span class="dot"></span>' +
+              '<span class="dot"></span>' +
+            '</span>' +
+          '</div>' +
+        '</div>';
+      } else if (typeof marked !== 'undefined' && role !== 'system') {
         content.innerHTML = marked.parse(text);
       } else {
         content.textContent = text;
@@ -2010,8 +2282,15 @@
       var content = last.querySelector('.message-content');
       if (!content) return;
 
-      var isNearBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 120;
       var fullText = currentTokens.join('');
+      if (!fullText) {
+        if (!isGenerating) {
+          content.innerHTML = '<span style="color:#8a8a9a;">(No response generated)</span>';
+        }
+        return;
+      }
+
+      var isNearBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 140;
 
       if (typeof marked !== 'undefined') {
         content.innerHTML = marked.parse(fullText);
@@ -2041,9 +2320,10 @@
 
       var actions = [
         { label: '🎯 Practice Problem', prompt: 'Can you give me a practice problem on this topic?' },
-        { label: '💡 Give an Example', prompt: 'Can you explain this with a practical chemistry example?' },
-        { label: '⏩ Next Concept', prompt: 'I understand! What concept should we cover next?' },
-        { label: '❓ Ask Me a Question', prompt: 'Test my understanding with a question!' }
+        { label: '💡 Need a Hint', prompt: 'I am confused, can you give me a hint?' },
+        { label: '🔄 Review Prerequisite', prompt: 'Can we revisit the foundational prerequisite for this?' },
+        { label: '📋 Lesson Summary', prompt: 'Can you summarize what we covered in this lesson?' },
+        { label: '💡 Give an Example', prompt: 'Can you explain this with a practical chemistry example?' }
       ];
 
       actions.forEach(function(act) {

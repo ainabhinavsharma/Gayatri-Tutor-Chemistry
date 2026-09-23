@@ -99,6 +99,28 @@ class LocalProvider:
     MODEL_PATH = LOCAL_MODEL_DIR / LOCAL_MODEL_FILE
 
     @classmethod
+    def list_available_models(cls) -> list[dict]:
+        """List all installed local GGUF models."""
+        from core.config import list_installed_models
+        return list_installed_models()
+
+    @classmethod
+    def switch_model(cls, model_filename: str) -> dict:
+        """Switch active model and unload previous model from memory."""
+        from core.config import set_active_model_file
+        with cls._model_lock:
+            new_path = set_active_model_file(model_filename)
+            cls.MODEL_PATH = new_path
+            cls._model = None
+            logger.info(f"Active model switched to: {model_filename} at {new_path}")
+            return {
+                "ok": True,
+                "active_model": model_filename,
+                "path": str(new_path),
+                "exists": new_path.exists(),
+            }
+
+    @classmethod
     def cancel(cls) -> None:
         """Flag the current generation to stop early."""
         logger.info("Cancellation requested for local model generation.")
@@ -125,7 +147,9 @@ class LocalProvider:
                     "llama-cpp-python not installed. Run: pip install llama-cpp-python"
                 )
 
-            model_path = cls.MODEL_PATH
+            from core.config import get_active_model_path
+            model_path = get_active_model_path()
+            cls.MODEL_PATH = model_path
             if not model_path.exists():
                 raise LocalModelError(
                     f"Model not found at {model_path}. "
@@ -200,7 +224,9 @@ class LocalProvider:
     @classmethod
     def health(cls) -> dict:
         """Return structured health status of the local model without forcing heavy model load."""
-        model_path = cls.MODEL_PATH
+        from core.config import get_active_model_path
+        model_path = get_active_model_path()
+        cls.MODEL_PATH = model_path
         part_path = model_path.with_name(model_path.name + ".part")
 
         if not model_path.exists():
@@ -358,6 +384,30 @@ class LocalProvider:
             stop = ["<|im_end|>", "<|endoftext|>", "<end_of_turn>"]
 
         logger.info(f"Chat generating: max_tokens={max_tokens}, temp={temperature}")
+
+        # ── Sliding-window truncation to prevent context overflow ────────
+        # Estimate token count (~4 chars per token) and trim oldest turns
+        # while keeping the system prompt so the tutor personality is intact.
+        n_ctx = getattr(model, "n_ctx", lambda: 4096)()
+        headroom = max_tokens + 128  # reserve space for generation + overhead
+        budget = n_ctx - headroom
+
+        def _est_tokens(msgs):
+            return sum(len(m.get("content", "")) // 4 + 4 for m in msgs)
+
+        if _est_tokens(messages) > budget and len(messages) > 2:
+            # Separate system prompt from conversation turns
+            system_msgs = [m for m in messages if m.get("role") == "system"]
+            conv_msgs = [m for m in messages if m.get("role") != "system"]
+            system_cost = _est_tokens(system_msgs)
+
+            # Remove oldest conversation turns until we fit
+            while _est_tokens(conv_msgs) + system_cost > budget and len(conv_msgs) > 1:
+                removed = conv_msgs.pop(0)
+                logger.debug(f"Truncated oldest {removed['role']} message to fit context window")
+
+            messages = system_msgs + conv_msgs
+            logger.info(f"Context truncated to {len(messages)} messages (~{_est_tokens(messages)} est. tokens, budget={budget})")
 
         def _chat_generator():
             try:

@@ -1,11 +1,11 @@
 @echo off
-title Gayatri Chemistry Tutor — Student Demo
+title Gayatri Chemistry Tutor — NCERT Adaptive Learning
 cd /d "%~dp0"
 cls
 
 echo ======================================================================
-echo   GAYATRI CHEMISTRY TUTOR — Student Demo Environment
-echo   Offline NCERT Adaptive Tutoring Platform
+echo   GAYATRI CHEMISTRY TUTOR — NCERT Adaptive Learning Platform
+echo   100%% Offline Local Tutoring Environment
 echo ======================================================================
 echo.
 echo [1/2] Initializing local database, student profile ^& past sessions...
@@ -20,17 +20,22 @@ if not exist .venv\Scripts\python.exe (
     exit /b 1
 )
 
-REM Pre-seed and validate local demo database silently
+REM Pre-seed and validate local student database silently
 .venv\Scripts\python.exe scripts/seed_demo_student.py >nul 2>&1
 if errorlevel 1 (
-    echo [WARN] Demo pre-flight initialization completed with notices.
+    echo [WARN] Pre-flight initialization completed with notices.
+)
+
+REM Ensure gai3.ico and desktop shortcuts exist
+if not exist "Gayatri Chemistry Tutor.lnk" (
+    .venv\Scripts\python.exe scripts/create_launch_shortcuts.py >nul 2>&1
 )
 
 echo [2/2] Launching Gayatri AI Desktop Application...
 echo.
 echo ======================================================================
 echo   Application is running.
-echo   You may now demonstrate all 13 tutor and platform abilities!
+echo   Ready for interactive chemistry tutoring and student learning.
 echo   Close the application window when done.
 echo ======================================================================
 

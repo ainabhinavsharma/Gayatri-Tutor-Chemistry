@@ -35,6 +35,19 @@ class MainWindow(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setWindowTitle("Gayatri AI")
 
+        from PySide6.QtGui import QIcon
+        import sys
+        meipass = getattr(sys, "_MEIPASS", None)
+        icon_candidates = [
+            BASE_DIR / "gai3.ico",
+            BASE_DIR / "gai3.png",
+            Path(meipass) / "gai3.ico" if meipass else None,
+            Path(meipass) / "gai3.png" if meipass else None,
+        ]
+        icon_path = next((p for p in icon_candidates if p and p.exists()), None)
+        if icon_path:
+            self.setWindowIcon(QIcon(str(icon_path)))
+
         # WebEngine view
         self._web = QWebEngineView()
         self._page = SecureWebPage()
@@ -73,6 +86,10 @@ class MainWindow(QMainWindow):
 
         # Load UI
         ui_path = BASE_DIR / "app" / "ui" / "index.html"
+        if not ui_path.exists() and meipass:
+            cand = Path(meipass) / "app" / "ui" / "index.html"
+            if cand.exists():
+                ui_path = cand
         if ui_path.exists():
             self._web.load(QUrl.fromLocalFile(str(ui_path)))
         else:

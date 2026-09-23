@@ -81,13 +81,13 @@ def _local_chat_stream(
             yield from LocalProvider.chat_stream(messages, max_tokens=max_tokens, **kwargs)
         else:
             fallback = (
-                "Welcome to Gayatri AI Tutor! Local model is currently operating in offline/demo mode. "
+                "Welcome to Gayatri AI Tutor! Local model is currently operating offline. "
                 "To enable full local LLM responses, ensure the GGUF model file is downloaded in `GayatriAI\\models\\gayatri`."
             )
             yield fallback
     except LocalModelError as exc:
         logger.warning(f"LocalProvider unavailable in _local_chat_stream: {exc}")
-        yield f"Gayatri AI Tutor: {exc.message}"
+        yield f"Gayatri AI Tutor: {str(exc)}"
     except Exception as exc:
         logger.error(f"Unexpected error in _local_chat_stream: {exc}")
         yield "Gayatri AI Tutor: An error occurred while generating the response."

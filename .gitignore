@@ -21,8 +21,14 @@ coverage.xml
 # Build & packaging artifacts
 build/
 dist/
+release_staging/
+packaging/output/
 *.egg-info/
 node_modules/
+*.exe
+*.zip
+*.lnk
+*.iso
 
 # Local data & databases
 data/*.db
