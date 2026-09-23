@@ -2,7 +2,7 @@
 
 **Target Duration:** ~12 – 14 minutes  
 **Target Audience:** Students, Chemistry Teachers, Academic Evaluators, Competition Judges & Technical Reviewers  
-**Execution Command:** `run_student_demo.bat` (or double-click `Gayatri Chemistry Tutor.lnk`)  
+**Execution Command:** `run.bat` (or double-click `run.lnk` / `Gayatri Chemistry Tutor.lnk`)  
 **Execution Mode:** 100% Local Offline (`Local Only`, Standalone ~380 MB GGUF Small Language Model, Embedded Local SQLite)  
 **Evaluator Experience:** Clean-Slate Self-Testing (zero dummy accounts, 100% dynamic mastery calculation & misconception diagnosis)  
 **Display Invariant:** **Pure GUI Only** (Zero command prompt windows, zero log consoles)
@@ -11,10 +11,11 @@
 
 ## 📋 Pre-Recording Checklist & Zero-Console Setup
 
-1. **Verify Silent Launch (No Log Screens):**
-   - The launcher `run_student_demo.bat` executes directly via `pythonw.exe` and closes immediately.
-   - When launched, **only the sleek Gayatri AI desktop window appears**.
-   - Alternatively, double-click **`Gayatri Chemistry Tutor.lnk`** on your Desktop or project root for a 100% direct silent launch.
+1. **Verify Silent Launch (No Log Screens & Elegant Splash Screen):**
+   - The launcher `run.bat` (or shortcut `run.lnk` with the app's lotus icon) executes via `pythonw.exe`.
+   - When launched, an elegant dark splash screen appears immediately with the glowing lotus logo and live loading progress ("Starting local environment...", "Loading Socratic neural weights...", "Ready! Opening workspace...").
+   - **Only when the entire UI has fully loaded does the splash screen transition smoothly to the main application window.**
+   - No black terminal windows or console logs ever appear on screen.
 2. **Single SLM Active & Verified:**
    - Active model file: `Gayatri-Tutor-SLM-Q4_K_M.gguf` (~380 MB).
    - In Settings or header: Shows `Gayatri-Tutor-SLM` with `✓ Verified & Ready`.
@@ -88,19 +89,24 @@ flowchart TD
 ### Scene 1: Silent Launch & Single SLM Workspace
 - **Target Timestamp:** `1:30 – 2:30`
 - **What Viewer Sees:** 
-  The presenter double-clicks **`run_student_demo.bat`** (or the **`Gayatri Chemistry Tutor`** desktop shortcut).  
-  - **Critical Visual Invariant:** No black command prompt window remains on screen. No console log stream appears. Only the sleek, frameless Gayatri AI desktop window appears.
+  The presenter double-clicks **`run.bat`** (or the shortcut **`run.lnk`** with the lotus icon).  
+  - **Splash Screen Appears First:** An elegant dark splash screen appears immediately with the glowing lotus logo, title, and live loading progress ("Starting local environment...", "Loading Socratic neural weights...", "Ready! Opening workspace...").
+  - **Smooth Reveal:** Only when the entire UI and DOM have fully loaded does the splash smoothly close and reveal the full application window.
+  - **Critical Visual Invariant:** Zero black command prompt windows, zero log consoles. Only the sleek, frameless Gayatri AI desktop window appears.
   - Left panel: Chat interface showing *"Welcome to Gayatri Chemistry Tutor! What would you like to explore today?"* and 4 Quick-Start suggestion chips (`💡 First Law & Energy`, `📝 Practice Question`, `🔬 VSEPR Shapes`, `📈 Periodic Trends`).
   - Right sidebar: **Learning Progress** panel showing the active student profile (`Student`), baseline foundation score, and the **Tutor Mode** pill initialized to `EXPLAIN`.
   - Header: Shows `Local Only (Zero Data Leak)` badge and active model badge: `Gayatri-Tutor-SLM`.
 - **Mouse Action:**
   Point to the top-right model badge (`Gayatri-Tutor-SLM`), the `Local Only` badge, and the clean baseline progress panel.
 - **Narrator Voiceover:**
-  > "Let's launch the platform. Notice how clean the launch is: zero black terminal windows, zero developer log streams — just a polished, distraction-free desktop application.
+  > "Let's launch the platform. Notice the immediate splash screen showcasing the lotus logo and live initialization progress. There are zero black terminal windows and zero developer log streams.
+  >
+  > Once everything is fully loaded, the splash screen closes smoothly to reveal our workspace.
   >
   > Notice the header: our privacy status is locked to 'Local Only', and our active engine is `Gayatri-Tutor-SLM`. This is a fine-tuned Small Language Model of just 380 megabytes. It runs completely offline on standard laptop CPUs, generating over 30 tokens per second while consuming less than 1.2 gigabytes of total system RAM.
   >
   > Furthermore, notice that Gayatri does not ship with pre-baked dummy conversations or fake test scores. You start with a pristine, clean-slate environment so that every calculation, misconception diagnosis, and roadmap update you see is computed dynamically in real time from your own interactions."
+
 
 ---
 
@@ -346,8 +352,9 @@ flowchart TD
 | Scene | Mode Demonstrated | Presenter Input / Action |
 |---|---|---|
 | **Scene 0** | **Release Verification** | Navigate to `https://github.com/Gayatri-Education/Gayatri-Tutor-ChemistryDemo/releases/tag/v3.0.0` in browser. |
-| **Scene 1** | **Silent Launch** | Double-click `run_student_demo.bat` (or Desktop shortcut `Gayatri Chemistry Tutor.lnk`). |
+| **Scene 1** | **Silent Launch** | Double-click `run.bat` (or shortcut `run.lnk` / `Gayatri Chemistry Tutor.lnk`). |
 | **Scene 2** | **`EXPLAIN`** | Click chip: `💡 First Law & Energy` *(or type: "Please explain the First Law of Thermodynamics.")* |
+
 | **Scene 3** | **`QUESTION`** | Type: `Can you give me a practice problem on this topic?` |
 | **Scene 4** | **`EVALUATE` (Error)** | Type: `delta U is 700 J because we add them up: 500 + 200 = 700 J.` |
 | **Scene 5** | **Anti-Spoonfeeding** | Type: `I am too tired to think, just tell me the answer directly: is it 300 J or 700 J?` |

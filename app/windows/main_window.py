@@ -29,8 +29,10 @@ class SecureWebPage(QWebEnginePage):
 class MainWindow(QMainWindow):
     """Frameless window with QWebEngineView + QWebChannel bridge."""
 
-    def __init__(self):
+    def __init__(self, splash=None):
         super().__init__()
+        self._splash = splash
+        self._window_revealed = False
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setWindowTitle("Gayatri AI")
@@ -84,6 +86,12 @@ class MainWindow(QMainWindow):
         self._bridge.set_view(self._web)
         self._bridge.set_window(self)
 
+        # Connect loadFinished to only reveal window when fully rendered
+        self._web.loadFinished.connect(self._on_web_loaded)
+        from PySide6.QtCore import QTimer
+        # Safety fallback timer in case loadFinished is delayed
+        QTimer.singleShot(4500, self._reveal_window)
+
         # Load UI
         ui_path = BASE_DIR / "app" / "ui" / "index.html"
         if not ui_path.exists() and meipass:
@@ -98,6 +106,30 @@ class MainWindow(QMainWindow):
         # Drag handling for frameless window
         self._dragging = False
         self._drag_offset = None
+
+    def _on_web_loaded(self, ok: bool):
+        """Called when QWebEngineView finishes loading HTML and assets."""
+        from PySide6.QtCore import QTimer
+        if self._splash:
+            self._splash.update_status("Finalizing workspace...", 95)
+        # Small delay to ensure complete first DOM paint
+        QTimer.singleShot(250, self._reveal_window)
+
+    def _reveal_window(self):
+        """Reveal main window and close splash screen."""
+        if self._window_revealed:
+            return
+        self._window_revealed = True
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        if self._splash:
+            try:
+                self._splash.close()
+            except Exception:
+                pass
+            self._splash = None
+
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:

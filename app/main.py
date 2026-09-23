@@ -91,6 +91,12 @@ def main():
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 
+    from app.windows.splash_screen import SplashScreen
+    splash = SplashScreen()
+    splash.show()
+    splash.update_status("Starting local environment...", 20)
+    app.processEvents()
+
     # Single-instance enforcement via QLocalServer
     server_name = "gayatri_ai_single_instance_lock"
     probe_socket = QLocalSocket()
@@ -101,8 +107,12 @@ def main():
         probe_socket.flush()
         probe_socket.waitForBytesWritten(500)
         probe_socket.close()
+        splash.close()
         logger.info("Another instance of Gayatri AI is already running. Focused existing instance.")
         sys.exit(0)
+
+    splash.update_status("Loading Socratic engine & NCERT knowledge...", 50)
+    app.processEvents()
 
     # Primary instance: create server
     server = QLocalServer(app)
@@ -110,8 +120,11 @@ def main():
     if not server.listen(server_name):
         logger.warning(f"Could not bind single instance server: {server.errorString()}")
 
+    splash.update_status("Initializing workspace...", 75)
+    app.processEvents()
+
     from app.windows.main_window import MainWindow
-    window = MainWindow()
+    window = MainWindow(splash=splash)
     window.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
     window.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
 
@@ -132,12 +145,10 @@ def main():
     y = (screen.height() - WINDOW_HEIGHT) // 2 + screen.y()
     window.move(x, y)
 
-    window.show()
-    window.raise_()
-    window.activateWindow()
-
+    # Window is revealed automatically by MainWindow when WebEngine loadFinished fires
     logger.info("Gayatri AI started")
     sys.exit(app.exec())
+
 
 
 if __name__ == "__main__":
