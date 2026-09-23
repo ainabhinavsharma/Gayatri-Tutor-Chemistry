@@ -72,14 +72,21 @@ def _detect_initial_model_file() -> str:
     env_override = os.environ.get("GAYATRI_MODEL_FILE")
     if env_override:
         return env_override
-    # Default to 3B Qwen2.5 model
-    v3_name = "Gayatri-Tutor-v3-Q4_K_M.gguf"
+    # 1. Check preferred models (SLM or v3)
+    for preferred in ("Gayatri-Tutor-SLM-Q4_K_M.gguf", "Gayatri-Tutor-v3-Q4_K_M.gguf"):
+        for d in _get_model_search_dirs():
+            if (d / preferred).is_file():
+                return preferred
+    # 2. Pick any installed GGUF file > 1MB
     for d in _get_model_search_dirs():
-        if (d / v3_name).exists():
-            return v3_name
-    return v3_name
+        if d.exists():
+            for p in d.glob("*.gguf"):
+                if p.is_file() and p.stat().st_size > 1024 * 1024:
+                    return p.name
+    return "Gayatri-Tutor-SLM-Q4_K_M.gguf"
 
 LOCAL_MODEL_FILE: str = _detect_initial_model_file()
+
 
 def _get_best_model_dir() -> Path:
     for d in _get_model_search_dirs():
