@@ -60,6 +60,13 @@ for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR, UPLOADS_DIR):
 # Primary local model locations
 _PROJECT_MODEL_DIR: Path = BASE_DIR / "GayatriAI" / "models" / "gayatri"
 _PORTABLE_MODEL_DIR: Path = BASE_DIR / "models" / "gayatri"
+_DOWNLOADS_MODEL_DIR: Path = Path.home() / "Downloads"
+
+def _get_model_search_dirs() -> tuple[Path, ...]:
+    dirs = [_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR]
+    if _DOWNLOADS_MODEL_DIR.exists():
+        dirs.append(_DOWNLOADS_MODEL_DIR)
+    return tuple(dirs)
 
 def _detect_initial_model_file() -> str:
     env_override = os.environ.get("GAYATRI_MODEL_FILE")
@@ -67,7 +74,7 @@ def _detect_initial_model_file() -> str:
         return env_override
     # Default to 3B Qwen2.5 model
     v3_name = "Gayatri-Tutor-v3-Q4_K_M.gguf"
-    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+    for d in _get_model_search_dirs():
         if (d / v3_name).exists():
             return v3_name
     return v3_name
@@ -75,7 +82,7 @@ def _detect_initial_model_file() -> str:
 LOCAL_MODEL_FILE: str = _detect_initial_model_file()
 
 def _get_best_model_dir() -> Path:
-    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+    for d in _get_model_search_dirs():
         if (d / LOCAL_MODEL_FILE).exists():
             return d
     return _PORTABLE_MODEL_DIR if _PORTABLE_MODEL_DIR.exists() else MODELS_DIR
@@ -85,7 +92,7 @@ LOCAL_MODEL_DIR: Path = _get_best_model_dir()
 def get_active_model_path() -> Path:
     """Return the absolute path to the currently active GGUF model."""
     global LOCAL_MODEL_FILE, LOCAL_MODEL_DIR
-    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+    for d in _get_model_search_dirs():
         if (d / LOCAL_MODEL_FILE).exists():
             LOCAL_MODEL_DIR = d
             return d / LOCAL_MODEL_FILE
@@ -102,7 +109,7 @@ def list_installed_models() -> list[dict]:
     """Scan all model directories for available GGUF files."""
     found: dict[str, Path] = {}
     active_path = get_active_model_path()
-    for d in (_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR):
+    for d in _get_model_search_dirs():
         if d.exists():
             for p in d.glob("*.gguf"):
                 if p.is_file() and p.stat().st_size > 1024 * 1024:

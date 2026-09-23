@@ -269,22 +269,41 @@ flowchart TD
 
 ---
 
-### Scene 10: 100% Offline Privacy Verification & Conclusion
-- **Target Timestamp:** `13:00 – 14:00`
+### Scene 10: Dual Model Showcase, Offline Privacy & Conclusion
+- **Target Timestamp:** `13:00 – 14:30`
 - **What Viewer Sees:**
   The presenter clicks **`⚙️ Settings`** on the left navigation bar.
-  - Shows Execution Mode: `Local Only (Zero Data Leak - Strictly Offline)`.
-  - Shows Active Model: `Gayatri-Tutor-v3` (Local 3B SLM).
-  - Shows Local Storage management & Session database.
+  - **Local AI Model & Weights Section:**
+    - Shows the **Active GGUF Model** dropdown with both locally detected models:
+      1. `Gayatri-Tutor-v3-Q4_K_M.gguf (1.80 GB)  ★ Active` — Flagship 3B Socratic Chemistry SLM.
+      2. `Gayatri-Tutor-SLM-Q4_K_M.gguf (379.4 MB)` — Ultra-lightweight edge model for budget hardware.
+    - Shows the live **Model Health & Verification** badge: `✓ Verified & Ready`.
+  - **Live Dynamic Model Switch:**
+    - Presenter clicks the dropdown and selects **`Gayatri-Tutor-SLM-Q4_K_M.gguf`**.
+    - The active status instantly reflects `Active model: Gayatri-Tutor-SLM (379.4 MB)`.
+    - Point out that the header badge dynamically updates to `Gayatri-Tutor-SLM` in real time with zero application reload.
+    - Presenter can switch back to `Gayatri-Tutor-v3-Q4_K_M.gguf`.
+  - **Privacy Mode & Egress Boundary:**
+    - Shows Execution Mode: `Local Only (Zero Data Leak - Strictly Offline)`.
+    - Demonstrates session history database isolation in local SQLite.
 - **Narrator Voiceover:**
-  > "Finally, let's look at the Settings tab.
+  > "Finally, let's open the Settings tab to inspect the engine architecture and privacy guarantees.
   >
-  > Here you can verify our privacy architecture. Execution mode is locked to 'Local Only'. No API keys are required. All vector embeddings, student session histories, and neural model inferences take place entirely on this machine.
+  > First, look at our Local AI Model Management. Gayatri is designed for radical hardware accessibility. We support dynamic multi-model swapping right from the interface.
+  >
+  > Notice the dropdown: we currently have two local GGUF models installed:
+  > First, our flagship `Gayatri-Tutor-v3` — an 1.80 GB, 3-Billion parameter specialized Chemistry model engineered for deep Socratic dialogues, multi-step problem calibration, and prerequisite backtracking.
+  >
+  > And second, our ultra-compact `Gayatri-Tutor-SLM` — a 380 MB model specifically optimized for low-resource environments like school computer labs, budget laptops, or tablets with under 4 GB of RAM.
+  >
+  > Watch as we switch between them: with a single click, Gayatri unloads the previous weights and binds the new model in real time — with zero application restart.
+  >
+  > Furthermore, notice our Execution Mode: locked to 'Local Only'. No cloud API calls are made. No student prompts or diagnostic profiles ever leave this computer. All vector embeddings, NCERT knowledge graphs, and neural generation execute 100% on your local CPU or GPU.
   >
   > To evaluate Gayatri Chemistry Tutor for yourself:
   > Visit our GitHub repository at `Gayatri-Education/Gayatri-Tutor-ChemistryDemo`.
   > Download either the 1-Click Installer or the Portable ZIP from our v3.0.0 release.
-  > And experience the future of evidence-driven, Socratic secondary education — running 100% locally on your own laptop.
+  > And experience the future of evidence-driven, Socratic chemistry education — running 100% locally on your own laptop.
   >
   > Thank you."
 
@@ -304,4 +323,4 @@ flowchart TD
 | **Scene 7** | Type: `Internal energy is the total kinetic and potential energy stored inside the molecules of the system.` then type `delta U = 500 + (-200) = +300 J`. |
 | **Scene 8** | Click **`📚 My Progress & Dashboard`** on the left navigation bar. |
 | **Scene 9** | Click **`💬 Chemistry Tutor`**, then click chip: `🔬 VSEPR Shapes`. |
-| **Scene 10** | Click **`⚙️ Settings`** on the left navigation bar. |
+| **Scene 10** | Click **`⚙️ Settings`** $\to$ inspect **Active GGUF Model** $\to$ select `Gayatri-Tutor-SLM-Q4_K_M.gguf` to show dynamic 380MB SLM hot-swap $\to$ switch back to `Gayatri-Tutor-v3-Q4_K_M.gguf`. |
