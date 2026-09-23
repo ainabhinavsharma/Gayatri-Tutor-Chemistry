@@ -1,0 +1,28 @@
+{
+  "domain": "Inorganic Chemistry",
+  "chapter": "Classification of Elements and Periodicity in Properties",
+  "class_level": "Class 11",
+  "source": "NCERT Chemistry Class 11 Chapter 3",
+  "cards": [
+    {
+      "concept_id": "PERIODIC_ATOMIC_RADIUS",
+      "concept_name": "Atomic and Ionic Radii Trends",
+      "principle": "Atomic radius decreases across a period from left to right due to increasing effective nuclear charge (Z_eff) pulling valence electrons inward without adding new electron shells. Atomic radius increases down a group due to addition of new electron shells.",
+      "classifications": "Isoelectronic species comparison: cations are smaller than parent atoms, anions are larger than parent atoms.",
+      "formula_iupac": "Z_eff = Z - sigma (where sigma is the screening / shielding constant). For isoelectronic ions: Radius decreases as atomic number Z increases (e.g. N3- > O2- > F- > Na+ > Mg2+ > Al3+).",
+      "socratic_analogy": "Nuclear charge is like a magnet at the center. Across a period, the magnet gets stronger (more protons) while pulling on electrons in the same room. Down a group, new outer rooms (shells) are built further away.",
+      "common_misconception": "Thinking all ions with 10 electrons have identical size. Even though N3- and Al3+ have the same 10 electrons, Al has 13 protons pulling them tightly, while N has only 7 protons, making Al3+ vastly smaller than N3-.",
+      "prerequisite": "ATOMIC_STRUCTURE_BOHR"
+    },
+    {
+      "concept_id": "PERIODIC_IONIZATION_ENTHALPY",
+      "concept_name": "Ionization Enthalpy and Anomaly Explanations",
+      "principle": "Ionization enthalpy is the minimum energy required to remove the most loosely bound valence electron from an isolated gaseous atom in its ground state: X(g) -> X+(g) + e-.",
+      "classifications": "General trend: increases across a period, decreases down a group.",
+      "formula_iupac": "IE1 < IE2 < IE3 (successive ionization enthalpies always increase due to increasing Z_eff per remaining electron). Anomaly 1: Be > B (2s2 fully filled subshell vs 2p1). Anomaly 2: N > O (2p3 half-filled stable subshell vs 2p4 paired electron repulsion).",
+      "socratic_analogy": "Removing an electron from a stable, completely filled or half-filled shell is like prying an item out of a locked vault — it requires substantially more energy.",
+      "common_misconception": "Assuming ionization enthalpy strictly increases without exceptions across Period 2. Boron has a lower IE than Beryllium because removing B's single 2p electron yields a stable 2s2 configuration, and Oxygen has a lower IE than Nitrogen because pairing two electrons in the 2px orbital causes inter-electronic repulsion.",
+      "prerequisite": "PERIODIC_ATOMIC_RADIUS"
+    }
+  ]
+}

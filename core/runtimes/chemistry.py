@@ -31,9 +31,20 @@ def _build_chemistry_system_prompt(
     rag_evidence: str = "",
     policy_directive: str = "",
     memory_summary: str = "",
+    is_slm: bool = False,
 ) -> str:
     """Build the Chemistry Tutor system prompt using versioned prompt contract."""
-    template = get_prompt_loader().load_prompt("chemistry_tutor_system_v1.txt")
+    contract_name = "chemistry_tutor_slm_system_v1.txt" if is_slm else "chemistry_tutor_system_v1.txt"
+    template = get_prompt_loader().load_prompt(contract_name)
+
+    if is_slm and template:
+        # Lean formatting for Small Language Model
+        evidence_block = f"\n\n{rag_evidence}" if rag_evidence else ""
+        directive_block = f"\n\n{policy_directive}" if policy_directive else ""
+        return template.format(
+            evidence_block=evidence_block,
+            directive_block=directive_block,
+        )
 
     if topics:
         topics_text = "\n".join(f"  - {t}" for t in topics[:20])
@@ -62,6 +73,7 @@ You are an adaptive teacher. Follow this cycle:
 Explain → Example → Ask → Evaluate → Adapt → Continue.
 
 Use supplied source context as the primary authority.{memory_block}{directive_block}{evidence_block}"""
+
 
 
 class ChemistryTutorRuntime:
@@ -373,32 +385,43 @@ class ChemistryTutorRuntime:
             )
 
             # 5. RAG Retrieval & Controlled Web Research Fallback
+            import core.config
+            active_model_name = getattr(core.config, "LOCAL_MODEL_FILE", "").lower()
+            is_slm = ("0.5b" in active_model_name or "slm" in active_model_name)
+
             rag_evidence = ""
             try:
-                from core.rag.schema import ConfidenceLevel, RAGStatus
-                from core.research.policy import ResearchPolicy
-                from core.research.fallback import ResearchFallbackEvaluator
-                from core.research.service import get_web_research_service
-
                 retriever = get_ncert_retriever()
-                rag_ctx = retriever.retrieve_concept_aware(
-                    query=user_message,
-                    domain=resolved.domain,
-                    chapter=resolved.chapter,
-                    topic=resolved.topic,
-                    concept_id=resolved.concept_id,
-                    learning_objective="",
-                    top_k=2,
-                )
-                rag_evidence = rag_ctx.formatted_evidence()
+                # If SLM is active, prioritize ultra-compact atomic RAG card (< 75 tokens)
+                if is_slm:
+                    atomic_card = retriever.retrieve_atomic(resolved.concept_id, query=user_message)
+                    if atomic_card:
+                        rag_evidence = atomic_card
 
-                # Controlled Web Research Fallback (P11-T02)
-                research_policy = ResearchPolicy.from_settings()
-                if ResearchFallbackEvaluator.should_fallback(rag_ctx.confidence, research_policy, user_message):
-                    web_results = get_web_research_service().search_and_extract(user_message)
-                    web_evidence = get_web_research_service().format_web_evidence(web_results)
-                    if web_evidence:
-                        rag_evidence += f"\n\n{web_evidence}"
+                if not rag_evidence:
+                    from core.rag.schema import ConfidenceLevel, RAGStatus
+                    from core.research.policy import ResearchPolicy
+                    from core.research.fallback import ResearchFallbackEvaluator
+                    from core.research.service import get_web_research_service
+
+                    rag_ctx = retriever.retrieve_concept_aware(
+                        query=user_message,
+                        domain=resolved.domain,
+                        chapter=resolved.chapter,
+                        topic=resolved.topic,
+                        concept_id=resolved.concept_id,
+                        learning_objective="",
+                        top_k=1 if is_slm else 2,
+                    )
+                    rag_evidence = rag_ctx.formatted_evidence()
+
+                    # Controlled Web Research Fallback (P11-T02)
+                    research_policy = ResearchPolicy.from_settings()
+                    if ResearchFallbackEvaluator.should_fallback(rag_ctx.confidence, research_policy, user_message):
+                        web_results = get_web_research_service().search_and_extract(user_message)
+                        web_evidence = get_web_research_service().format_web_evidence(web_results)
+                        if web_evidence:
+                            rag_evidence += f"\n\n{web_evidence}"
             except Exception as rag_exc:
                 logger.warning(f"RAG / Web fallback skipped: {rag_exc}")
                 rag_evidence = (
@@ -429,18 +452,24 @@ class ChemistryTutorRuntime:
                 self._topics or None,
                 rag_evidence=isolated_evidence,
                 policy_directive=policy_directive,
-                memory_summary=memory.formatted_summary(),
+                memory_summary=memory.formatted_summary() if not is_slm else "",
+                is_slm=is_slm,
             )
-            dynamic_ctx = _get_tutor_context(context)
+            dynamic_ctx = _get_tutor_context(context) if not is_slm else None
+            hist = getattr(context, "history", None)
+            if is_slm and hist and isinstance(hist, list) and len(hist) > 3:
+                hist = hist[-3:]
+
             msgs = _build_messages(
                 system,
                 user_message,
-                getattr(context, "history", None),
+                hist,
                 dynamic_context=dynamic_ctx,
             )
             # Factual explanation turns benefit from low temperature (0.2) to eliminate hallucination
             gen_temp = 0.2 if (intent in (TutorIntent.EXPLAIN, TutorIntent.LEARN) or "AUTHORITATIVE NCERT EVIDENCE" in (isolated_evidence or "")) else 0.5
-            return get_inference_service().stream_chat(msgs, max_tokens=800, temperature=gen_temp)
+            token_limit = 500 if is_slm else 800
+            return get_inference_service().stream_chat(msgs, max_tokens=token_limit, temperature=gen_temp)
         except Exception as exc:
             logger.error(f"ChemistryTutorRuntime.stream error: {exc}")
             raise

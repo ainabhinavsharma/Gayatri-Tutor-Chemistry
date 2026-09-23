@@ -1,0 +1,48 @@
+{
+  "domain": "Inorganic Chemistry",
+  "chapter": "Chemical Bonding and Molecular Structure",
+  "class_level": "Class 11",
+  "source": "NCERT Chemistry Class 11 Chapter 4",
+  "cards": [
+    {
+      "concept_id": "BOND_VSEPR_ORDER",
+      "concept_name": "VSEPR Electron Pair Repulsion Order",
+      "principle": "Valence Shell Electron Pair Repulsion (VSEPR) theory postulates that electron pairs around a central atom orient themselves in 3D space to minimize electrostatic repulsion.",
+      "classifications": "Repulsion hierarchy: Lone Pair - Lone Pair (lp-lp) > Lone Pair - Bond Pair (lp-bp) > Bond Pair - Bond Pair (bp-bp).",
+      "formula_iupac": "Steric Number = (Number of bonded atoms) + (Number of lone pairs on central atom)",
+      "socratic_analogy": "Imagine passengers on a crowded subway bench. Lone pairs are passengers with bulky elbows spread wide, pushing adjacent passengers (bond pairs) closer together.",
+      "common_misconception": "Treating lone pairs and bond pairs as exerting equal repulsion. Because a lone pair is held by only one positive nucleus, its electron cloud is broader and exerts significantly stronger repulsion than a shared bonding pair.",
+      "prerequisite": "BOND_LEWIS_STRUCTURE"
+    },
+    {
+      "concept_id": "BOND_NH3_GEOMETRY",
+      "concept_name": "Ammonia (NH3) Molecular Geometry",
+      "principle": "In NH3, nitrogen has 5 valence electrons: 3 are shared with hydrogen atoms (3 bond pairs) and 2 form 1 lone pair. Steric number is 4.",
+      "classifications": "Electron geometry: Tetrahedral. Molecular shape: Trigonal Pyramidal. Point group: C3v.",
+      "formula_iupac": "Bond angle: 107° (compressed by ~2.5° from the ideal tetrahedral angle of 109.5° due to lp-bp repulsion).",
+      "socratic_analogy": "A camera tripod with an invisible balloon sitting on top. The balloon (lone pair) presses down on the three legs (N-H bonds), narrowing the angle between them.",
+      "common_misconception": "Assuming NH3 has a flat trigonal planar shape or an unperturbed 109.5° tetrahedral angle. The single lone pair repels the three N-H bonds strongly, pushing them down into a pyramidal shape with 107° bond angles.",
+      "prerequisite": "BOND_VSEPR_ORDER"
+    },
+    {
+      "concept_id": "BOND_H2O_GEOMETRY",
+      "concept_name": "Water (H2O) Molecular Geometry",
+      "principle": "In H2O, oxygen has 6 valence electrons: 2 form single bonds with hydrogen (2 bond pairs) and 4 form 2 lone pairs. Steric number is 4.",
+      "classifications": "Electron geometry: Tetrahedral. Molecular shape: Bent / V-shaped / Angular.",
+      "formula_iupac": "Bond angle: 104.5° (further compressed from 107° in NH3 due to presence of TWO strong lp-bp repulsions).",
+      "socratic_analogy": "Imagine two bulky balloons (lone pairs) on a tripod with only two legs (O-H bonds). The two balloons squeeze the legs even closer together than a single balloon would.",
+      "common_misconception": "Assuming H2O is linear like CO2. Unlike carbon in CO2 which has no lone pairs, oxygen has two lone pairs whose repulsion forces the H-O-H angle down to 104.5°.",
+      "prerequisite": "BOND_NH3_GEOMETRY"
+    },
+    {
+      "concept_id": "BOND_HYBRIDIZATION",
+      "concept_name": "Orbital Hybridization and Spatial Geometries",
+      "principle": "Hybridization is the intermixing of atomic orbitals of slightly different energies in the valence shell of an atom to form an equal number of equivalent hybrid orbitals with definite spatial orientations.",
+      "classifications": "sp (Linear, 180°), sp2 (Trigonal Planar, 120°), sp3 (Tetrahedral, 109.5°), sp3d (Trigonal Bipyramidal, 90° and 120°), sp3d2 (Octahedral, 90°).",
+      "formula_iupac": "Hybridization = Steric Number: SN 2 -> sp, SN 3 -> sp2, SN 4 -> sp3, SN 5 -> sp3d, SN 6 -> sp3d2",
+      "socratic_analogy": "Mixing 1 cup of red paint (s orbital) with 3 cups of blue paint (p orbitals) yields 4 identical cups of purple paint (sp3 hybrid orbitals).",
+      "common_misconception": "Confusing pi bonds with hybrid orbitals. Only sigma bonds and lone pairs occupy hybrid orbitals; unhybridized p orbitals overlap laterally to form pi bonds.",
+      "prerequisite": "BOND_VSEPR_ORDER"
+    }
+  ]
+}

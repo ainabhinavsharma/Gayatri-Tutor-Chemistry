@@ -130,6 +130,55 @@ class NCERTRetriever:
             status=RAGStatus.RAG_OK,
         )
 
+    def retrieve_atomic(self, concept_id: str, query: str = "") -> str:
+        """Retrieve an ultra-compact atomic knowledge card (< 75 tokens) for SLM context efficiency."""
+        import json
+        from pathlib import Path
+        from core.config import BASE_DIR
+
+        atomic_dir = BASE_DIR / "data" / "rag" / "atomic"
+        if not atomic_dir.exists():
+            return ""
+
+        cid_norm = (concept_id or "").upper().strip()
+        matched_card = None
+
+        for json_file in atomic_dir.glob("*.json"):
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    for card in data.get("cards", []):
+                        card_cid = card.get("concept_id", "").upper().strip()
+                        if cid_norm and card_cid == cid_norm:
+                            matched_card = card
+                            break
+                        if not matched_card and query:
+                            q_lower = query.lower()
+                            cname_lower = card.get("concept_name", "").lower()
+                            if card_cid.lower() in q_lower or (cname_lower and cname_lower in q_lower):
+                                matched_card = card
+                    if matched_card and cid_norm and matched_card.get("concept_id", "").upper().strip() == cid_norm:
+                        break
+            except Exception as exc:
+                logger.debug(f"Failed to read atomic card {json_file}: {exc}")
+                continue
+
+        if not matched_card:
+            return ""
+
+        # Format compact atomic evidence (< 75 tokens)
+        lines = [
+            "<ncert_evidence>",
+            f"[CONCEPT: {matched_card.get('concept_name', matched_card.get('concept_id'))}]",
+            f"PRINCIPLE: {matched_card.get('principle', '')}",
+            f"FORMULA/IUPAC: {matched_card.get('formula_iupac', '')}",
+            f"ANALOGY: {matched_card.get('socratic_analogy', '')}",
+            f"MISCONCEPTION: {matched_card.get('common_misconception', '')}",
+            f"PREREQUISITE: {matched_card.get('prerequisite', '')}",
+            "</ncert_evidence>"
+        ]
+        return "\n".join(lines)
+
 
 _global_retriever: Optional[NCERTRetriever] = None
 
@@ -139,3 +188,4 @@ def get_ncert_retriever() -> NCERTRetriever:
     if _global_retriever is None:
         _global_retriever = NCERTRetriever()
     return _global_retriever
+

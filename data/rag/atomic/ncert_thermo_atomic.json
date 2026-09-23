@@ -1,0 +1,68 @@
+{
+  "domain": "Physical Chemistry",
+  "chapter": "Thermodynamics",
+  "class_level": "Class 11",
+  "source": "NCERT Chemistry Class 11 Chapter 6",
+  "cards": [
+    {
+      "concept_id": "THERMO_SYSTEM_SURROUNDINGS",
+      "concept_name": "System, Surroundings, and Universe",
+      "principle": "The system is the specified part of the universe under thermodynamic study; surroundings include everything outside the system. Universe = System + Surroundings.",
+      "classifications": "Open system: exchanges both energy and matter. Closed system: exchanges energy but not matter. Isolated system: exchanges neither energy nor matter.",
+      "formula_iupac": "Universe = System + Surroundings; Isolated system: q = 0, w = 0, delta U = 0",
+      "socratic_analogy": "A cup of hot tea without a lid is an open system. Put a lid on it, it becomes a closed system. Put it inside an ideal thermos flask, it is an isolated system.",
+      "common_misconception": "Believing a closed system cannot transfer heat. In reality, a closed system freely conducts or radiates heat across its boundary; only matter is sealed.",
+      "prerequisite": "BASIC_CONCEPTS_MATTER"
+    },
+    {
+      "concept_id": "THERMO_INTERNAL_ENERGY",
+      "concept_name": "Internal Energy and State Functions",
+      "principle": "Internal energy (U) is an extensive state function representing the sum of all microscopic kinetic and potential energies of all atoms and molecules in the system.",
+      "classifications": "State function: depends only on the current state (P, V, T, n), completely independent of the path taken. Extensive property: scales with mass/quantity.",
+      "formula_iupac": "delta U = U_final - U_initial; For isochoric process (constant volume): delta U = q_v",
+      "socratic_analogy": "Internal energy is like the total amount of money in a bank account. Whether you got the balance by cash deposit or wire transfer, the current balance is the same.",
+      "common_misconception": "Trying to measure the absolute total value of U. In thermodynamics, absolute internal energy cannot be measured directly; only changes (delta U) are measurable.",
+      "prerequisite": "THERMO_SYSTEM_SURROUNDINGS"
+    },
+    {
+      "concept_id": "THERMO_FIRST_LAW",
+      "concept_name": "First Law of Thermodynamics & Expansion Work",
+      "principle": "Energy cannot be created or destroyed, only transformed from one form to another. Total energy of an isolated system remains constant.",
+      "classifications": "First Law formulation under IUPAC sign conventions.",
+      "formula_iupac": "delta U = q + w. Work: w = -P_ext * delta V. Expansion (work BY system): w < 0. Compression (work ON system): w > 0. Heat absorbed: q > 0. Heat released: q < 0.",
+      "socratic_analogy": "Internal energy is a bank account. Heat absorbed is a deposit (+q). Gas expanding and pushing the surroundings is spending money (-w). Your account balance changes by delta U = q + w.",
+      "common_misconception": "Treating expansion work as positive (+200 J) and adding 500 + 200 = 700 J. When gas expands, it expends energy on surroundings, so work must be negative (-200 J), giving delta U = +300 J.",
+      "prerequisite": "THERMO_INTERNAL_ENERGY"
+    },
+    {
+      "concept_id": "THERMO_ENTHALPY",
+      "concept_name": "Enthalpy and Reaction Enthalpy",
+      "principle": "Enthalpy (H) is the total heat content of a system at constant pressure. It is an extensive state function defined as H = U + P*V.",
+      "classifications": "Isobaric heat flow equals enthalpy change: q_p = delta H.",
+      "formula_iupac": "delta H = delta U + P*delta V; For gaseous reactions: delta H = delta U + (delta n_g)*R*T. Exothermic: delta H < 0. Endothermic: delta H > 0.",
+      "socratic_analogy": "Enthalpy accounts not only for internal energy but also the 'room' the system must clear for itself by pushing back atmospheric pressure.",
+      "common_misconception": "Assuming delta H equals delta U for all reactions. If moles of gas change (delta n_g != 0), work is performed against the atmosphere, making delta H distinct from delta U.",
+      "prerequisite": "THERMO_FIRST_LAW"
+    },
+    {
+      "concept_id": "THERMO_HESS_LAW",
+      "concept_name": "Hess's Law of Constant Heat Summation",
+      "principle": "The total enthalpy change for a chemical reaction is independent of the pathway or number of intermediate steps taken, because enthalpy is a state function.",
+      "classifications": "Standard reaction enthalpy calculation using standard enthalpies of formation.",
+      "formula_iupac": "delta_r H° = sum[nu_p * delta_f H°(products)] - sum[nu_r * delta_f H°(reactants)]. By convention, delta_f H° for elements in their standard states equals 0.",
+      "socratic_analogy": "Climbing from base camp to the mountain summit results in the exact same change in elevation whether you take the steep direct trail or the winding path.",
+      "common_misconception": "Assigning non-zero delta_f H° values to elements in their standard reference states (e.g. O2(g), C(graphite), N2(g) all have delta_f H° = 0 by definition).",
+      "prerequisite": "THERMO_ENTHALPY"
+    },
+    {
+      "concept_id": "THERMO_SPONTANEITY",
+      "concept_name": "Entropy, Gibbs Free Energy, and Spontaneity",
+      "principle": "A spontaneous process occurs without continuous external intervention. Spontaneity is governed by the Second Law of Thermodynamics (total entropy of universe increases) and Gibbs free energy.",
+      "classifications": "Gibbs-Helmholtz equation at constant temperature and pressure.",
+      "formula_iupac": "delta G = delta H - T * delta S. Spontaneous: delta G < 0. Equilibrium: delta G = 0. Non-spontaneous (forward): delta G > 0. At equilibrium: delta G° = -R * T * ln(K).",
+      "socratic_analogy": "A reaction seeks minimum energy (enthalpy driving force) and maximum disorder/freedom (entropy driving force). Temperature (T) dictates how strongly entropy matters.",
+      "common_misconception": "Believing all exothermic reactions (delta H < 0) are automatically spontaneous. If delta S is negative and temperature is high enough, T*delta S can outweigh delta H, making delta G positive.",
+      "prerequisite": "THERMO_ENTHALPY"
+    }
+  ]
+}
