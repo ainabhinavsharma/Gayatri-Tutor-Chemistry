@@ -31,6 +31,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, splash=None):
         super().__init__()
+        import time
+        self._start_time = time.time()
         self._splash = splash
         self._window_revealed = False
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
@@ -90,7 +92,7 @@ class MainWindow(QMainWindow):
         self._web.loadFinished.connect(self._on_web_loaded)
         from PySide6.QtCore import QTimer
         # Safety fallback timer in case loadFinished is delayed
-        QTimer.singleShot(4500, self._reveal_window)
+        QTimer.singleShot(6000, self._reveal_window)
 
         # Load UI
         ui_path = BASE_DIR / "app" / "ui" / "index.html"
@@ -110,10 +112,21 @@ class MainWindow(QMainWindow):
     def _on_web_loaded(self, ok: bool):
         """Called when QWebEngineView finishes loading HTML and assets."""
         from PySide6.QtCore import QTimer
+        import time
+
+        # Ensure splash is displayed for a minimum of 2.4 seconds
+        elapsed = time.time() - getattr(self, "_start_time", time.time())
+        min_duration = 2.4
+        remaining_sec = max(0.1, min_duration - elapsed)
+        delay_ms = int(remaining_sec * 1000)
+
         if self._splash:
-            self._splash.update_status("Finalizing workspace...", 95)
-        # Small delay to ensure complete first DOM paint
-        QTimer.singleShot(250, self._reveal_window)
+            QTimer.singleShot(
+                max(0, delay_ms - 300),
+                lambda: self._splash.update_status("Ready! Opening workspace...", 100) if self._splash else None
+            )
+
+        QTimer.singleShot(delay_ms, self._reveal_window)
 
     def _reveal_window(self):
         """Reveal main window and close splash screen."""
@@ -129,6 +142,7 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
             self._splash = None
+
 
 
     def mousePressEvent(self, event):

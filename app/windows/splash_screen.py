@@ -166,11 +166,34 @@ class SplashScreen(QWidget):
         # Center on primary screen
         self._center_on_screen()
 
+        # Smooth animation timer
+        import time
+        self._start_time = time.time()
+        self._anim_timer = QTimer(self)
+        self._anim_timer.setInterval(75)
+        self._anim_timer.timeout.connect(self._on_anim_tick)
+        self._anim_timer.start()
+
     def _center_on_screen(self):
         screen = QApplication.primaryScreen().availableGeometry()
         x = (screen.width() - self.width()) // 2 + screen.x()
         y = (screen.height() - self.height()) // 2 + screen.y()
         self.move(x, y)
+
+    def _on_anim_tick(self):
+        import time
+        elapsed = time.time() - getattr(self, "_start_time", time.time())
+        # Smoothly advance progress bar up to 95% over 2.4 seconds
+        target_progress = int(min(95, 15 + (elapsed / 2.4) * 80))
+        if self.progress_bar.value() < target_progress:
+            self.progress_bar.setValue(target_progress)
+
+        if elapsed >= 1.6:
+            if "privacy" not in self.status_label.text().lower() and "ready" not in self.status_label.text().lower():
+                self.status_label.setText("Verifying offline privacy & curriculum DAG...")
+        elif elapsed >= 0.8:
+            if "knowledge" not in self.status_label.text().lower():
+                self.status_label.setText("Loading Socratic neural weights & NCERT knowledge...")
 
     def update_status(self, text: str, progress: int = -1):
         """Update live status message and progress percentage."""
@@ -181,8 +204,11 @@ class SplashScreen(QWidget):
 
     def finish(self, target_window):
         """Smoothly reveal target window and close splash screen."""
+        if hasattr(self, "_anim_timer") and self._anim_timer.isActive():
+            self._anim_timer.stop()
         self.update_status("Ready! Opening workspace...", 100)
         target_window.show()
         target_window.raise_()
         target_window.activateWindow()
         self.close()
+
