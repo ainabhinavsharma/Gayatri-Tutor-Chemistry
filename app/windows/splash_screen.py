@@ -149,7 +149,8 @@ class SplashScreen(QWidget):
             font-size: 10px;
             color: #64748b;
         """)
-        version_label = QLabel("v3.0.0")
+        _ver = (BASE_DIR / "VERSION").read_text(encoding="utf-8").strip() if (BASE_DIR / "VERSION").exists() else "3.0.1"
+        version_label = QLabel(f"v{_ver}")
         version_label.setStyleSheet("""
             font-family: 'Segoe UI', system-ui, sans-serif;
             font-size: 10px;

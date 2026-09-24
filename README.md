@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build & Tests](https://img.shields.io/badge/tests-361%20passed-brightgreen.svg)]()
+[![Build & Tests](https://img.shields.io/badge/tests-303%20passed-brightgreen.svg)]()
 
 **Gayatri Chemistry Tutor** is an evidence-driven, NCERT-aligned adaptive AI tutoring system for High School & Entrance Exam Chemistry (specifically focused on **Thermodynamics** and **Inorganic Chemistry**).
 
@@ -80,6 +80,17 @@ Unlike generic LLM wrappers, Gayatri Tutor pairs a neural language model with a 
 - **Primary Curriculum Domains:**
   - **Thermodynamics:** Enthalpy, First Law, Hess's Law, Entropy, Gibbs Free Energy, Heat Capacities ($C_p, C_v$), Work conventions.
   - **Inorganic Chemistry:** Periodic Trends, Atomic Structure, Coordination Compounds, Oxidation States, Redox Reactions, Metallurgy.
+
+---
+
+## Socratic SLM Architecture (v3.0.1)
+
+The application utilizes an ultra-lean, specialized 0.5B Small Language Model:
+- **Base Architecture:** `Qwen/Qwen2.5-0.5B-Instruct`
+- **Model Format:** GGUF `Q4_K_M` (~379 MB)
+- **Local Inference:** Native `llama.cpp` (CPU-optimized, zero GPU required)
+- **Fine-Tuning:** 2,500 curated Socratic dialogues spanning 5 pedagogical pillars (Persona, Explain, Question, Evaluate, Remediate)
+- **Context Profile:** Bounded 3-turn history with compact atomic RAG evidence cards (<75 tokens) for sub-second CPU generation and minimal memory consumption (<800 MB RAM).
 
 ---
 

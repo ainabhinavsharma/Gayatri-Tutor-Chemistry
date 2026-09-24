@@ -57,15 +57,23 @@ for d in (DATA_DIR, MODELS_DIR, RAG_DIR, COURSES_DIR, LOG_DIR, UPLOADS_DIR):
 
 # ── Model configuration ────────────────────────────────────────────────
 
-# Primary local model locations
-_PROJECT_MODEL_DIR: Path = BASE_DIR / "GayatriAI" / "models" / "gayatri"
+# Primary local model locations — ordered by priority
+# 1. models/gayatri/ next to the exe (portable/installed path)
+# 2. GayatriAI/models/gayatri/ (dev layout from project root)
+# 3. MODELS_DIR (%LOCALAPPDATA%/GayatriAI/models/gayatri) — user data dir
+# 4. Downloads folder (convenience auto-detect)
 _PORTABLE_MODEL_DIR: Path = BASE_DIR / "models" / "gayatri"
+_PROJECT_MODEL_DIR: Path = BASE_DIR / "GayatriAI" / "models" / "gayatri"
 _DOWNLOADS_MODEL_DIR: Path = Path.home() / "Downloads"
 
 def _get_model_search_dirs() -> tuple[Path, ...]:
-    dirs = [_PORTABLE_MODEL_DIR, _PROJECT_MODEL_DIR, MODELS_DIR]
+    dirs = [
+        _PORTABLE_MODEL_DIR,      # <install_dir>/models/gayatri/  (primary for installed/portable)
+        _PROJECT_MODEL_DIR,       # <install_dir>/GayatriAI/models/gayatri/ (dev layout)
+        MODELS_DIR,               # %LOCALAPPDATA%/GayatriAI/models/gayatri/
+    ]
     if _DOWNLOADS_MODEL_DIR.exists():
-        dirs.append(_DOWNLOADS_MODEL_DIR)
+        dirs.append(_DOWNLOADS_MODEL_DIR)  # ~/Downloads (auto-detect convenience)
     return tuple(dirs)
 
 def _detect_initial_model_file() -> str:

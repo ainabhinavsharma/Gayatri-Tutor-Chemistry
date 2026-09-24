@@ -1,7 +1,7 @@
 # Gayatri Chemistry Tutor — Evaluator & Student Testing Guide
 
-**Version:** 3.0.0 (Release Candidate)  
-**Execution Mode:** 100% Offline (`Local Only`, Qwen2.5-3B-Instruct GGUF, Local SQLite)  
+**Version:** 3.0.1  
+**Execution Mode:** 100% Offline (`Local Only`, Gayatri-Tutor-SLM Qwen2.5-0.5B GGUF, Local SQLite)  
 **Target Syllabus:** CBSE & Entrance Chemistry (NCERT Aligned)  
 **Zero Cloud Egress:** No API keys, no internet connection required, zero telemetry tracking.
 
@@ -9,10 +9,17 @@
 
 ## 🚀 Quick Start (1-Click Launch)
 
-1. **Portable Version:** Extract `Gayatri_Chemistry_Tutor_Portable_v3.0.0.zip` and double-click **`Gayatri_Chemistry_Tutor.exe`**.
-2. **Installed Version:** Run **`Gayatri_Chemistry_Tutor_v3_Setup.exe`**, then double-click the **`Gayatri Chemistry Tutor`** desktop shortcut with the lotus icon.
+### Step 0: Model Placement (One-Time Setup)
+Before launching, ensure the model file is in place:
+1. Download **`Gayatri-Tutor-SLM-Q4_K_M.gguf`** (379 MB) from the release assets to your `Downloads` folder.
+2. If using the Portable ZIP: extract it and double-click **`setup_model.bat`** (it will auto-detect the model from your `Downloads` folder).
+3. If using the Setup Installer: run **`Gayatri_Chemistry_Tutor_v3.0.1_Setup.exe`**, then run **`setup_model.bat`** if prompted.
 
-*The application launches cleanly into the Chemistry Tutor workspace.*
+### Step 1: Launch Application
+- **Portable Version:** Double-click **`Gayatri_Chemistry_Tutor.exe`**.
+- **Installed Version:** Double-click the **`Gayatri Chemistry Tutor`** desktop shortcut with the lotus icon.
+
+*The application displays the animated lotus splash screen and initializes the offline Socratic chemistry workspace.*
 
 ---
 
@@ -79,7 +86,7 @@ Unlike generic chatbots that simply dump textbook answers, Gayatri is an **evide
 
 1. Click **`⚙️ Settings`** on the left navigation bar.
 2. Verify that **Execution Mode** is set to `Local Only (Zero Data Leak - Strictly Offline)`.
-3. Check the active model indicator: `Gayatri-Tutor-v3` running locally with zero network egress.
+3. Check the active model indicator: `Gayatri-Tutor-SLM-Q4_K_M.gguf` running locally with zero network egress.
 4. All student telemetry, chat histories, and knowledge embeddings reside strictly on your local computer.
 
 ---
