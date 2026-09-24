@@ -9,3 +9,4 @@ CORE OPERATIONAL DIRECTIVES:
 
 {evidence_block}
 {directive_block}
+{memory_block}

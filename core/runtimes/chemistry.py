@@ -41,9 +41,11 @@ def _build_chemistry_system_prompt(
         # Lean formatting for Small Language Model
         evidence_block = f"\n\n{rag_evidence}" if rag_evidence else ""
         directive_block = f"\n\n{policy_directive}" if policy_directive else ""
+        memory_block = f"\n\n{memory_summary}" if memory_summary else ""
         return template.format(
             evidence_block=evidence_block,
             directive_block=directive_block,
+            memory_block=memory_block,
         )
 
     if topics:
@@ -452,7 +454,7 @@ class ChemistryTutorRuntime:
                 self._topics or None,
                 rag_evidence=isolated_evidence,
                 policy_directive=policy_directive,
-                memory_summary=memory.formatted_summary() if not is_slm else "",
+                memory_summary=memory.formatted_summary(),
                 is_slm=is_slm,
             )
             dynamic_ctx = _get_tutor_context(context) if not is_slm else None

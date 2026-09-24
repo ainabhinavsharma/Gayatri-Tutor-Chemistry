@@ -520,7 +520,7 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
             }
         ]
 
-    student_display_name = student.name if student.name and student.name not in ("Demo Student", "Alex Sharma") else "Student"
+    student_display_name = student.name if student.name and student.name != "Demo Student" else "Student"
     return {
         "ok": True,
         "student": {
