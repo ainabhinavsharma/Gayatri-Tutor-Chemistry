@@ -53,7 +53,4 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gai3.ico"; Tasks: desktopicon
 
 [Run]
-; Run model setup check after install
-Filename: "{app}\setup_model.bat"; Description: "Check/setup model file"; Flags: nowait postinstall skipifsilent runasoriginaluser
-; Offer to launch app
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

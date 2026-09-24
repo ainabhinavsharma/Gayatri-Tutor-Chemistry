@@ -9,7 +9,6 @@ echo.
 
 set "MODEL_DIR=%~dp0models\gayatri"
 set "MODEL_FILE=%MODEL_DIR%\Gayatri-Tutor-SLM-Q4_K_M.gguf"
-set "DOWNLOADS=%USERPROFILE%\Downloads\Gayatri-Tutor-SLM-Q4_K_M.gguf"
 
 REM Create model directory if it doesn't exist
 if not exist "%MODEL_DIR%" mkdir "%MODEL_DIR%"
@@ -24,14 +23,21 @@ if exist "%MODEL_FILE%" (
     exit /b 0
 )
 
-REM Check Downloads folder
-if exist "%DOWNLOADS%" (
-    echo [FOUND] Model found in Downloads folder.
-    echo         Copying to application directory...
-    copy "%DOWNLOADS%" "%MODEL_FILE%"
+REM Search common candidate paths
+set "SRC="
+if exist "%USERPROFILE%\Downloads\Gayatri-Tutor-SLM-Q4_K_M.gguf" set "SRC=%USERPROFILE%\Downloads\Gayatri-Tutor-SLM-Q4_K_M.gguf"
+if not defined SRC if exist "%USERPROFILE%\Desktop\gayatri\Gayatri Chem Tutor\release_staging\Gayatri-Tutor-SLM-Q4_K_M.gguf" set "SRC=%USERPROFILE%\Desktop\gayatri\Gayatri Chem Tutor\release_staging\Gayatri-Tutor-SLM-Q4_K_M.gguf"
+if not defined SRC if exist "%USERPROFILE%\Desktop\gayatri\Gayatri Chem Tutor\GayatriAI\models\gayatri\Gayatri-Tutor-SLM-Q4_K_M.gguf" set "SRC=%USERPROFILE%\Desktop\gayatri\Gayatri Chem Tutor\GayatriAI\models\gayatri\Gayatri-Tutor-SLM-Q4_K_M.gguf"
+if not defined SRC if exist "%USERPROFILE%\Desktop\gayatri\test_portable_v301\models\gayatri\Gayatri-Tutor-SLM-Q4_K_M.gguf" set "SRC=%USERPROFILE%\Desktop\gayatri\test_portable_v301\models\gayatri\Gayatri-Tutor-SLM-Q4_K_M.gguf"
+
+if defined SRC (
+    echo [FOUND] Model detected at:
+    echo         %SRC%
+    echo         Installing to application directory...
+    copy "%SRC%" "%MODEL_FILE%"
     if errorlevel 1 (
         echo [ERROR] Copy failed. Please manually copy:
-        echo         From: %DOWNLOADS%
+        echo         From: %SRC%
         echo         To:   %MODEL_FILE%
         pause
         exit /b 1
@@ -53,8 +59,7 @@ echo.
 echo  2. Place the downloaded file here:
 echo     %MODEL_FILE%
 echo.
-echo  3. Run this script again, OR simply launch the app.
-echo     The app will show a helpful message if the model is missing.
+echo  3. Launch the app (or run this script to verify).
 echo.
 echo ============================================================
 pause

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QColor
 from PySide6.QtWebChannel import QWebChannel
