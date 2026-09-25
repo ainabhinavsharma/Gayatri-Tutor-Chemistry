@@ -36,9 +36,16 @@ INORGANIC_MISCONCEPTIONS: Dict[str, str] = {
     'METALLURGY_PROCESS_CONFUSION': 'Confusing calcination with roasting or leaching in ore extraction.',
 }
 
+BONDING_MISCONCEPTIONS: Dict[str, str] = {
+    'VSEPR_GEOMETRY_CONFUSION': 'Confusing electron pair geometry with molecular shape (ignoring lone pairs in VSEPR).',
+    'HYBRIDIZATION_CALC_ERROR': 'Miscalculating steric number or hybridization state in molecules or polyatomic ions.',
+    'BOND_POLARITY_VS_DIPOLE': 'Equating polar bonds with net molecular dipole moment without considering spatial symmetry.',
+}
+
 ALL_MISCONCEPTIONS: Dict[str, str] = {
     **THERMODYNAMICS_MISCONCEPTIONS,
     **INORGANIC_MISCONCEPTIONS,
+    **BONDING_MISCONCEPTIONS,
 }
 
 
@@ -83,6 +90,9 @@ REMEDIATION_GUIDANCE: Dict[str, str] = {
     'REDOX_CONFUSION': 'Oxidizing agents gain electrons and are reduced; reducing agents lose electrons and are oxidized.',
     'ANOMALOUS_BEHAVIOUR_CONFUSION': 'Second period elements (Li, Be, B, C, N, O, F) differ from heavier group members due to small size and absence of d-orbitals.',
     'METALLURGY_PROCESS_CONFUSION': 'Calcination involves heating in absence/limited air (carbonates/hydrates); roasting involves heating with excess air (sulfides).',
+    'VSEPR_GEOMETRY_CONFUSION': 'In VSEPR theory, steric number determines electron geometry, but lone pairs repel more strongly, altering molecular shape (e.g. NH3 is pyramidal, H2O is bent).',
+    'HYBRIDIZATION_CALC_ERROR': 'Steric number = (number of sigma bonds) + (number of lone pairs on central atom). 2 -> sp, 3 -> sp2, 4 -> sp3, 5 -> sp3d, 6 -> sp3d2.',
+    'BOND_POLARITY_VS_DIPOLE': 'Even with polar bonds, symmetrical molecular geometries (e.g. CO2 linear, CCl4 tetrahedral, BF3 trigonal planar) result in zero net dipole moment.',
 }
 
 
@@ -156,6 +166,15 @@ class MisconceptionTracker:
             if "calcination" in answer_lower or "roasting" in answer_lower or "leaching" in answer_lower or "metallurgy" in answer_lower:
                 return 'METALLURGY_PROCESS_CONFUSION'
 
+        # Chemical Bonding mappings
+        if any(kw in concept_lower for kw in ["bonding", "vsepr", "hybrid", "lewis", "dipole"]):
+            if "vsepr" in answer_lower or "geometry" in answer_lower or "shape" in answer_lower or "pyramidal" in answer_lower or "bent" in answer_lower:
+                return 'VSEPR_GEOMETRY_CONFUSION'
+            if "hybrid" in answer_lower or "steric" in answer_lower or "sp" in answer_lower:
+                return 'HYBRIDIZATION_CALC_ERROR'
+            if "dipole" in answer_lower or "polar" in answer_lower:
+                return 'BOND_POLARITY_VS_DIPOLE'
+
         # General keyword matching across ALL_MISCONCEPTIONS
         if "+w" in answer_lower or "-q" in answer_lower or "sign error" in error_lower:
             return 'THERMO_SIGN_CONVENTION'
@@ -179,6 +198,12 @@ class MisconceptionTracker:
             return 'ANOMALOUS_BEHAVIOUR_CONFUSION'
         if "calcination" in answer_lower or "roasting" in answer_lower or "metallurgy" in answer_lower or "metallurgy" in error_lower:
             return 'METALLURGY_PROCESS_CONFUSION'
+        if "vsepr" in answer_lower or "geometry vs shape" in answer_lower:
+            return 'VSEPR_GEOMETRY_CONFUSION'
+        if "steric number" in answer_lower or "hybridization error" in error_lower:
+            return 'HYBRIDIZATION_CALC_ERROR'
+        if "net dipole" in answer_lower or "polar bond vs molecule" in answer_lower:
+            return 'BOND_POLARITY_VS_DIPOLE'
 
         return None
 

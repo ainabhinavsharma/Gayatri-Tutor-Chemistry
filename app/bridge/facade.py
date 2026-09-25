@@ -893,3 +893,126 @@ class Bridge(QObject):
             from core.errors import sanitize_error
             sanitized = sanitize_error(exc, category="bridge_delete_session")
             return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    # ── Interactive Assessment Engine Slots ─────────────────────────────
+
+    @Slot(str, int, result=str)
+    def start_assessment(self, concepts_json: str = "[]", question_count: int = 5) -> str:
+        """Start a new assessment session for the student and return sanitized questions."""
+        try:
+            from core.assessment.manager import AssessmentManager
+            from core.assessment.grader import AssessmentGrader
+            from core.tutor.state import TutorStateManager
+            import json
+
+            concepts = []
+            if concepts_json:
+                try:
+                    concepts = json.loads(concepts_json)
+                except Exception:
+                    concepts = [concepts_json] if concepts_json.strip() else []
+
+            mgr = AssessmentManager(TutorStateManager())
+            student_id = "local_student_1"
+            assessment_id = mgr.create_assessment_session(
+                student_id=student_id,
+                concepts=concepts,
+                question_count=question_count
+            )
+
+            raw_questions = mgr.get_assessment_questions(assessment_id)
+            sanitized_list = []
+            for q_row in raw_questions:
+                q_item = mgr.question_map.get(q_row["question_id"])
+                if q_item:
+                    q_schema = q_item.to_question_schema()
+                    sanitized_list.append(AssessmentGrader.sanitize_for_client(q_schema))
+                else:
+                    sanitized_list.append({
+                        "id": q_row["question_id"],
+                        "question_id": q_row["question_id"],
+                        "concept_id": q_row["concept_id"],
+                        "difficulty": q_row["difficulty"],
+                        "type": q_row["type"],
+                        "question": q_row["question"],
+                    })
+
+            return json.dumps({
+                "ok": True,
+                "assessment_id": assessment_id,
+                "student_id": student_id,
+                "question_count": len(sanitized_list),
+                "questions": sanitized_list
+            })
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_start_assessment")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    @Slot(str, str, str, result=str)
+    def submit_assessment_answer(self, assessment_id: str, question_id: str, student_answer: str) -> str:
+        """Submit a single answer in an active assessment session for instant grading."""
+        try:
+            from core.assessment.manager import AssessmentManager
+            from core.tutor.state import TutorStateManager
+
+            mgr = AssessmentManager(TutorStateManager())
+            student_id = "local_student_1"
+            result = mgr.submit_attempt(
+                assessment_id=assessment_id,
+                student_id=student_id,
+                question_id=question_id,
+                student_answer=student_answer
+            )
+            result["ok"] = True
+            return json.dumps(result)
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_submit_assessment")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    @Slot(str, result=str)
+    def complete_assessment(self, assessment_id: str) -> str:
+        """Finalize an assessment session, update student mastery records, and return scorecard."""
+        try:
+            from core.assessment.manager import AssessmentManager
+            from core.tutor.state import TutorStateManager
+
+            mgr = AssessmentManager(TutorStateManager())
+            student_id = "local_student_1"
+            summary = mgr.complete_assessment_session(
+                assessment_id=assessment_id,
+                student_id=student_id
+            )
+            summary["ok"] = True
+            return json.dumps(summary)
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_complete_assessment")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    @Slot(str, result=str)
+    def get_assessment_report(self, assessment_id: str) -> str:
+        """Fetch the completed assessment report and score breakdown."""
+        try:
+            from core.assessment.manager import AssessmentManager
+            from core.tutor.state import TutorStateManager
+
+            mgr = AssessmentManager(TutorStateManager())
+            score_data = mgr.get_assessment_score(assessment_id)
+            attempts = mgr.get_assessment_attempts(assessment_id)
+            assessment_meta = mgr.get_assessment(assessment_id)
+
+            if not assessment_meta:
+                return json.dumps({"ok": False, "error": f"Assessment {assessment_id} not found."})
+
+            return json.dumps({
+                "ok": True,
+                "assessment": assessment_meta,
+                "score": score_data,
+                "attempts": attempts
+            })
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_assessment_report")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
