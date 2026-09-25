@@ -131,13 +131,14 @@ def get_llama_params(profile: HardwareProfile | None = None) -> LlamaParams:
     if profile is None:
         profile = detect_hardware()
     from pathlib import Path
+    from core.config import get_active_model_path
 
-    from core.config import LOCAL_MODEL_DIR, LOCAL_MODEL_FILE
-    model_path = Path(LOCAL_MODEL_DIR) / LOCAL_MODEL_FILE
+    model_path = get_active_model_path()
     model_size_mb = 1600  # default
     if model_path.exists():
         model_size_mb = int(model_path.stat().st_size / (1024 * 1024))
     return recommend_llama_params(profile, model_size_mb)
+
 
 
 # ── Hardware detection helpers ──────────────────────────────────────────
