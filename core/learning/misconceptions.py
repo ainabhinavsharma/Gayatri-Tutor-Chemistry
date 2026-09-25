@@ -42,10 +42,17 @@ BONDING_MISCONCEPTIONS: Dict[str, str] = {
     'BOND_POLARITY_VS_DIPOLE': 'Equating polar bonds with net molecular dipole moment without considering spatial symmetry.',
 }
 
+EQUILIBRIUM_MISCONCEPTIONS: Dict[str, str] = {
+    'LE_CHATELIER_CATALYST_CONFUSION': 'Believing a catalyst changes the equilibrium position or numerical value of K rather than only accelerating attainment of equilibrium.',
+    'KP_KC_RELATION_ERROR': 'Confusing delta n_g in Kp = Kc(RT)^deltan or including liquid/solid stoichiometric coefficients in gaseous mole change.',
+    'PH_BUFFER_CAPACITY_CONFUSION': 'Believing buffer solution pH never changes under any circumstances, or confusing acidic and basic buffer composition.',
+}
+
 ALL_MISCONCEPTIONS: Dict[str, str] = {
     **THERMODYNAMICS_MISCONCEPTIONS,
     **INORGANIC_MISCONCEPTIONS,
     **BONDING_MISCONCEPTIONS,
+    **EQUILIBRIUM_MISCONCEPTIONS,
 }
 
 
@@ -93,6 +100,9 @@ REMEDIATION_GUIDANCE: Dict[str, str] = {
     'VSEPR_GEOMETRY_CONFUSION': 'In VSEPR theory, steric number determines electron geometry, but lone pairs repel more strongly, altering molecular shape (e.g. NH3 is pyramidal, H2O is bent).',
     'HYBRIDIZATION_CALC_ERROR': 'Steric number = (number of sigma bonds) + (number of lone pairs on central atom). 2 -> sp, 3 -> sp2, 4 -> sp3, 5 -> sp3d, 6 -> sp3d2.',
     'BOND_POLARITY_VS_DIPOLE': 'Even with polar bonds, symmetrical molecular geometries (e.g. CO2 linear, CCl4 tetrahedral, BF3 trigonal planar) result in zero net dipole moment.',
+    'LE_CHATELIER_CATALYST_CONFUSION': 'A catalyst increases forward and reverse reaction rates equally by lowering activation energy; it does NOT alter equilibrium position or equilibrium constant K.',
+    'KP_KC_RELATION_ERROR': 'In Kp = Kc(RT)^deltan, delta n_g is strictly (moles of gaseous products - moles of gaseous reactants). Pure solids and liquids are omitted.',
+    'PH_BUFFER_CAPACITY_CONFUSION': 'Buffers resist moderate pH changes within their buffer capacity range (pH = pKa +/- 1). Acidic buffer is weak acid + its salt (CH3COOH/CH3COONa).',
 }
 
 
@@ -204,6 +214,12 @@ class MisconceptionTracker:
             return 'HYBRIDIZATION_CALC_ERROR'
         if "net dipole" in answer_lower or "polar bond vs molecule" in answer_lower:
             return 'BOND_POLARITY_VS_DIPOLE'
+        if "catalyst" in answer_lower and ("shift" in answer_lower or "changes k" in answer_lower or "alters k" in answer_lower or "yield" in answer_lower):
+            return 'LE_CHATELIER_CATALYST_CONFUSION'
+        if "kp" in answer_lower or "kc" in answer_lower or "deltan" in answer_lower or "delta n" in answer_lower:
+            return 'KP_KC_RELATION_ERROR'
+        if "buffer" in answer_lower and ("never changes" in answer_lower or "infinite" in answer_lower or "no change" in answer_lower):
+            return 'PH_BUFFER_CAPACITY_CONFUSION'
 
         return None
 

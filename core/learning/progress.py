@@ -58,6 +58,13 @@ CONCEPT_DOMAINS: Dict[str, str] = {
     "chem_stoichiometry": "Stoichiometry & Physical",
     "chem_stoichiometry_mole": "Stoichiometry & Physical",
     "chem_stoichiometry_limiting": "Stoichiometry & Physical",
+    "chem_equil_dynamic": "Physical Chemistry",
+    "chem_equil_constants": "Physical Chemistry",
+    "chem_equil_le_chatelier": "Physical Chemistry",
+    "chem_equil_ionic": "Physical Chemistry",
+    "chem_coord_entities": "Inorganic Chemistry",
+    "chem_coord_werner": "Inorganic Chemistry",
+    "chem_coord_nomenclature": "Inorganic Chemistry",
 }
 
 

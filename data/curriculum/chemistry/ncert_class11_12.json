@@ -1,6 +1,6 @@
 {
   "subject": "Chemistry",
-  "description": "NCERT Chemistry Class 11 & 12 - Thermodynamics and Inorganic Chemistry",
+  "description": "NCERT Chemistry Class 11 & 12 - Senior Secondary Physical, Inorganic, and Coordination Chemistry",
   "concepts": [
     {"id": "chem_thermo_system", "name": "System and Surroundings", "description": "Open, closed, isolated systems; state functions and state variables", "difficulty": 0.2, "prerequisites": []},
     {"id": "chem_thermo_first_law", "name": "First Law of Thermodynamics", "description": "Internal energy, heat (q), work (w); delta U = q + w", "difficulty": 0.3, "prerequisites": ["chem_thermo_system"]},
@@ -17,6 +17,13 @@
     {"id": "chem_inorg_sblock", "name": "s-Block Elements", "description": "Group 1 and 2 properties and reactions; sodium, potassium, magnesium, calcium compounds", "difficulty": 0.5, "prerequisites": ["chem_inorg_periodic", "chem_inorg_bonding"]},
     {"id": "chem_inorg_pblock", "name": "p-Block Elements", "description": "Group 13-18 elements; nitrogen family, oxygen family, halogens, noble gases", "difficulty": 0.6, "prerequisites": ["chem_inorg_periodic", "chem_inorg_bonding"]},
     {"id": "chem_balancing", "name": "Equation Balancing", "description": "Balancing chemical equations by inspection and oxidation number method", "difficulty": 0.3, "prerequisites": ["chem_inorg_periodic"]},
-    {"id": "chem_stoichiometry", "name": "Stoichiometry and Mole Concept", "description": "Mole, Avogadro number; stoichiometric calculations; limiting reagent; percentage yield", "difficulty": 0.4, "prerequisites": ["chem_balancing"]}
+    {"id": "chem_stoichiometry", "name": "Stoichiometry and Mole Concept", "description": "Mole, Avogadro number; stoichiometric calculations; limiting reagent; percentage yield", "difficulty": 0.4, "prerequisites": ["chem_balancing"]},
+    {"id": "chem_equil_dynamic", "name": "Dynamic Chemical Equilibrium", "description": "Law of mass action, forward and reverse reaction rates, equilibrium quotient Qc", "difficulty": 0.4, "prerequisites": ["chem_stoichiometry"]},
+    {"id": "chem_equil_constants", "name": "Equilibrium Constants Kc and Kp", "description": "Homogeneous and heterogeneous equilibria; relationship Kp = Kc(RT)^deltan", "difficulty": 0.5, "prerequisites": ["chem_equil_dynamic"]},
+    {"id": "chem_equil_le_chatelier", "name": "Le Chatelier Principle", "description": "Effect of concentration, temperature, pressure changes and catalyst on equilibrium position", "difficulty": 0.5, "prerequisites": ["chem_equil_constants", "chem_thermo_enthalpy"]},
+    {"id": "chem_equil_ionic", "name": "Ionic Equilibrium and pH", "description": "Auto-ionization of water, Kw, pH, weak acids/bases, buffer solutions, common ion effect", "difficulty": 0.6, "prerequisites": ["chem_equil_constants"]},
+    {"id": "chem_coord_entities", "name": "Coordination Entities and Ligands", "description": "Central metal ion, monodentate, bidentate, ambidentate, and chelating ligands", "difficulty": 0.4, "prerequisites": ["chem_inorg_bonding"]},
+    {"id": "chem_coord_werner", "name": "Werner Coordination Theory", "description": "Primary ionizable valency (oxidation state) and secondary non-ionizable valency (coordination number)", "difficulty": 0.5, "prerequisites": ["chem_coord_entities"]},
+    {"id": "chem_coord_nomenclature", "name": "IUPAC Nomenclature of Complexes", "description": "Naming cationic, neutral, and anionic coordination complexes with oxidation states", "difficulty": 0.5, "prerequisites": ["chem_coord_werner"]}
   ]
 }
