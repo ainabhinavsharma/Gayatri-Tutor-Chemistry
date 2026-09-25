@@ -50,3 +50,19 @@ class ChatBridge(QObject):
     @Slot(result=str)
     def get_curriculum_progress(self) -> str:
         return self.facade.get_curriculum_progress()
+
+    @Slot(str, int, result=str)
+    def start_assessment(self, concepts_json: str = "[]", question_count: int = 5) -> str:
+        return self.facade.start_assessment(concepts_json, question_count)
+
+    @Slot(str, str, str, result=str)
+    def submit_assessment_answer(self, assessment_id: str, question_id: str, student_answer: str) -> str:
+        return self.facade.submit_assessment_answer(assessment_id, question_id, student_answer)
+
+    @Slot(str, result=str)
+    def complete_assessment(self, assessment_id: str) -> str:
+        return self.facade.complete_assessment(assessment_id)
+
+    @Slot(str, result=str)
+    def get_assessment_report(self, assessment_id: str) -> str:
+        return self.facade.get_assessment_report(assessment_id)
