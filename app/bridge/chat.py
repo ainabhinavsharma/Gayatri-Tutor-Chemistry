@@ -66,3 +66,12 @@ class ChatBridge(QObject):
     @Slot(str, result=str)
     def get_assessment_report(self, assessment_id: str) -> str:
         return self.facade.get_assessment_report(assessment_id)
+
+    @Slot(result=str)
+    def get_spaced_review_queue(self) -> str:
+        return self.facade.get_spaced_review_queue()
+
+    @Slot(result=str)
+    def export_student_analytics(self) -> str:
+        return self.facade.export_student_analytics()
+

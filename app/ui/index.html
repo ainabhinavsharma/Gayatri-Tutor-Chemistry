@@ -1286,6 +1286,10 @@
                   <div class="dash-stat-lbl">Streak</div>
                   <div class="dash-stat-val" style="color: #f5c542;" id="dashStreak">🔥 4 Days</div>
                 </div>
+                <div class="dash-stat-card" style="cursor: pointer; background: #1f2847;" onclick="exportAnalyticsReport()" title="Export JSON Progress Report">
+                  <div class="dash-stat-lbl">Report</div>
+                  <div class="dash-stat-val" style="color: #8bb5e8; font-size: 13px;">📥 Export</div>
+                </div>
               </div>
             </div>
 
@@ -2576,6 +2580,24 @@
         activeAssessmentId = null;
       } catch (e) {
         console.error("Error finalizing assessment:", e);
+      }
+    }
+
+    async function exportAnalyticsReport() {
+      if (!bridge || typeof bridge.export_student_analytics !== 'function') return;
+      try {
+        var raw = await bridge.export_student_analytics();
+        var blob = new Blob([raw], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'gayatri_student_progress_report.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error("Failed to export analytics report:", e);
       }
     }
 

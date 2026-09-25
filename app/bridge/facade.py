@@ -1016,3 +1016,62 @@ class Bridge(QObject):
             from core.errors import sanitize_error
             sanitized = sanitize_error(exc, category="bridge_assessment_report")
             return json.dumps({"ok": False, "error": sanitized.user_message})
+
+    # ── Spaced Repetition & Analytics Export Slots ───────────────────────
+
+    @Slot(result=str)
+    def get_spaced_review_queue(self) -> str:
+        """Fetch all concepts currently due or scheduled for spaced review."""
+        try:
+            from core.tutor.state import TutorStateManager
+            from core.learning.scheduler import SpacedReviewScheduler
+            from datetime import datetime
+
+            sm = TutorStateManager()
+            scheduler = SpacedReviewScheduler()
+            scheduler._ensure_table_exists(sm.conn)
+
+            cursor = sm.conn.execute(
+                "SELECT * FROM student_spaced_reviews WHERE student_id = ? ORDER BY next_review_at ASC",
+                ("local_student_1",)
+            )
+            rows = cursor.fetchall()
+            now = datetime.now()
+            queue = []
+            for r in rows:
+                due_str = r["next_review_at"]
+                is_due = scheduler.is_review_due(due_str, now)
+                queue.append({
+                    "concept_id": r["concept_id"],
+                    "next_review_at": due_str,
+                    "interval_days": r["interval"],
+                    "review_count": r["review_count"],
+                    "last_result": r["last_result"],
+                    "is_due": is_due,
+                })
+
+            return json.dumps({"ok": True, "queue": queue})
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_spaced_review_queue")
+            return json.dumps({"ok": False, "error": sanitized.user_message, "queue": []})
+
+    @Slot(result=str)
+    def export_student_analytics(self) -> str:
+        """Export comprehensive student progress, mastery DAG, and telemetry as structured JSON."""
+        try:
+            from core.learning.progress import ProgressService
+            from core.tutor.state import TutorStateManager
+            import json
+
+            sm = TutorStateManager()
+            ps = ProgressService(sm)
+            summary = ps.get_student_progress_summary("local_student_1")
+            summary["exported_at"] = sm.get_current_timestamp() if hasattr(sm, "get_current_timestamp") else ""
+            summary["ok"] = True
+            return json.dumps(summary, indent=2)
+        except Exception as exc:
+            from core.errors import sanitize_error
+            sanitized = sanitize_error(exc, category="bridge_export_student_analytics")
+            return json.dumps({"ok": False, "error": sanitized.user_message})
+

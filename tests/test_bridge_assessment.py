@@ -45,3 +45,22 @@ def test_bridge_assessment_lifecycle():
     assert "score" in rep
     assert rep["score"]["score_percentage"] == comp["score_percentage"]
     assert len(rep["attempts"]) >= 1
+
+
+def test_bridge_analytics_and_review_queue():
+    bridge = Bridge()
+
+    # Test spaced review queue retrieval
+    queue_str = bridge.get_spaced_review_queue()
+    queue_data = json.loads(queue_str)
+    assert queue_data["ok"] is True
+    assert isinstance(queue_data["queue"], list)
+
+    # Test student progress export
+    export_str = bridge.export_student_analytics()
+    export_data = json.loads(export_str)
+    assert export_data["ok"] is True
+    assert "overall_mastery" in export_data
+    assert "domain_mastery" in export_data
+    assert "concepts" in export_data
+
