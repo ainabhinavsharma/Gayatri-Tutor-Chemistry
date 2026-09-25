@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build & Tests](https://img.shields.io/badge/tests-303%20passed-brightgreen.svg)]()
+[![Build & Tests](https://img.shields.io/badge/tests-305%20passed-brightgreen.svg)]()
 
 **Gayatri Chemistry Tutor** is an evidence-driven, NCERT-aligned adaptive AI tutoring system for High School & Entrance Exam Chemistry (specifically focused on **Thermodynamics** and **Inorganic Chemistry**).
 
@@ -150,25 +150,25 @@ pytest tests/test_phase13_model_config.py
 
 ## Verification & Status
 
-All 14 Execution Plan phases have been fully implemented, verified, and integrated with **361 passed unit and integration tests**.
+All 14 Execution Plan phases and v4 engineering upgrades have been fully implemented, verified, and integrated with **305 passed unit and integration tests**.
 
 | Phase | Description | Status |
 |---|---|---|
 | Phase 0 | Baseline & Discovery | `DONE` |
-| Phase 1 | Student-Scoped Learning State | `DONE` |
-| Phase 2 | Chemistry Answer Evaluator | `DONE` |
+| Phase 1 | Student-Scoped Learning State & Two-Mode Architecture | `DONE` |
+| Phase 2 | Chemistry Answer Evaluator & Bonding Domain Expansion | `DONE` |
 | Phase 3 | Dynamic Concept Resolution | `DONE` |
 | Phase 4 | Adaptive Learning Engine | `DONE` |
-| Phase 5 | Spaced Review & Retention | `DONE` |
-| Phase 6 | Assessment Engine | `DONE` |
+| Phase 5 | Spaced Review & Retention Queue | `DONE` |
+| Phase 6 | Interactive Assessment Engine & UI Runner | `DONE` |
 | Phase 7 | NCERT Concept-Aware RAG | `DONE` |
 | Phase 8 | Tutor State Machine Integration | `DONE` |
-| Phase 9 | Progress & Analytics Service | `DONE` |
+| Phase 9 | Progress & Analytics Service & JSON Export | `DONE` |
 | Phase 10 | Reliability & Crash Recovery | `DONE` |
 | Phase 11 | Curriculum Validation | `DONE` |
 | Phase 12 | Security & Student Isolation | `DONE` |
 | Phase 13 | Model Manifest & Config | `DONE` |
-| Phase 14 | Documentation & Cleanup | `DONE` |
+| Phase 14 | Documentation & Production Cleanup | `DONE` |
 
 ---
 
