@@ -4,7 +4,6 @@ Provides evidence filtering and stream analysis for learning events.
 """
 from __future__ import annotations
 
-from typing import List
 from core.tutor.state import LearningEvent
 
 
@@ -12,12 +11,12 @@ class LearningEventStream:
     """Helper class for analyzing and filtering evidence event streams."""
 
     @staticmethod
-    def filter_valid_events(events: List[LearningEvent]) -> List[LearningEvent]:
+    def filter_valid_events(events: list[LearningEvent]) -> list[LearningEvent]:
         """Filter out 'uncertain' events from mastery evidence calculation."""
         return [e for e in events if e.correctness != 'uncertain']
 
     @staticmethod
-    def calculate_recent_accuracy(events: List[LearningEvent], n: int = 5) -> float:
+    def calculate_recent_accuracy(events: list[LearningEvent], n: int = 5) -> float:
         """Calculate accuracy over the last N valid events."""
         valid = LearningEventStream.filter_valid_events(events)
         if not valid:
@@ -34,7 +33,7 @@ class LearningEventStream:
         return sum(scores) / len(scores)
 
     @staticmethod
-    def calculate_long_term_accuracy(events: List[LearningEvent]) -> float:
+    def calculate_long_term_accuracy(events: list[LearningEvent]) -> float:
         """Calculate overall accuracy over all valid historical events."""
         valid = LearningEventStream.filter_valid_events(events)
         if not valid:
@@ -50,7 +49,7 @@ class LearningEventStream:
         return sum(scores) / len(scores)
 
     @staticmethod
-    def get_independent_success_rate(events: List[LearningEvent]) -> float:
+    def get_independent_success_rate(events: list[LearningEvent]) -> float:
         """Calculate ratio of correct events completed without hints."""
         valid = LearningEventStream.filter_valid_events(events)
         correct_events = [e for e in valid if e.correctness == 'correct']

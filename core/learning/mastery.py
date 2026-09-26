@@ -11,7 +11,7 @@ Clamped 0.0 <= mastery <= 1.0.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tutor.state import LearningEvent, StudentConceptMastery, TutorStateManager
@@ -29,7 +29,7 @@ class MasteryWeights:
 class MasteryCalculator:
     """Calculates student mastery transparently based on evidence records."""
 
-    def __init__(self, weights: Optional[MasteryWeights] = None):
+    def __init__(self, weights: MasteryWeights | None = None):
         self.weights = weights or MasteryWeights()
 
     def _event_accuracy(self, correctness: str) -> float:
@@ -41,7 +41,7 @@ class MasteryCalculator:
             return 0.0
         return 0.0  # uncertain is filtered before this or scores 0
 
-    def compute_mastery(self, events: List[LearningEvent]) -> float:
+    def compute_mastery(self, events: list[LearningEvent]) -> float:
         """Compute mastery score (0.0 to 1.0) from a list of learning events."""
         valid_events = [e for e in events if e.correctness != 'uncertain']
         if not valid_events:
@@ -93,7 +93,7 @@ class MasteryCalculator:
         self,
         student_id: str,
         concept_id: str,
-        events: List[LearningEvent],
+        events: list[LearningEvent],
         state_manager: TutorStateManager,
     ) -> StudentConceptMastery:
         """Calculate mastery from evidence and update persistent state_manager database."""

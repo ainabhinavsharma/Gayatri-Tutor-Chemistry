@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 from core.config import BASE_DIR
 from core.rag.ingester import NCERTIngester
@@ -19,8 +18,8 @@ logger = logging.getLogger("gayatri.rag.seeder")
 
 
 def seed_ncert_rag(
-    store: Optional[RAGStore] = None,
-    rag_dir: Optional[Path] = None,
+    store: RAGStore | None = None,
+    rag_dir: Path | None = None,
 ) -> int:
     """Idempotently seed NCERT textbook chapters and sources into RAGStore.
 
@@ -38,7 +37,7 @@ def seed_ncert_rag(
     sources_file = source_dir / "sources.json"
     if sources_file.is_file():
         try:
-            with open(sources_file, "r", encoding="utf-8") as sf:
+            with open(sources_file, encoding="utf-8") as sf:
                 sources_data = json.load(sf)
                 for s in sources_data.get("sources", []):
                     meta = SourceMetadata(

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add project root to sys.path
@@ -14,25 +14,25 @@ if str(PROJECT_ROOT) not in sys.path:
 def check_dependencies() -> tuple[bool, list[str]]:
     """Verify essential runtime dependencies are available before launching Qt."""
     missing: list[str] = []
-    
+
     # Check PySide6
     try:
         import PySide6.QtWidgets  # noqa: F401
     except ImportError as e:
         missing.append(f"PySide6 ({e})")
-        
+
     # Check sqlite3
     try:
         import sqlite3  # noqa: F401
     except ImportError as e:
         missing.append(f"sqlite3 ({e})")
-        
+
     # Check core configuration
     try:
         import core.config  # noqa: F401
     except ImportError as e:
         missing.append(f"core.config ({e})")
-        
+
     return len(missing) == 0, missing
 
 
@@ -76,8 +76,9 @@ def main():
             pass
 
     from PySide6.QtGui import QIcon
-    from PySide6.QtWidgets import QApplication
     from PySide6.QtNetwork import QLocalServer, QLocalSocket
+    from PySide6.QtWidgets import QApplication
+
     from core.config import WINDOW_HEIGHT, WINDOW_MIN_HEIGHT, WINDOW_MIN_WIDTH, WINDOW_WIDTH
     from core.logging_setup import setup_logging
 

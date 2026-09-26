@@ -26,9 +26,9 @@ Usage:
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-import re
 from typing import Any
 
 logger = logging.getLogger("gayatri.agents")
@@ -93,6 +93,7 @@ def is_negated_match(text_tokens: list[str], start_idx: int, window: int = 3) ->
 
 
 from core.agents.policy import AgentPolicy
+
 
 @dataclass
 class AgentSpec:
@@ -382,7 +383,7 @@ class AgentRegistry:
         Returns DispatchResult.
         """
         text_lower = text.lower().strip()
-        
+
         # Check for multi-intent
         multi_intent_separators = [" and then ", " also ", " after that "]
         is_multi_intent = any(sep in text_lower for sep in multi_intent_separators)
@@ -404,7 +405,7 @@ class AgentRegistry:
             logger.info(f"Dispatched via explicit command to '{match.spec.name}' (confidence: 1.0)")
             return DispatchResult(primary=match, alternatives=[], is_ambiguous=False, is_multi_intent=is_multi_intent)
         elif len(command_matches) > 1:
-            logger.warning(f"Ambiguous explicit command matches multiple agents")
+            logger.warning("Ambiguous explicit command matches multiple agents")
             return DispatchResult(primary=None, alternatives=command_matches, is_ambiguous=True, is_multi_intent=is_multi_intent)
 
         # 2. Evaluate all agents

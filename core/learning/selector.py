@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tutor.state import TutorStateManager
@@ -18,10 +18,10 @@ class ConceptSelectionResult:
     selected_concept_id: str
     score: float
     breakdown: dict
-    candidate_rankings: List[dict]
+    candidate_rankings: list[dict]
 
 
-DEFAULT_PREREQUISITES_MAP: Dict[str, List[str]] = {
+DEFAULT_PREREQUISITES_MAP: dict[str, list[str]] = {
     # NCERT standard curriculum IDs
     'chem_thermo_first_law': ['chem_thermo_system'],
     'chem_thermo_enthalpy': ['chem_thermo_first_law'],
@@ -50,7 +50,7 @@ class ConceptSelector:
     def __init__(
         self,
         prerequisite_threshold: float = 0.7,
-        prerequisites_map: Optional[Dict[str, List[str]]] = None,
+        prerequisites_map: dict[str, list[str]] | None = None,
     ):
         self.prerequisite_threshold = prerequisite_threshold
         # Default prerequisite map for Thermodynamics & Inorganic (NCERT + legacy)
@@ -127,7 +127,7 @@ class ConceptSelector:
     def select_next_concept(
         self,
         student_id: str,
-        candidate_concept_ids: List[str],
+        candidate_concept_ids: list[str],
         state_manager: TutorStateManager,
     ) -> ConceptSelectionResult:
         """Select the highest-ranked candidate concept for the student."""

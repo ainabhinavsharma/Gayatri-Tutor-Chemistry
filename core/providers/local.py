@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import threading
 import time
-
 from collections.abc import Iterator
 
 from core.config import (
@@ -336,7 +335,7 @@ class LocalProvider:
                         if cls._cancel_flag:
                             logger.info("Local model generation cancelled by user.")
                             break
-                        
+
                         text = chunk["choices"][0].get("text", "")
                         if text:
                             if first_token_time is None:
@@ -357,7 +356,7 @@ class LocalProvider:
             except Exception as exc:
                 logger.error(f"Generation failed: {exc}")
                 raise LocalModelError(f"Generation failed: {exc}") from exc
-                
+
         return _generator()
 
     @classmethod

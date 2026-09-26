@@ -14,7 +14,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any, List, Optional, Set, Union
+from typing import Any
 
 logger = logging.getLogger("gayatri.security.validation")
 
@@ -31,7 +31,7 @@ DEFAULT_MAX_JSON_BYTES = 1_000_000       # 1 MB
 DEFAULT_MAX_FILE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 # ── Allowed Document Extensions ───────────────────────────────────────
-ALLOWED_DOCUMENT_EXTENSIONS: Set[str] = {
+ALLOWED_DOCUMENT_EXTENSIONS: set[str] = {
     ".pdf",
     ".txt",
     ".json",
@@ -40,7 +40,7 @@ ALLOWED_DOCUMENT_EXTENSIONS: Set[str] = {
 }
 
 # Dangerous executable extensions that must never be permitted
-DISALLOWED_EXECUTABLE_EXTENSIONS: Set[str] = {
+DISALLOWED_EXECUTABLE_EXTENSIONS: set[str] = {
     ".exe", ".bat", ".cmd", ".sh", ".bash", ".ps1", ".vbs", ".js", ".py", ".msi", ".dll",
     ".php", ".jsp", ".asp", ".cgi", ".phtml", ".phar"
 }
@@ -174,11 +174,11 @@ def validate_prompt_text(prompt: str, max_length: int = DEFAULT_MAX_PROMPT_LENGT
 
 
 def validate_json(
-    raw_json: Union[str, bytes],
+    raw_json: str | bytes,
     max_size_bytes: int = DEFAULT_MAX_JSON_BYTES,
-    required_keys: Optional[List[str]] = None,
-    max_bytes: Optional[int] = None,
-) -> Union[dict, list]:
+    required_keys: list[str] | None = None,
+    max_bytes: int | None = None,
+) -> dict | list:
     """Validate and deserialize a JSON payload safely with size limits."""
     limit = max_bytes if max_bytes is not None else max_size_bytes
     if isinstance(raw_json, str):
@@ -209,8 +209,8 @@ def validate_json(
 
 
 def validate_file_extension(
-    filename_or_path: Union[str, Path],
-    allowed_extensions: Optional[Set[str]] = None,
+    filename_or_path: str | Path,
+    allowed_extensions: set[str] | None = None,
 ) -> str:
     """Validate a filename or path against allowed extension allowlist and check for double extensions."""
     p = Path(filename_or_path)
@@ -247,7 +247,7 @@ def validate_file_extension(
 def validate_file_size(
     size_bytes: int,
     max_size_bytes: int = DEFAULT_MAX_FILE_BYTES,
-    max_bytes: Optional[int] = None,
+    max_bytes: int | None = None,
 ) -> int:
     """Validate file size against maximum limit."""
     limit = max_bytes if max_bytes is not None else max_size_bytes
@@ -269,7 +269,7 @@ EXTENSION_TO_MIME: dict[str, str] = {
 }
 
 
-def validate_mime_type(content: bytes, expected_mime: Optional[str] = None) -> str:
+def validate_mime_type(content: bytes, expected_mime: str | None = None) -> str:
     """Verify content against basic MIME magic byte signatures."""
     if not content:
         raise ValueError("File content is empty")
@@ -314,7 +314,7 @@ def validate_uploaded_file(
     filename: str,
     content_or_stream: Any,
     max_bytes: int = DEFAULT_MAX_FILE_BYTES,
-    allowed_extensions: Optional[Set[str]] = None,
+    allowed_extensions: set[str] | None = None,
 ) -> dict:
     """Validate uploaded file extension, size, and content MIME signature."""
     ext = validate_file_extension(filename, allowed_extensions=allowed_extensions)

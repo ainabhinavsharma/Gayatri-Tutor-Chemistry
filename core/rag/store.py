@@ -5,11 +5,9 @@ Stores chunks and provides lexical/TF-IDF similarity searching.
 from __future__ import annotations
 
 import logging
-import math
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional
 
 from core.config import DB_PATH
 from core.db import get_safe_db_connection
@@ -28,7 +26,7 @@ class RAGStore:
 
     def __init__(self, db_path: str | Path | None = None):
         self.db_path = Path(db_path) if db_path else Path(DB_PATH)
-        self._db_conn: Optional[sqlite3.Connection] = None
+        self._db_conn: sqlite3.Connection | None = None
         self._create_schema()
 
     @property
@@ -109,6 +107,10 @@ class RAGStore:
                 source.source_id, source.title, source.class_level, source.chapter,
                 source.subject, source.source_type, source.version, source.license, source.checksum
             ))
+
+    def add_chunk(self, chunk: DocumentChunk) -> None:
+        """Insert or replace a single chunk in the store."""
+        self.add_chunks([chunk])
 
     def add_chunks(self, chunks: list[DocumentChunk]) -> None:
         """Insert or replace chunks in the store, ensuring source records exist."""

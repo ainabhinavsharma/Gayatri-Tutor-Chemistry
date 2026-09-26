@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("gayatri.curriculum.validator")
 
@@ -34,7 +34,7 @@ STABLE_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_.\-]+$")
 class CurriculumCorruptionError(Exception):
     """Raised when curriculum data fails structural integrity or validation rules."""
 
-    def __init__(self, message: str, errors: Optional[List[str]] = None):
+    def __init__(self, message: str, errors: list[str] | None = None):
         super().__init__(message)
         self.errors = errors or []
 
@@ -42,24 +42,24 @@ class CurriculumCorruptionError(Exception):
 @dataclass
 class CurriculumValidationResult:
     is_valid: bool
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     concept_count: int = 0
 
 
 class CurriculumValidator:
     """Validates structural integrity of curriculum definitions and prerequisite graphs (Section 18)."""
 
-    def validate_concepts(self, concepts: List[dict]) -> CurriculumValidationResult:
+    def validate_concepts(self, concepts: list[dict]) -> CurriculumValidationResult:
         """Validate a list of concept dictionary definitions."""
-        errors: List[str] = []
-        warnings: List[str] = []
+        errors: list[str] = []
+        warnings: list[str] = []
 
         if not concepts:
             return CurriculumValidationResult(is_valid=False, errors=["Curriculum concept list is empty."])
 
-        concept_map: Dict[str, dict] = {}
-        concept_ids: Set[str] = set()
+        concept_map: dict[str, dict] = {}
+        concept_ids: set[str] = set()
 
         # 1. Check unique concept IDs, stable ID formatting, and valid attributes
         for idx, c in enumerate(concepts):
@@ -101,7 +101,7 @@ class CurriculumValidator:
                 warnings.append(f"Concept '{cid}' has no question mappings or assessment types defined.")
 
         # 2. Check prerequisite IDs: existence, stable ID format, orphan prerequisites, self-dependency
-        adj: Dict[str, List[str]] = {cid: [] for cid in concept_ids}
+        adj: dict[str, list[str]] = {cid: [] for cid in concept_ids}
         for cid, c in concept_map.items():
             prereqs = c.get("prerequisites") or []
             for p_id in prereqs:
@@ -121,9 +121,9 @@ class CurriculumValidator:
                     adj[cid].append(p_id)
 
         # 3. Check cycle detection in prerequisite graph (strict DAG validation via DFS)
-        visited: Dict[str, int] = {cid: 0 for cid in concept_ids}  # 0: unvisited, 1: visiting, 2: visited
+        visited: dict[str, int] = {cid: 0 for cid in concept_ids}  # 0: unvisited, 1: visiting, 2: visited
 
-        def dfs_cycle(node: str, path: List[str]) -> bool:
+        def dfs_cycle(node: str, path: list[str]) -> bool:
             visited[node] = 1
             for neighbor in adj.get(node, []):
                 if visited[neighbor] == 1:
@@ -141,7 +141,7 @@ class CurriculumValidator:
                 dfs_cycle(cid, [cid])
 
         # 4. Check orphan concepts (no prerequisites and never referenced by any other concept)
-        referenced: Set[str] = set()
+        referenced: set[str] = set()
         for neighbors in adj.values():
             referenced.update(neighbors)
 
@@ -167,7 +167,7 @@ class CurriculumValidator:
             return CurriculumValidationResult(is_valid=False, errors=[f"Curriculum file not found: {p}"])
 
         try:
-            with open(p, "r", encoding="utf-8-sig") as f:
+            with open(p, encoding="utf-8-sig") as f:
                 data = json.load(f)
         except Exception as e:
             return CurriculumValidationResult(is_valid=False, errors=[f"JSON decoding error in {p}: {e}"])
@@ -188,7 +188,7 @@ class CurriculumValidator:
         if not domains:
             return CurriculumValidationResult(is_valid=False, errors=["Manifest contains no domains."])
 
-        all_concepts: List[dict] = []
+        all_concepts: list[dict] = []
         for d in domains:
             domain_name = d.get("name", "") if isinstance(d, dict) else getattr(d, "name", "")
             topics = d.get("topics", []) if isinstance(d, dict) else getattr(d, "topics", [])

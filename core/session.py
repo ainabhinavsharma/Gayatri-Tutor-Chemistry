@@ -8,10 +8,9 @@ Uses the DB_PATH configured in core.config.
 from __future__ import annotations
 
 import logging
-import re
+import queue
 import sqlite3
 import threading
-import queue
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -36,7 +35,7 @@ class SessionStore:
         self._lock = threading.RLock()
         self._db_conn: sqlite3.Connection | None = None
         self._create_schema()
-        
+
         # Async Write Queue (Phase 3 Optimization)
         import queue
         self._write_queue = queue.Queue()
@@ -57,7 +56,7 @@ class SessionStore:
                 self._write_queue.task_done()
             except queue.Empty:
                 pass
-                
+
     def flush(self):
         """Block until all pending async writes are written to disk."""
         self._write_queue.join()
@@ -67,7 +66,7 @@ class SessionStore:
         self._shutdown_event.set()
         if self._writer_thread.is_alive():
             self._writer_thread.join(timeout=2.0)
-            
+
     def _enqueue_write(self, func, *args, **kwargs):
         """Put a DB write task onto the background queue."""
         self._write_queue.put((func, args, kwargs))
@@ -85,7 +84,7 @@ class SessionStore:
         """Create or migrate tables."""
         from core.db import run_migrations
         conn = self.conn
-        
+
         def initial_schema(c):
             c.executescript("""
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -135,7 +134,7 @@ class SessionStore:
                 pass
             c.execute("UPDATE sessions SET mode = 'general_assistant' WHERE mode IS NULL;")
             c.execute("UPDATE sessions SET user_id = 'local_user_1' WHERE user_id IS NULL;")
-        
+
         def add_tutor_context_columns_and_profile_id(c):
             """Migration 3: patch DBs that pre-date the full tutor_contexts schema."""
             for col, defn in [
@@ -164,26 +163,26 @@ class SessionStore:
             2: ("add_mode_and_user_id", add_mode_and_user_id),
             3: ("add_tutor_context_columns_and_profile_id", add_tutor_context_columns_and_profile_id),
         }
-        
+
         run_migrations(conn, migrations)
 
-            
+
         try:
             conn.execute("ALTER TABLE sessions ADD COLUMN summary TEXT DEFAULT '';")
             conn.commit()
         except sqlite3.OperationalError:
             pass  # Already present
-            
+
         logger.info(f"Session DB ready: {self.db_path}")
 
     def save_session(self, session_id: str, conversation: Any, tutor_context: Any = None) -> None:
         """Queue a session for async background saving (Audit #28)."""
         session_id = validate_session_id(session_id)
-        
+
         # Deepcopy the state we need before queueing it to avoid race conditions!
         title = getattr(conversation, "title", "New Chat")
         messages = list(conversation.get_all()) if hasattr(conversation, "get_all") else list(conversation)
-        
+
         mode = getattr(conversation, "mode", "general_assistant")
         user_id = getattr(conversation, "user_id", "local_user_1")
         self._enqueue_write(
@@ -516,7 +515,7 @@ class SessionStore:
         """Delete a session, its messages, and its tutor context."""
         session_id = validate_session_id(session_id)
         self._enqueue_write(self._delete_session_internal, session_id)
-        
+
     def _delete_session_internal(self, session_id: str) -> None:
         with self._lock:
             conn = self.conn

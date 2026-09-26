@@ -11,13 +11,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tutor.state import TutorStateManager
 
 
-DEFAULT_INTERVALS: List[int] = [1, 3, 7, 14, 30]
+DEFAULT_INTERVALS: list[int] = [1, 3, 7, 14, 30]
 
 
 @dataclass
@@ -44,7 +44,7 @@ class ReviewScheduleResult:
 class SpacedReviewScheduler:
     """Manages spaced review intervals and delayed recall retention enforcement (Section 16)."""
 
-    def __init__(self, intervals: Optional[List[int]] = None):
+    def __init__(self, intervals: list[int] | None = None):
         self.intervals = intervals or DEFAULT_INTERVALS
 
     def _ensure_table_exists(self, conn) -> None:
@@ -68,8 +68,8 @@ class SpacedReviewScheduler:
         current_interval_days: int,
         correctness: str,
         hint_used: int = 0,
-        from_time: Optional[datetime] = None,
-    ) -> Tuple[int, str]:
+        from_time: datetime | None = None,
+    ) -> tuple[int, str]:
         """Calculate next review interval in days and future ISO timestamp."""
         now = from_time or datetime.now()
 
@@ -100,7 +100,7 @@ class SpacedReviewScheduler:
         next_dt = now + timedelta(days=new_interval)
         return new_interval, next_dt.isoformat()
 
-    def is_review_due(self, next_review_at: str, current_time: Optional[datetime] = None) -> bool:
+    def is_review_due(self, next_review_at: str, current_time: datetime | None = None) -> bool:
         """Check if a review is due based on next_review_at ISO string."""
         if not next_review_at:
             return False
@@ -116,7 +116,7 @@ class SpacedReviewScheduler:
         student_id: str,
         concept_id: str,
         state_manager: TutorStateManager,
-    ) -> Optional[SpacedReviewRecord]:
+    ) -> SpacedReviewRecord | None:
         """Retrieve persisted spaced review tracking record for a student concept."""
         if not state_manager:
             return None

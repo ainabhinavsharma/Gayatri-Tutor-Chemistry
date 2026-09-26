@@ -8,20 +8,15 @@ versioned Prompt Contracts, and NCERT RAG context into unified local InferenceSe
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Optional
 
-from core.tutor.state_machine import TutorState, TutorStateMachine
-from core.tutor.intents import TutorIntent, TutorIntentClassifier
-from core.tutor.guard import OutOfDomainGuard
+from core.inference.service import get_inference_service
+from core.prompts.loader import get_prompt_loader
 from core.tutor.adapter import StudentAdapter
+from core.tutor.guard import OutOfDomainGuard
+from core.tutor.intents import TutorIntent, TutorIntentClassifier
 from core.tutor.memory import TutorMemoryManager
 from core.tutor.policies.explanation import ExplanationPolicy
-from core.tutor.policies.numerical import NumericalPolicy
-from core.tutor.policies.reaction import ReactionPolicy
-from core.tutor.evaluator import StudentAnswerEvaluator
-from core.tutor.difficulty import DifficultyManager
-from core.prompts.loader import get_prompt_loader
-from core.inference.service import get_inference_service
+from core.tutor.state_machine import TutorState, TutorStateMachine
 
 logger = logging.getLogger("gayatri.runtimes.chemistry")
 
@@ -115,9 +110,9 @@ class ChemistryTutorRuntime:
     def stream(self, user_message: str, context):
         """Stream a response for a chemistry tutoring turn with prompt contract and InferenceService."""
         try:
-            from legacy.agents.default_agents import _build_messages, _get_tutor_context
             from core.rag.retriever import get_ncert_retriever
             from core.security.prompt import PromptSecurityGuard
+            from legacy.agents.default_agents import _build_messages, _get_tutor_context
 
             # 0. Inspect user message for prompt injection, extraction, or command manipulation
             sanitized_msg, is_attack, attack_type = PromptSecurityGuard.inspect_and_sanitize(user_message)
@@ -156,7 +151,7 @@ class ChemistryTutorRuntime:
                 recent_context=recent_context or None,
             )
             if context and hasattr(context, "active_concept_id"):
-                setattr(context, "active_concept_id", resolved.concept_id)
+                context.active_concept_id = resolved.concept_id
 
             # ── Pedagogical Mode Classification & Dynamic Student State Synchronization ──
             from core.tutor.adaptive import EventLogger, StudentProfile
@@ -401,9 +396,8 @@ class ChemistryTutorRuntime:
                         rag_evidence = atomic_card
 
                 if not rag_evidence:
-                    from core.rag.schema import ConfidenceLevel, RAGStatus
-                    from core.research.policy import ResearchPolicy
                     from core.research.fallback import ResearchFallbackEvaluator
+                    from core.research.policy import ResearchPolicy
                     from core.research.service import get_web_research_service
 
                     rag_ctx = retriever.retrieve_concept_aware(

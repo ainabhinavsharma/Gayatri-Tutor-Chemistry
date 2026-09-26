@@ -20,18 +20,14 @@ import re
 import threading
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, List, Optional, Set, Union
+from typing import Any
 
-from core.config import DATA_DIR, UPLOADS_DIR
+from core.config import UPLOADS_DIR
 from core.security.validation import (
     DEFAULT_MAX_FILE_BYTES,
-    validate_concept_id,
-    validate_file_extension,
-    validate_file_size,
     validate_json,
-    validate_mime_type,
     validate_student_id,
     validate_uploaded_file,
 )
@@ -56,7 +52,7 @@ class StoredUpload:
     size_bytes: int
     mime_type: str
     sha256_hash: str
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -75,7 +71,7 @@ class StoredUpload:
             size_bytes=data["size_bytes"],
             mime_type=data["mime_type"],
             sha256_hash=data["sha256_hash"],
-            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
+            created_at=data.get("created_at", datetime.now(UTC).isoformat()),
             metadata=data.get("metadata", {}),
         )
 
@@ -85,7 +81,7 @@ class SecureUploadManager:
 
     def __init__(
         self,
-        base_dir: Optional[Path] = None,
+        base_dir: Path | None = None,
         max_file_bytes: int = DEFAULT_MAX_FILE_BYTES,
     ):
         self.base_dir = (base_dir or UPLOADS_DIR).resolve()
@@ -113,7 +109,7 @@ class SecureUploadManager:
         if not index_path.exists():
             return {}
         try:
-            with open(index_path, "r", encoding="utf-8") as f:
+            with open(index_path, encoding="utf-8") as f:
                 data = json.load(f)
             uploads = {}
             for uid, record in data.items():
@@ -140,8 +136,8 @@ class SecureUploadManager:
         student_id: str,
         filename: str,
         content_or_stream: Any,
-        max_bytes: Optional[int] = None,
-        metadata: Optional[dict] = None,
+        max_bytes: int | None = None,
+        metadata: dict | None = None,
     ) -> StoredUpload:
         """Validate, store, and record a student upload.
 
@@ -213,7 +209,7 @@ class SecureUploadManager:
             )
             return upload_record
 
-    def get_upload(self, student_id: str, upload_id: str) -> Optional[StoredUpload]:
+    def get_upload(self, student_id: str, upload_id: str) -> StoredUpload | None:
         """Retrieve a stored upload for a student, ensuring ownership and existence."""
         clean_student_id = validate_student_id(student_id)
         clean_upload_id = str(upload_id).strip()
@@ -234,7 +230,7 @@ class SecureUploadManager:
 
             return upload
 
-    def list_uploads(self, student_id: str) -> List[StoredUpload]:
+    def list_uploads(self, student_id: str) -> list[StoredUpload]:
         """List all valid uploads for a student."""
         clean_student_id = validate_student_id(student_id)
         with self._lock:
@@ -291,7 +287,7 @@ class SecureUploadManager:
 
         if ext in (".txt", ".md", ".csv"):
             try:
-                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                with open(path, encoding="utf-8", errors="replace") as f:
                     content = f.read(max_chars + 1)
                 if len(content) > max_chars:
                     logger.warning(f"Document {path.name} truncated to {max_chars} characters")
@@ -302,7 +298,7 @@ class SecureUploadManager:
 
         elif ext == ".json":
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     raw = f.read()
                 data = validate_json(raw, max_size_bytes=self.max_file_bytes)
                 formatted = json.dumps(data, indent=2)

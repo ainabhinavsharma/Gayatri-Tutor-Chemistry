@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 from core.curriculum.models import CurriculumDomain, CurriculumManifest
 
@@ -32,7 +31,7 @@ class CurriculumManifestLoader:
             self._path = _DATA_CURRICULUM_PATH
         else:
             self._path = _MANIFEST_PATH
-        self._manifest: Optional[CurriculumManifest] = None
+        self._manifest: CurriculumManifest | None = None
 
     def load_manifest(self) -> CurriculumManifest:
         """Parse the curriculum manifest into a typed CurriculumManifest.
@@ -177,7 +176,7 @@ class CurriculumManifestLoader:
 
 
 # Singleton loader instance
-_loader: Optional[CurriculumManifestLoader] = None
+_loader: CurriculumManifestLoader | None = None
 
 
 def get_curriculum_loader() -> CurriculumManifestLoader:

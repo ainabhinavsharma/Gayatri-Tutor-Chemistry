@@ -8,7 +8,6 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 logger = logging.getLogger("gayatri.tutor.evaluator")
 
@@ -25,11 +24,11 @@ class EvaluationResult:
     correctness: str  # "correct", "partially_correct", "incorrect", "uncertain"
     confidence: float  # 0.0 to 1.0
     error_type: str = "none"  # "none", "conceptual", "arithmetic", "formula", "unit", "reaction", "notation", "other"
-    misconception: Optional[str] = None
+    misconception: str | None = None
     recommended_action: str = "advance"  # "advance", "reinforce", "remediate", "prerequisite_review"
     concept_understanding: str = "sound"  # backward compat: "sound", "shaky", "misconception", "unknown"
     difficulty_delta: float = 0.0
-    evidence: List[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
     next_difficulty_change: str = "maintain"  # legacy compat
 
     def to_dict(self) -> dict:
@@ -85,7 +84,7 @@ class StudentAnswerEvaluator:
         concept_id: str = "",
         question_id: str = "",
         question: str = "",
-        student_answer: Optional[str] = None,
+        student_answer: str | None = None,
     ) -> EvaluationResult:
         """Evaluate student answer using structured criteria & evidence (Section 12)."""
         try:

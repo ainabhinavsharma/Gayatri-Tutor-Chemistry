@@ -1,0 +1,28 @@
+{
+  "phase": "13",
+  "phase_name": "RAG Audit & Ingestion Resilience",
+  "timestamp": "2026-09-25T23:38:37+05:30",
+  "status": "VERIFIED",
+  "test_summary": {
+    "total_passed": 345,
+    "total_failed": 0,
+    "execution_time_seconds": 8.56
+  },
+  "provenance_priority": [
+    "NCERT (10.0)",
+    "APPROVED_CURRICULUM (5.0)",
+    "FALLBACK (1.0)"
+  ],
+  "preserved_metadata_fields": [
+    "source",
+    "chapter",
+    "page / section",
+    "chunk ID",
+    "retrieval score"
+  ],
+  "ingester_resilience": {
+    "utf8_bom": "VERIFIED (utf-8-sig)",
+    "missing_file": "SAFE_EMPTY_LIST",
+    "malformed_file": "SAFE_EMPTY_LIST"
+  }
+}

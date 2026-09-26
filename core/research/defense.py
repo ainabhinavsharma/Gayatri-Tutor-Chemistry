@@ -31,7 +31,7 @@ class WebPromptDefense:
         cleaned = web_text
         for pattern in PROMPT_INJECTION_PATTERNS:
             if pattern.search(cleaned):
-                logger.warning(f"WebPromptDefense: prompt injection attempt stripped from web text")
+                logger.warning("WebPromptDefense: prompt injection attempt stripped from web text")
                 cleaned = pattern.sub("[FILTERED PROMPT OVERRIDE]", cleaned)
 
         # Cap text length to prevent context explosion

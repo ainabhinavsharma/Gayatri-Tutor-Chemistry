@@ -41,15 +41,13 @@ class Bridge(QObject):
         self._session_id = str(uuid.uuid4())
 
     def _get_orchestrator(self):
-        from core.agents.runtime import AgentRuntime
-
         from core.agents.registry import agent_registry
-
+        from core.agents.runtime import AgentRuntime
         from core.orchestrator import Orchestrator
 
         """Lazy-load the orchestrator."""
         if self._orchestrator is None:
-            
+
 
             self._orchestrator = Orchestrator(
                 registry=agent_registry,
@@ -563,8 +561,8 @@ class Bridge(QObject):
     def get_local_model_status(self) -> str:
         """Return local model status as JSON."""
         try:
-            from core.providers.local import LocalProvider
             import core.config
+            from core.providers.local import LocalProvider
             health = LocalProvider.health()
 
             active_model_name = getattr(core.config, "LOCAL_MODEL_FILE", "Gayatri-Tutor-v3-Q4_K_M.gguf")
@@ -900,10 +898,11 @@ class Bridge(QObject):
     def start_assessment(self, concepts_json: str = "[]", question_count: int = 5) -> str:
         """Start a new assessment session for the student and return sanitized questions."""
         try:
-            from core.assessment.manager import AssessmentManager
-            from core.assessment.grader import AssessmentGrader
-            from core.tutor.state import TutorStateManager
             import json
+
+            from core.assessment.grader import AssessmentGrader
+            from core.assessment.manager import AssessmentManager
+            from core.tutor.state import TutorStateManager
 
             concepts = []
             if concepts_json:
@@ -1023,9 +1022,10 @@ class Bridge(QObject):
     def get_spaced_review_queue(self) -> str:
         """Fetch all concepts currently due or scheduled for spaced review."""
         try:
-            from core.tutor.state import TutorStateManager
-            from core.learning.scheduler import SpacedReviewScheduler
             from datetime import datetime
+
+            from core.learning.scheduler import SpacedReviewScheduler
+            from core.tutor.state import TutorStateManager
 
             sm = TutorStateManager()
             scheduler = SpacedReviewScheduler()
@@ -1060,9 +1060,10 @@ class Bridge(QObject):
     def export_student_analytics(self) -> str:
         """Export comprehensive student progress, mastery DAG, and telemetry as structured JSON."""
         try:
+            import json
+
             from core.learning.progress import ProgressService
             from core.tutor.state import TutorStateManager
-            import json
 
             sm = TutorStateManager()
             ps = ProgressService(sm)

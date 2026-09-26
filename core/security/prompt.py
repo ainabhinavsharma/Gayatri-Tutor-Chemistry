@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Tuple
 
 logger = logging.getLogger("gayatri.security.prompt")
 
@@ -58,7 +57,7 @@ class PromptSecurityGuard:
     """Guards system prompts and LLM inputs against injection, extraction, and manipulation."""
 
     @classmethod
-    def inspect_and_sanitize(cls, user_message: str) -> Tuple[str, bool, str]:
+    def inspect_and_sanitize(cls, user_message: str) -> tuple[str, bool, str]:
         """Inspect a user message for adversarial attacks and sanitize if needed.
 
         Returns:
@@ -70,21 +69,21 @@ class PromptSecurityGuard:
         # Check for instruction overrides
         for pattern in _RE_INSTRUCTION_OVERRIDE:
             if pattern.search(user_message):
-                logger.warning(f"PromptSecurityGuard: instruction override detected in user message")
+                logger.warning("PromptSecurityGuard: instruction override detected in user message")
                 sanitized = pattern.sub("[FILTERED_INSTRUCTION_OVERRIDE]", user_message)
                 return sanitized, True, "INSTRUCTION_OVERRIDE"
 
         # Check for system prompt extraction
         for pattern in _RE_SYSTEM_EXTRACTION:
             if pattern.search(user_message):
-                logger.warning(f"PromptSecurityGuard: system prompt extraction detected in user message")
+                logger.warning("PromptSecurityGuard: system prompt extraction detected in user message")
                 sanitized = pattern.sub("[FILTERED_EXTRACTION_ATTEMPT]", user_message)
                 return sanitized, True, "SYSTEM_EXTRACTION"
 
         # Check for command/mastery manipulation
         for pattern in _RE_COMMAND_MANIPULATION:
             if pattern.search(user_message):
-                logger.warning(f"PromptSecurityGuard: command manipulation detected in user message")
+                logger.warning("PromptSecurityGuard: command manipulation detected in user message")
                 sanitized = pattern.sub("[FILTERED_COMMAND_ATTEMPT]", user_message)
                 return sanitized, True, "COMMAND_MANIPULATION"
 

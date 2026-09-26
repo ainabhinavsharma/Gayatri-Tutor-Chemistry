@@ -18,12 +18,11 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.providers.local import LocalProvider
 from core.rag.store import RAGStore
@@ -58,12 +57,12 @@ class TutorResponse:
     mastery: float
     mastery_delta: float = 0.0
     hint_level: int = 0
-    evaluation_result: Optional[str] = None
-    misconception: Optional[str] = None
-    retrieved_chunks: List[str] = field(default_factory=list)
+    evaluation_result: str | None = None
+    misconception: str | None = None
+    retrieved_chunks: list[str] = field(default_factory=list)
     next_recommended_action: str = ""
     event_id: str = ""
-    debug_info: Dict[str, Any] = field(default_factory=dict)
+    debug_info: dict[str, Any] = field(default_factory=dict)
 
 
 class TutorController:
@@ -83,7 +82,7 @@ class TutorController:
 
     def _load_graph_prerequisites(self) -> None:
         """Load concept graph dependencies from learning_graph/prerequisites.json."""
-        self.prerequisites: Dict[str, List[str]] = {}
+        self.prerequisites: dict[str, list[str]] = {}
         p_path = PROJECT_ROOT / "PRIVATE_WORK" / "learning_graph" / "prerequisites.json"
         if p_path.exists():
             try:
@@ -94,12 +93,12 @@ class TutorController:
             except Exception as exc:
                 logger.warning(f"Could not load prerequisites: {exc}")
 
-    def get_prerequisites(self, concept_id: str) -> List[str]:
+    def get_prerequisites(self, concept_id: str) -> list[str]:
         return self.prerequisites.get(concept_id, [])
 
     # ── Retrieval Helper ────────────────────────────────────────────────
 
-    def retrieve_grounding(self, concept_id: str, query: str = "") -> Tuple[str, List[str]]:
+    def retrieve_grounding(self, concept_id: str, query: str = "") -> tuple[str, list[str]]:
         """Retrieve relevant knowledge chunks from RAG store."""
         search_query = f"{concept_id} {query}".strip()
         matches = self.rag_store.search_similar(search_query, top_k=3)
@@ -228,7 +227,7 @@ class TutorController:
         concept_id: str,
         question: str = "",
         student_attempt: str = "",
-        hint_level: Optional[int] = None,
+        hint_level: int | None = None,
     ) -> TutorResponse:
         """Section 16: Multi-tier hint progression without immediately revealing answers.
         Ladder:
@@ -387,16 +386,16 @@ class TutorController:
             next_action = "SUMMARY" if new_mastery >= 0.80 else "QUESTION"
         elif correctness == "PARTIALLY_CORRECT":
             feedback_text = (
-                f"You are on the right track, but your answer is partially incomplete. "
-                f"Let's refine the specific details."
+                "You are on the right track, but your answer is partially incomplete. "
+                "Let's refine the specific details."
             )
             next_action = "HINT"
         else:
             # INCORRECT
             feedback_text = (
-                f"Not quite. Let's examine what happened. "
+                "Not quite. Let's examine what happened. "
                 + (f"Notice: You may be encountering the common error: {misconception}. " if misconception else "")
-                + f"Let's work through a hint before trying again."
+                + "Let's work through a hint before trying again."
             )
             next_action = "REMEDIATE" if (is_repeated or self.student.active_hint_level >= 3) else "HINT"
 
@@ -538,7 +537,7 @@ class TutorController:
             f"- **Next Recommended Concept:** "
             + (f"{prereqs[0].replace('_', ' ').title()}" if prereqs else "Next syllabus topic")
             + "\n\n"
-            f"Great effort during this session! Would you like to practice another question or advance to the next topic?"
+            "Great effort during this session! Would you like to practice another question or advance to the next topic?"
         )
 
         evt = self.event_logger.log_event(

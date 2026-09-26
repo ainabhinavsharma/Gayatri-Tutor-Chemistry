@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("gayatri.prompts.loader")
 
@@ -16,7 +15,7 @@ _PROMPTS_DIR = Path(__file__).parent.parent.parent / "training" / "prompts"
 class PromptContractLoader:
     """Loads versioned system prompt contracts from disk."""
 
-    def __init__(self, prompts_dir: Optional[Path] = None):
+    def __init__(self, prompts_dir: Path | None = None):
         self._dir = prompts_dir or _PROMPTS_DIR
         self._cache: dict[str, str] = {}
 
@@ -38,7 +37,7 @@ class PromptContractLoader:
         return content
 
 
-_global_loader: Optional[PromptContractLoader] = None
+_global_loader: PromptContractLoader | None = None
 
 
 def get_prompt_loader() -> PromptContractLoader:

@@ -10,6 +10,7 @@ Implements non-arbitrary, step-wise difficulty adaptation policy:
 from __future__ import annotations
 
 import logging
+
 from core.tutor.evaluator import EvaluationResult
 
 logger = logging.getLogger("gayatri.tutor.difficulty")

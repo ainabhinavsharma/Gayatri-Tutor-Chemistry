@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger("gayatri.curriculum.dataset_registry")
 
@@ -118,7 +117,7 @@ class DatasetTopicRegistry:
     def __init__(self):
         self._map = DATASET_TOPIC_MAP
 
-    def lookup(self, topic_id: str) -> Optional[TopicInfo]:
+    def lookup(self, topic_id: str) -> TopicInfo | None:
         """Return TopicInfo for a topic_id, or None if unknown."""
         raw = self._map.get(topic_id)
         if not raw:
@@ -142,7 +141,7 @@ class DatasetTopicRegistry:
         ]
 
 
-_registry: Optional[DatasetTopicRegistry] = None
+_registry: DatasetTopicRegistry | None = None
 
 
 def get_dataset_registry() -> DatasetTopicRegistry:

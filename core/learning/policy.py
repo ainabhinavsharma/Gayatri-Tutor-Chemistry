@@ -10,7 +10,7 @@ Manages question difficulty level (1 to 5) based on persisted evidence:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tutor.state import LearningEvent
@@ -52,7 +52,7 @@ class DifficultyPolicy:
 
     def evaluate_next_difficulty(
         self,
-        events: List[LearningEvent],
+        events: list[LearningEvent],
         current_difficulty: int = 3,
     ) -> DifficultyDecision:
         """Evaluate evidence history to decide the next difficulty level."""

@@ -5,9 +5,7 @@ persisted events -> learning engine -> progress service -> UI
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from core.learning.misconceptions import MisconceptionTracker
 from core.learning.scheduler import SpacedReviewScheduler
@@ -18,7 +16,7 @@ if TYPE_CHECKING:
 
 
 # Controlled concept domain mapping
-CONCEPT_DOMAINS: Dict[str, str] = {
+CONCEPT_DOMAINS: dict[str, str] = {
     # Legacy / test dot-notation mappings
     "thermo.enthalpy": "Thermodynamics",
     "thermo.first_law": "Thermodynamics",
@@ -103,7 +101,7 @@ def get_status_label(mastery: float, exposure_count: int, is_due: bool) -> str:
 class ProgressService:
     """Authoritative progress service for student analytics and UI consumption."""
 
-    def __init__(self, state_manager: Optional[TutorStateManager] = None):
+    def __init__(self, state_manager: TutorStateManager | None = None):
         self.state_manager = state_manager
         self.scheduler = SpacedReviewScheduler()
 
@@ -111,7 +109,7 @@ class ProgressService:
         self,
         student_id: str,
         concept_id: str,
-        state_manager: Optional[TutorStateManager] = None,
+        state_manager: TutorStateManager | None = None,
     ) -> dict:
         """Get detailed progress for a single concept."""
         student_id = validate_student_id(student_id)
@@ -150,7 +148,7 @@ class ProgressService:
     def get_student_progress_summary(
         self,
         student_id: str,
-        state_manager: Optional[TutorStateManager] = None,
+        state_manager: TutorStateManager | None = None,
     ) -> dict:
         """Get comprehensive overall, domain-level, and concept-level student progress."""
         student_id = validate_student_id(student_id)
@@ -171,7 +169,7 @@ class ProgressService:
         concepts_progress = [self.get_concept_progress(student_id, cid, sm) for cid in concept_ids]
 
         # Domain breakdown
-        domain_totals: Dict[str, List[float]] = {
+        domain_totals: dict[str, list[float]] = {
             "Thermodynamics": [],
             "Inorganic Chemistry": [],
         }
@@ -206,6 +204,261 @@ class ProgressService:
             "concepts": concepts_progress,
         }
 
+    def get_student_progress(
+        self,
+        student_id: str,
+        state_manager: TutorStateManager | None = None,
+    ) -> dict:
+        """GET /student/progress - Overall mastery, concepts learned, questions attempted/correct, accuracy."""
+        student_id = validate_student_id(student_id)
+        summary = self.get_student_progress_summary(student_id, state_manager)
+        concepts = summary["concepts"]
+
+        attempts = sum(c["exposure_count"] for c in concepts)
+        corrects = sum(c["correct_count"] for c in concepts)
+        accuracy = round(corrects / attempts, 4) if attempts > 0 else 0.0
+        mastered_count = sum(1 for c in concepts if c["mastery"] >= 0.70)
+
+        return {
+            "ok": True,
+            "student_id": student_id,
+            "overall_mastery": summary["overall_mastery"],
+            "overall_mastery_pct": int(summary["overall_mastery"] * 100),
+            "concepts_learned": mastered_count,
+            "total_concepts": len(concepts),
+            "questions_attempted": attempts,
+            "questions_correct": corrects,
+            "accuracy": accuracy,
+            "accuracy_pct": round(accuracy * 100, 1),
+            "domain_breakdown": summary["domain_mastery"],
+            "reviews_due_count": summary["reviews_due_count"],
+            "active_misconceptions_count": summary["active_misconceptions_count"],
+        }
+
+    def get_recent_sessions(
+        self,
+        student_id: str,
+        limit: int = 10,
+        state_manager: TutorStateManager | None = None,
+    ) -> dict:
+        """GET /student/recent-sessions - History of recent tutoring sessions."""
+        student_id = validate_student_id(student_id)
+        from core.tutor.adaptive import EventLogger
+        logger = EventLogger()
+        events = logger.get_recent_events(student_id=student_id, limit=limit * 5)
+
+        sessions_map: dict[str, dict] = {}
+        for ev in events:
+            sid = ev.get("session_id", "default_session")
+            if sid not in sessions_map:
+                sessions_map[sid] = {
+                    "session_id": sid,
+                    "date": ev.get("timestamp", "")[:10],
+                    "topic": get_concept_domain(ev.get("concept_id", "")),
+                    "questions_attempted": 0,
+                    "questions_correct": 0,
+                    "concepts_practiced": set(),
+                    "misconceptions_detected": set(),
+                }
+            s = sessions_map[sid]
+            cid = ev.get("concept_id")
+            if cid:
+                s["concepts_practiced"].add(cid)
+            if ev.get("event") == "ANSWER_EVALUATED":
+                s["questions_attempted"] += 1
+                if ev.get("result") == "CORRECT":
+                    s["questions_correct"] += 1
+            if ev.get("event") == "MISCONCEPTION_DETECTED" or ev.get("misconception_code"):
+                code = ev.get("misconception_code") or ev.get("details", {}).get("code")
+                if code:
+                    s["misconceptions_detected"].add(code)
+
+        result_sessions = []
+        for s in list(sessions_map.values())[-limit:]:
+            att = s["questions_attempted"]
+            corr = s["questions_correct"]
+            acc = round(corr / att, 4) if att > 0 else 0.0
+            result_sessions.append({
+                "session_id": s["session_id"],
+                "date": s["date"],
+                "topic": s["topic"],
+                "questions_attempted": att,
+                "questions_correct": corr,
+                "accuracy": acc,
+                "concepts_practiced": list(s["concepts_practiced"]),
+                "misconceptions_detected": list(s["misconceptions_detected"]),
+            })
+
+        return {"ok": True, "student_id": student_id, "sessions": result_sessions}
+
+    def get_activity_feed(
+        self,
+        student_id: str,
+        limit: int = 20,
+    ) -> dict:
+        """GET /student/activity - Event stream of student achievements."""
+        student_id = validate_student_id(student_id)
+        from core.tutor.adaptive import EventLogger
+        logger = EventLogger()
+        events = logger.get_recent_events(student_id=student_id, limit=limit)
+        return {"ok": True, "student_id": student_id, "activity": events}
+
+    def get_concept_heatmap(
+        self,
+        student_id: str,
+        state_manager: TutorStateManager | None = None,
+    ) -> dict:
+        """GET /student/concepts - Categorized concepts (mastered, developing, weak, not_started, needs_review)."""
+        student_id = validate_student_id(student_id)
+        summary = self.get_student_progress_summary(student_id, state_manager)
+        heatmap: dict[str, list[dict]] = {
+            "mastered": [],
+            "developing": [],
+            "weak": [],
+            "not_started": [],
+            "needs_review": [],
+        }
+
+        for c in summary["concepts"]:
+            m = c["mastery"]
+            exp = c["exposure_count"]
+            due = c["is_review_due"]
+
+            cat = "not_started"
+            if due and exp > 0:
+                cat = "needs_review"
+            elif exp == 0:
+                cat = "not_started"
+            elif m >= 0.70:
+                cat = "mastered"
+            elif m >= 0.40:
+                cat = "developing"
+            else:
+                cat = "weak"
+
+            heatmap[cat].append({
+                "concept_id": c["concept_id"],
+                "domain": c["domain"],
+                "mastery": m,
+                "status": c["status"],
+                "active_misconceptions": c["active_misconceptions"],
+            })
+
+        return {"ok": True, "student_id": student_id, "heatmap": heatmap}
+
+    def get_recommended_actions(
+        self,
+        student_id: str,
+        state_manager: TutorStateManager | None = None,
+    ) -> dict:
+        """GET /student/recommendations - Application policy engine next learning actions."""
+        student_id = validate_student_id(student_id)
+        summary = self.get_student_progress_summary(student_id, state_manager)
+        recommendations = []
+
+        # Rule 1: Spaced reviews due
+        due_concepts = [c for c in summary["concepts"] if c["is_review_due"]]
+        if due_concepts:
+            target = due_concepts[0]
+            recommendations.append({
+                "priority": 1,
+                "type": "REVIEW_DUE",
+                "concept_id": target["concept_id"],
+                "title": f"Review {target['concept_id']}",
+                "reason": "Concept is due for spaced review retention check",
+            })
+
+        # Rule 2: Misconception remediation
+        misc_concepts = [c for c in summary["concepts"] if c["active_misconceptions"]]
+        if misc_concepts:
+            target = misc_concepts[0]
+            code = target["active_misconceptions"][0]
+            recommendations.append({
+                "priority": 2,
+                "type": "REMEDIATION",
+                "concept_id": target["concept_id"],
+                "misconception_code": code,
+                "title": f"Address {code} in {target['concept_id']}",
+                "reason": f"Active misconception detected: {code}",
+            })
+
+        # Rule 3: Weak / Developing concepts practice
+        weak_concepts = [c for c in summary["concepts"] if 0.0 < c["mastery"] < 0.70]
+        if weak_concepts:
+            target = weak_concepts[0]
+            recommendations.append({
+                "priority": 3,
+                "type": "PRACTICE",
+                "concept_id": target["concept_id"],
+                "title": f"Practice {target['concept_id']}",
+                "reason": f"Current mastery ({target['mastery']:.0%}) is below mastery threshold (70%)",
+            })
+
+        # Fallback default
+        if not recommendations:
+            recommendations.append({
+                "priority": 4,
+                "type": "EXPLORE_NEW",
+                "concept_id": "THERMO_FIRST_LAW",
+                "title": "Explore Chemical Thermodynamics",
+                "reason": "Ready to begin foundational senior secondary chemistry concepts",
+            })
+
+        return {"ok": True, "student_id": student_id, "recommendations": recommendations}
+
+    def get_session_summary(
+        self,
+        student_id: str,
+        session_id: str | None = None,
+        state_manager: TutorStateManager | None = None,
+    ) -> dict:
+        """GET /student/session-summary - End-of-session recap stats."""
+        student_id = validate_student_id(student_id)
+        sessions_res = self.get_recent_sessions(student_id, limit=5, state_manager=state_manager)
+        sessions = sessions_res.get("sessions", [])
+
+        target_session = None
+        if session_id:
+            for s in sessions:
+                if s["session_id"] == session_id:
+                    target_session = s
+                    break
+
+        if not target_session and sessions:
+            target_session = sessions[-1]
+
+        if not target_session:
+            return {
+                "ok": True,
+                "student_id": student_id,
+                "session_summary": {
+                    "session_id": session_id or "new_session",
+                    "questions_attempted": 0,
+                    "questions_correct": 0,
+                    "accuracy": 0.0,
+                    "concepts_practiced": [],
+                    "newly_strengthened": [],
+                    "needs_review": [],
+                    "next_recommended_session": "Chemical Thermodynamics",
+                }
+            }
+
+        return {
+            "ok": True,
+            "student_id": student_id,
+            "session_summary": {
+                "session_id": target_session["session_id"],
+                "questions_attempted": target_session["questions_attempted"],
+                "questions_correct": target_session["questions_correct"],
+                "accuracy": target_session["accuracy"],
+                "concepts_practiced": target_session["concepts_practiced"],
+                "newly_strengthened": target_session["concepts_practiced"][:2],
+                "needs_review": target_session["misconceptions_detected"],
+                "next_recommended_session": "Gibbs Free Energy application",
+            }
+        }
+
+
 
 def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dict:
     """Build a comprehensive, student-centric dashboard payload for the UI.
@@ -213,9 +466,8 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
     Translates raw mastery scores, prerequisite graphs, active misconceptions,
     and event telemetry into an encouraging, actionable student dashboard.
     """
+    from core.learning.misconceptions import REMEDIATION_GUIDANCE
     from core.tutor.adaptive import EventLogger, StudentProfile
-    from core.learning.misconceptions import REMEDIATION_GUIDANCE, ALL_MISCONCEPTIONS
-    from datetime import datetime
 
     student = StudentProfile.load_from_file()
     event_logger = EventLogger()
@@ -279,7 +531,7 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
         },
     ]
 
-    all_concept_scores: List[float] = []
+    all_concept_scores: list[float] = []
     total_mastered = 0
     total_practicing = 0
     chapter_cards = []
@@ -478,7 +730,7 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
                 "color": "#53a8b6",
                 "title": f"Unlocked Hint Level {lvl}",
                 "time": time_str,
-                "description": f"Socratic guidance provided to help uncover the answer independently.",
+                "description": "Socratic guidance provided to help uncover the answer independently.",
                 "badge": None,
             })
         elif etype == "REMEDIATION_STARTED":
@@ -488,7 +740,7 @@ def build_student_dashboard_payload(student_id: str = "demo_student_001") -> dic
                 "color": "#f5c542",
                 "title": f"Reinforced Prerequisite: {prereq}",
                 "time": time_str,
-                "description": f"Strengthened foundational concepts before progressing to advanced applications.",
+                "description": "Strengthened foundational concepts before progressing to advanced applications.",
                 "badge": None,
             })
         elif etype == "EXPLANATION_GENERATED":

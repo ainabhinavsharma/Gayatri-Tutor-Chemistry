@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
 
 logger = logging.getLogger("gayatri.tutor.memory")
 
@@ -46,7 +45,7 @@ class TutorMemoryManager:
         topic: str = "",
         subtopic: str = "",
         mastery: float = 0.5,
-        misconceptions: Optional[list[str]] = None,
+        misconceptions: list[str] | None = None,
         difficulty: int = 2,
     ) -> TutorMemorySummary:
         return TutorMemorySummary(

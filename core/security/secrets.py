@@ -38,9 +38,10 @@ class SecretsVault:
         import threading
         self._lock = threading.Lock()
 
-    def _get_fernet(self) -> "Fernet":
+    def _get_fernet(self) -> Fernet:
         """Get or create the local Fernet key for non-Windows platforms."""
         from cryptography.fernet import Fernet
+
         from core.config import HMAC_KEY_PATH
 
         if not HMAC_KEY_PATH.exists():
@@ -196,7 +197,7 @@ class SecretsVault:
             if provider_key in self._corrupted_keys:
                 del self._corrupted_keys[provider_key]
                 changed = True
-            
+
             if changed:
                 self._save_vault(vault)
                 logger.info(f"Key deleted: {provider_key}")
@@ -260,7 +261,7 @@ class SecretsVault:
         tmp_path = self.vault_path.with_suffix(".tmp")
         with open(tmp_path, "w") as f:
             json.dump(encrypted_data, f, indent=2)
-        
+
         # On Windows, os.replace works safely in Python 3.3+
         os.replace(tmp_path, self.vault_path)
 

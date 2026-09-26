@@ -11,7 +11,6 @@ import logging
 import math
 import re
 from fractions import Fraction
-from typing import Optional
 
 logger = logging.getLogger("gayatri.tutor.tools")
 

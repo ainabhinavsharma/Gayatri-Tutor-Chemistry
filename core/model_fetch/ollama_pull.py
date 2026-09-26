@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from collections.abc import Callable
+from datetime import UTC
 from pathlib import Path
 
 logger = logging.getLogger("gayatri.model_fetch")
@@ -239,7 +240,7 @@ def save_model_metadata(
 ) -> Path:
     """Persist verified installation metadata alongside the model (Audit #44)."""
     import json
-    from datetime import datetime, timezone
+    from datetime import datetime
     meta = {
         "namespace": namespace,
         "name": name,
@@ -249,7 +250,7 @@ def save_model_metadata(
         "size_bytes": size_bytes,
         "has_chat_template": has_chat_template,
         "has_params": has_params,
-        "verified_at": datetime.now(timezone.utc).isoformat(),
+        "verified_at": datetime.now(UTC).isoformat(),
     }
     meta_path = Path(dest_dir) / f"{model_file}.meta.json"
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -264,6 +265,7 @@ def get_model_metadata(
 ) -> dict | None:
     """Retrieve persisted model installation metadata if present (Audit #44)."""
     import json
+
     from core.config import LOCAL_MODEL_FILE, MODELS_DIR
     dest = Path(dest_dir) if dest_dir else MODELS_DIR
     fname = model_file or LOCAL_MODEL_FILE
@@ -271,7 +273,7 @@ def get_model_metadata(
     if not meta_path.exists():
         return None
     try:
-        with open(meta_path, "r", encoding="utf-8") as f:
+        with open(meta_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as exc:
         logger.warning(f"Failed to read model metadata from {meta_path}: {exc}")
@@ -312,6 +314,7 @@ def _download_blob(
         progress_callback: Optional callback(label, downloaded, total)
     """
     import os
+
     import httpx
 
     # If destination already exists and matches expected digest, skip download

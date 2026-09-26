@@ -5,17 +5,16 @@ while Python dependencies, local GGUF models, and Chromium WebEngine initialize.
 """
 from __future__ import annotations
 
-from pathlib import Path
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-    QHBoxLayout,
-    QProgressBar,
-    QFrame,
     QApplication,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QVBoxLayout,
+    QWidget,
 )
 
 from core.config import BASE_DIR

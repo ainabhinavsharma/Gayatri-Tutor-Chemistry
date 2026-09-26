@@ -6,8 +6,7 @@ and formats web citations gracefully without crashing during network failures.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 from core.research.defense import WebPromptDefense
 from core.research.policy import ResearchPolicy
@@ -30,7 +29,7 @@ class WebSearchResult:
 class WebResearchService:
     """Bounded web research helper service."""
 
-    def __init__(self, policy: Optional[ResearchPolicy] = None):
+    def __init__(self, policy: ResearchPolicy | None = None):
         self.policy = policy or ResearchPolicy.from_settings()
 
     def search_and_extract(self, query: str) -> list[WebSearchResult]:
@@ -69,7 +68,7 @@ class WebResearchService:
         return "\n".join(lines)
 
 
-_global_research_service: Optional[WebResearchService] = None
+_global_research_service: WebResearchService | None = None
 
 
 def get_web_research_service() -> WebResearchService:

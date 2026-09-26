@@ -152,7 +152,7 @@ class SettingsStore:
         with self._lock:
             if self._path.exists():
                 try:
-                    with open(self._path, "r", encoding="utf-8") as f:
+                    with open(self._path, encoding="utf-8") as f:
                         raw_data = json.load(f)
 
                     self._settings = {}

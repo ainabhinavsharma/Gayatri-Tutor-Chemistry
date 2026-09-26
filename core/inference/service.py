@@ -6,8 +6,8 @@ route inference through a single unified engine configuration.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator, Optional
 
 logger = logging.getLogger("gayatri.inference.service")
 
@@ -25,14 +25,14 @@ class ModelConfig:
 class InferenceService:
     """Unified model inference service for all runtime modes."""
 
-    def __init__(self, config: Optional[ModelConfig] = None):
+    def __init__(self, config: ModelConfig | None = None):
         self.config = config or ModelConfig()
 
     def stream_chat(
         self,
         messages: list[dict[str, str]],
         max_tokens: int = 400,
-        temperature: Optional[float] = None,
+        temperature: float | None = None,
         **kwargs,
     ) -> Iterator[str]:
         """Stream chat tokens from the configured model engine."""
@@ -51,7 +51,7 @@ class InferenceService:
             raise
 
 
-_global_service: Optional[InferenceService] = None
+_global_service: InferenceService | None = None
 
 
 def get_inference_service() -> InferenceService:

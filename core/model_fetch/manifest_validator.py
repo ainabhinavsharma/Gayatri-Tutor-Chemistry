@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger("gayatri.model.validator")
 
@@ -29,7 +29,7 @@ class ModelManifestValidationError(ValueError):
     pass
 
 
-def load_and_validate_manifest(manifest_path: Optional[Path | str] = None) -> Dict[str, Any]:
+def load_and_validate_manifest(manifest_path: Path | str | None = None) -> dict[str, Any]:
     """Load model_manifest.json and validate required keys and consistency (P13-T01 & P13-T02)."""
     if manifest_path is None:
         manifest_path = Path("model_manifest.json")

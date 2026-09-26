@@ -306,7 +306,7 @@ class AnthropicProvider(LLMProvider):
         import json
 
         import httpx
-        
+
         system_prompt, anthropic_msgs = self._convert_messages(messages)
 
         payload: dict[str, Any] = {

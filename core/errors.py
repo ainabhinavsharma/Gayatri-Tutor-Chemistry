@@ -84,7 +84,7 @@ def sanitize_error(exc: Exception | str, category: str = "general") -> Sanitized
 
     # Determine user-friendly safe message
     lower_str = exc_str.lower()
-    
+
     if exc_name == "ModelUnavailableError" or "model unavailable" in lower_str or "model_unavailable" in lower_str:
         user_msg = "The requested AI model is currently unavailable. Please check your model installation in Settings."
         detected_category = "model_unavailable"

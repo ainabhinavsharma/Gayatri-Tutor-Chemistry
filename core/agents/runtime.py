@@ -24,7 +24,9 @@ class AgentContext:
 
 
 from pydantic import BaseModel, ValidationError, field_validator
+
 from core.config import TOOL_ARG_MAX_STRING_LENGTH
+
 
 @dataclass
 class ToolSpec:
@@ -102,7 +104,7 @@ class ToolRegistry:
                 kwargs = parsed.model_dump()
             except ValidationError as exc:
                 raise TypeError(f"Validation failed for tool '{name}': {exc}")
-                
+
         # Fallback argument schema validation
         elif spec.argument_schema:
             for arg_name, expected_type in spec.argument_schema.items():
@@ -127,17 +129,18 @@ class ToolRegistry:
         # Enforce tool execution timeout (Audit #79)
         if spec.timeout_s and spec.timeout_s > 0:
             import concurrent.futures
+
             from core.agents.policy import CancellationToken, set_cancellation_token
-            
+
             token = CancellationToken()
-            
+
             def run_with_token():
                 set_cancellation_token(token)
                 try:
                     return spec.func(**kwargs)
                 finally:
                     set_cancellation_token(None)
-                    
+
             executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
             try:
                 future = executor.submit(run_with_token)
@@ -152,28 +155,28 @@ class ToolRegistry:
         return spec.func(**kwargs)
 
 
-from typing import Any
 class FileToolInput(BaseModel):
     """Base Pydantic model for tools that accept file paths."""
-    
+
     @field_validator("*", mode="after")
     @classmethod
     def validate_paths(cls, value: Any, info: Any) -> Any:
         if not isinstance(value, str):
             return value
-            
+
         field_name = info.field_name
         if any(k in field_name.lower() for k in ("path", "file", "dir")):
             import os
             from pathlib import Path
+
             from core.config import DATA_DIR
-            
+
             # 1. Reject '..' entirely as a basic hygiene check
             if ".." in Path(value).parts:
                 raise ValueError(
                     f"Path traversal detected in argument '{field_name}': parent directory traversal ('..') is strictly prohibited."
                 )
-            
+
             # 2. Strict bounds check against allowed directory
             allowed_dir = os.path.abspath(DATA_DIR)
             target_path = os.path.abspath(os.path.join(allowed_dir, value))
@@ -186,7 +189,7 @@ class FileToolInput(BaseModel):
                 raise ValueError(
                     f"Path traversal detected in argument '{field_name}': Path {target_path} is on a different drive than workspace {allowed_dir}."
                 )
-                
+
         return value
 # Global tool registry
 tool_registry = ToolRegistry()
@@ -212,7 +215,7 @@ class AgentRuntime:
                 alt_names = [m.spec.name for m in dispatch_result.alternatives[:2]]
                 text = f"Your request is ambiguous. Did you mean to use the {alt_names[0]} or {alt_names[1]}?"
                 return AgentResponse(text=text, agent_name="default", metadata={"ambiguous": True})
-                
+
             if dispatch_result.primary is None:
                 default_spec = self.registry.get_default_agent()
                 if default_spec:
@@ -261,11 +264,11 @@ class AgentRuntime:
         step_count = 0
         total_tool_calls = 0
         total_tokens = 0
-        
+
         # Base policy from spec, overridden by global settings if present
         from core.settings import get_settings
         settings = get_settings()
-        
+
         policy = spec.policy
         max_steps = settings.get("agent.max_steps") or policy.max_steps
         time_budget_s = settings.get("agent.time_budget_s") or policy.time_budget_s
@@ -281,7 +284,7 @@ class AgentRuntime:
             if time.time() - start_time > time_budget_s:
                 logger.warning(f"Agent '{spec.name}' tool loop exceeded time budget of {time_budget_s}s")
                 break
-                
+
             # Enforce token budget
             if token_budget is not None and total_tokens > token_budget:
                 logger.warning(f"Agent '{spec.name}' tool loop exceeded token budget of {token_budget}")
@@ -294,13 +297,13 @@ class AgentRuntime:
 
             step_count += 1
             tool_results = []
-            
+
             calls_to_make = response.tool_calls
             if total_tool_calls + len(calls_to_make) > tool_budget:
                 allowed = tool_budget - total_tool_calls
                 logger.warning(f"Agent '{spec.name}' truncating {len(calls_to_make)} calls to {allowed} to fit budget")
                 calls_to_make = calls_to_make[:allowed]
-            
+
             total_tool_calls += len(calls_to_make)
 
             for tc in calls_to_make:

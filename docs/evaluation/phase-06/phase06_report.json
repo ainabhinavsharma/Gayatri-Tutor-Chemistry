@@ -1,0 +1,48 @@
+{
+  "phase": "06",
+  "phase_name": "Prompt System 2.0",
+  "timestamp": "2026-09-25T23:07:35+05:30",
+  "status": "VERIFIED",
+  "test_summary": {
+    "total_passed": 345,
+    "total_failed": 0,
+    "phase6_new_tests": 6,
+    "execution_time_seconds": 8.07
+  },
+  "action_families_count": 17,
+  "action_families": [
+    "EXPLAIN_CONCEPT",
+    "WHY_QUESTION",
+    "DEFINITION",
+    "FORMULA_EXPLANATION",
+    "DERIVATION_STEP",
+    "NUMERICAL_PROBLEM",
+    "SOCRATIC_HINT",
+    "ANSWER_CHECK",
+    "MISCONCEPTION_REMEDIATION",
+    "REVISION_RECAP",
+    "PRACTICE_QUESTION",
+    "QUIZ_GENERATION",
+    "EXAM_PREP",
+    "SUMMARY",
+    "CONTEXTUAL_REWRITE",
+    "CONFUSION_RESOLVE",
+    "GENERAL_HELP"
+  ],
+  "pydantic_schemas": [
+    "SocraticHintResponse",
+    "MisconceptionDiagnosisResponse",
+    "ProblemGenerationResponse",
+    "AnswerEvaluationResponse",
+    "ContextualRewriteResponse"
+  ],
+  "layer_structure": [
+    "SYSTEM POLICY",
+    "TASK POLICY",
+    "STUDENT STATE",
+    "LEARNING OBJECTIVE",
+    "EVIDENCE PACK",
+    "USER QUERY",
+    "OUTPUT SCHEMA"
+  ]
+}

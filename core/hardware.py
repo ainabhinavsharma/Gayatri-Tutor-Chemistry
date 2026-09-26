@@ -130,7 +130,6 @@ def get_llama_params(profile: HardwareProfile | None = None) -> LlamaParams:
     """Get recommended llama.cpp params, detecting hardware if needed."""
     if profile is None:
         profile = detect_hardware()
-    from pathlib import Path
     from core.config import get_active_model_path
 
     model_path = get_active_model_path()

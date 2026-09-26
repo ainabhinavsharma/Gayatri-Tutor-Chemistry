@@ -11,7 +11,6 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from core.config import DB_PATH
 from core.db import get_safe_db_connection, run_migrations
@@ -407,7 +406,7 @@ class TutorStateManager:
 
     def get_student_concept_mastery(self, student_id: str, concept_id: str) -> StudentConceptMastery:
         '''Get student-scoped concept mastery (P1-T01).'''
-        from core.security.validation import validate_student_id, validate_concept_id
+        from core.security.validation import validate_concept_id, validate_student_id
         student_id = validate_student_id(student_id)
         concept_id = validate_concept_id(concept_id)
 
@@ -440,7 +439,7 @@ class TutorStateManager:
 
         Returns True if event was newly recorded, False if event_id already exists (idempotent).
         '''
-        from core.security.validation import validate_student_id, validate_concept_id
+        from core.security.validation import validate_concept_id, validate_student_id
         if not event.student_id or not str(event.student_id).strip():
             raise ValueError("event.student_id must not be empty")
         validate_student_id(event.student_id)
@@ -525,7 +524,7 @@ class TutorStateManager:
 
     def get_learning_events(self, student_id: str, concept_id: str | None = None) -> list[LearningEvent]:
         """Fetch historical learning events for a student, optionally filtered by concept."""
-        from core.security.validation import validate_student_id, validate_concept_id
+        from core.security.validation import validate_concept_id, validate_student_id
         student_id = validate_student_id(student_id)
         if concept_id:
             concept_id = validate_concept_id(concept_id)

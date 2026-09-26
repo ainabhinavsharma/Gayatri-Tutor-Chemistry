@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING
 
-from core.settings import get_settings
-from core.prompts.loader import get_prompt_loader
 from core.inference.service import get_inference_service
+from core.prompts.loader import get_prompt_loader
+from core.settings import get_settings
 
 logger = logging.getLogger("gayatri.runtimes.general")
 

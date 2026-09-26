@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 import threading
+from dataclasses import dataclass
+
 
 @dataclass
 class AgentPolicy:
@@ -14,10 +15,10 @@ class CancelledError(Exception):
 class CancellationToken:
     def __init__(self):
         self._cancelled = threading.Event()
-        
+
     def cancel(self) -> None:
         self._cancelled.set()
-        
+
     @property
     def is_cancelled(self) -> bool:
         return self._cancelled.is_set()

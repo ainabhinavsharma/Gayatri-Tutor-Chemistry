@@ -1,24 +1,21 @@
-"""Gayatri AI — Learning Dependency Graph.
+"""Gayatri AI — Learning Dependency Graph & Knowledge Graph Engine (Phase 5).
 
 A directed graph where:
-  Nodes   = learning concepts (e.g. "Python Variables", "For Loops")
-  Edges   = prerequisite relationships (must know A before B)
-  Node attrs = mastery score, exposure count, error count, difficulty
+  Nodes = learning concepts & chemistry entities
+  Edges = typed relationships (prerequisite, depends_on, related_to, contrasts_with, example_of, misconception_of, formula_for, reaction_involves)
 
-NOT a "mind map" (prior art US20110167329A1, WO2024215244A1).
-Called a "Learning Dependency Graph" to avoid patented terminology.
-
-Stored in SQLite. Agents query it to decide what to teach next.
-No visual editor — graph is built from curriculum data and updated by agents.
+Provides multi-hop graph traversal RAG integration, chemistry entity normalization,
+DAG cycle detection, and graph integrity validation.
 """
 
 from __future__ import annotations
 
 import logging
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from core.config import (
     DB_PATH,
@@ -27,8 +24,20 @@ from core.config import (
     LDG_LEARN_RATE,
     LDG_MASTERY_THRESHOLD,
 )
+from core.learning.chemistry_entities import ChemistryEntity, ChemistryEntityNormalizer
 
 logger = logging.getLogger("gayatri.ldg")
+
+
+class RelationshipType(str):
+    PREREQUISITE = "prerequisite"
+    DEPENDS_ON = "depends_on"
+    RELATED_TO = "related_to"
+    CONTRASTS_WITH = "contrasts_with"
+    EXAMPLE_OF = "example_of"
+    MISCONCEPTION_OF = "misconception_of"
+    FORMULA_FOR = "formula_for"
+    REACTION_INVOLVES = "reaction_involves"
 
 
 @dataclass
@@ -69,17 +78,22 @@ class Concept:
 
 
 @dataclass
-class Prerequisite:
-    """An edge: concept_id requires prereq_id."""
+class Relationship:
+    """A typed edge between concept nodes."""
     concept_id: str
-    prereq_id: str
+    target_id: str
+    relation_type: str = RelationshipType.PREREQUISITE
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+# Backward compatibility alias
+Prerequisite = Relationship
 
 
 class LearningDependencyGraph:
-    """Directed graph of learning concepts with mastery tracking.
-
-    Backed by SQLite. Thread-safe for single-user desktop use.
-    """
+    """Directed Knowledge Graph of learning concepts and chemistry entities."""
 
     def __init__(self, db_path: str | Path | None = None):
         self.db_path = Path(db_path) if db_path else Path(DB_PATH)
@@ -123,6 +137,7 @@ class LearningDependencyGraph:
             CREATE TABLE IF NOT EXISTS ldg_prerequisites (
                 concept_id  TEXT NOT NULL,
                 prereq_id   TEXT NOT NULL,
+                relation_type TEXT DEFAULT 'prerequisite',
                 PRIMARY KEY (concept_id, prereq_id),
                 FOREIGN KEY (concept_id) REFERENCES ldg_concepts(id) ON DELETE CASCADE,
                 FOREIGN KEY (prereq_id)  REFERENCES ldg_concepts(id) ON DELETE CASCADE
@@ -138,14 +153,21 @@ class LearningDependencyGraph:
 
     # ── Concept CRUD ─────────────────────────────────────────────────────
 
-    def add_concept(self, concept_id: str, name: str, description: str = "",
-                    difficulty: float = 0.5, subject: str = "",
-                    minimum_mastery: float = 0.85, evidence_count: int = 3,
-                    assessment_types: list[str] | None = None) -> Concept:
+    def add_concept(
+        self,
+        concept_id: str,
+        name: str,
+        description: str = "",
+        difficulty: float = 0.5,
+        subject: str = "",
+        minimum_mastery: float = 0.85,
+        evidence_count: int = 3,
+        assessment_types: list[str] | None = None,
+    ) -> Concept:
         """Add a new concept to the graph. Idempotent — updates if exists."""
         if difficulty < 0.0 or difficulty > 1.0:
             raise ValueError(f"Difficulty must be 0.0-1.0, got {difficulty}")
-            
+
         import json
         assess_str = json.dumps(assessment_types or [])
 
@@ -195,13 +217,13 @@ class LearningDependencyGraph:
         )
 
     def clear_cache(self) -> None:
-        """Clear the in-memory concept cache (Audit #DB-TEST)."""
+        """Clear the in-memory concept cache."""
         self._cache.clear()
 
     def get_concept(self, concept_id: str) -> Concept | None:
         if concept_id in self._cache:
             return self._cache[concept_id]
-        
+
         conn = self._conn()
         row = conn.execute(
             "SELECT * FROM ldg_concepts WHERE id = ?", (concept_id,)
@@ -210,7 +232,7 @@ class LearningDependencyGraph:
 
         if not row:
             return None
-            
+
         concept = self._row_to_concept(row)
         self._cache[concept_id] = concept
         return concept
@@ -224,53 +246,52 @@ class LearningDependencyGraph:
         else:
             rows = conn.execute("SELECT * FROM ldg_concepts").fetchall()
         conn.close()
-        
+
         concepts = [self._row_to_concept(row) for row in rows]
         for c in concepts:
             self._cache[c.id] = c
         return concepts
 
     def list_concepts(self, subject: str = "") -> list[Concept]:
-        """List all concepts, optionally filtered by subject."""
         return self.get_all_concepts(subject=subject)
 
-    # ── Prerequisite edges ───────────────────────────────────────────────
+    # ── Relationship edges & Prerequisite Graph ──────────────────────────
 
-    def add_prerequisite(self, concept_id: str, prereq_id: str) -> None:
-        """Add a prerequisite edge: concept_id requires prereq_id.
+    def add_relationship(self, concept_id: str, target_id: str, relation_type: str = RelationshipType.PREREQUISITE) -> None:
+        """Add a typed relationship edge between two concept nodes."""
+        if concept_id == target_id:
+            raise ValueError("Concept cannot be related to itself")
 
-        Idempotent — safe to call multiple times.
-        Validates that both concepts exist.
-        """
-        if concept_id == prereq_id:
-            raise ValueError("Concept cannot be its own prerequisite")
-
-        # Ensure both concepts exist
         if self.get_concept(concept_id) is None:
             raise ValueError(f"Concept not found: {concept_id}")
-        if self.get_concept(prereq_id) is None:
-            raise ValueError(f"Concept not found: {prereq_id}")
+        if self.get_concept(target_id) is None:
+            raise ValueError(f"Target concept not found: {target_id}")
 
-        # Check for cycles
-        ancestors = set()
-        queue = [prereq_id]
-        while queue:
-            current = queue.pop(0)
-            if current == concept_id:
-                raise ValueError(f"Adding this prerequisite would create a cycle: {concept_id} requires {prereq_id} which requires {concept_id}")
-            for p in self.get_prerequisites(current):
-                if p not in ancestors:
-                    ancestors.add(p)
-                    queue.append(p)
+        # Cycle check for prerequisite dependencies
+        if relation_type in {RelationshipType.PREREQUISITE, RelationshipType.DEPENDS_ON}:
+            ancestors = set()
+            queue = [target_id]
+            while queue:
+                current = queue.pop(0)
+                if current == concept_id:
+                    raise ValueError(f"Adding prerequisite relationship would create a cycle: {concept_id} requires {target_id}")
+                for p in self.get_prerequisites(current):
+                    if p not in ancestors:
+                        ancestors.add(p)
+                        queue.append(p)
 
         conn = self._conn()
         conn.execute(
-            "INSERT OR IGNORE INTO ldg_prerequisites (concept_id, prereq_id) VALUES (?, ?)",
-            (concept_id, prereq_id),
+            "INSERT OR IGNORE INTO ldg_prerequisites (concept_id, prereq_id, relation_type) VALUES (?, ?, ?)",
+            (concept_id, target_id, relation_type),
         )
         conn.commit()
         conn.close()
-        logger.debug(f"Prerequisite: {concept_id} requires {prereq_id}")
+        logger.debug(f"Relationship: {concept_id} --({relation_type})--> {target_id}")
+
+    def add_prerequisite(self, concept_id: str, prereq_id: str) -> None:
+        """Add a prerequisite edge: concept_id requires prereq_id."""
+        self.add_relationship(concept_id, prereq_id, relation_type=RelationshipType.PREREQUISITE)
 
     def get_prerequisites(self, concept_id: str) -> list[str]:
         """Get list of prerequisite concept IDs for a concept."""
@@ -292,45 +313,87 @@ class LearningDependencyGraph:
         conn.close()
         return [row["concept_id"] for row in rows]
 
+    def get_relationships(self, concept_id: str, relation_type: str | None = None) -> list[Relationship]:
+        """Get all typed relationships for a concept."""
+        conn = self._conn()
+        if relation_type:
+            rows = conn.execute(
+                "SELECT concept_id, prereq_id, relation_type FROM ldg_prerequisites WHERE concept_id = ? AND relation_type = ?",
+                (concept_id, relation_type),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT concept_id, prereq_id, relation_type FROM ldg_prerequisites WHERE concept_id = ?",
+                (concept_id,),
+            ).fetchall()
+        conn.close()
+        return [Relationship(concept_id=r["concept_id"], target_id=r["prereq_id"], relation_type=r["relation_type"] or RelationshipType.PREREQUISITE) for r in rows]
+
+    # ── Multi-hop Graph Traversal RAG Integration ─────────────────────────
+
+    def traverse_concept_graph(self, concept_id: str, max_depth: int = 2) -> dict[str, Any]:
+        """Multi-hop graph traversal: Current Concept -> Prerequisites -> Dependents -> Related."""
+        concept = self.get_concept(concept_id)
+        if not concept:
+            return {"concept_id": concept_id, "found": False}
+
+        prereqs = [self.get_concept(p) for p in self.get_prerequisites(concept_id) if self.get_concept(p)]
+        dependents = [self.get_concept(d) for d in self.get_dependents(concept_id) if self.get_concept(d)]
+        relationships = self.get_relationships(concept_id)
+
+        return {
+            "concept_id": concept_id,
+            "found": True,
+            "concept": concept.to_dict(),
+            "prerequisites": [p.to_dict() for p in prereqs],
+            "dependents": [d.to_dict() for d in dependents],
+            "relationships": [r.to_dict() for r in relationships],
+            "traversal_path": [concept_id] + [p.id for p in prereqs] + [d.id for d in dependents],
+        }
+
+    def validate_graph_integrity(self) -> dict[str, Any]:
+        """Validate graph integrity: check cycles, orphaned edges, and return metrics."""
+        orphans_pruned = self.prune_orphaned_prerequisites()
+        all_concepts = self.list_concepts()
+
+        cycles = []
+        for c in all_concepts:
+            visited = set()
+            stack = [c.id]
+            while stack:
+                curr = stack.pop()
+                if curr in visited:
+                    cycles.append((c.id, curr))
+                    break
+                visited.add(curr)
+                stack.extend(self.get_prerequisites(curr))
+
+        return {
+            "total_concepts": len(all_concepts),
+            "orphans_pruned": orphans_pruned,
+            "cycles_detected": len(cycles),
+            "is_valid_dag": len(cycles) == 0,
+        }
+
     # ── Mastery tracking ─────────────────────────────────────────────────
 
-    def record_attempt(self, concept_id: str, correct: bool,
-                       confidence: float = 1.0) -> float:
-        """Record a student's attempt on a concept and update mastery.
-
-        Mastery update (exponential moving average):
-          correct: mastery += LEARN_RATE * (1 - mastery) * confidence
-          wrong:   mastery -= DECAY_RATE * mastery * confidence
-
-        Args:
-            concept_id: The concept being attempted
-            correct: Whether the student answered correctly
-            confidence: How confident the assessment is (clamped to 0.0-1.0)
-
-        Returns:
-            New mastery score
-        """
+    def record_attempt(self, concept_id: str, correct: bool, confidence: float = 1.0) -> float:
         concept = self.get_concept(concept_id)
         if concept is None:
             raise ValueError(f"Concept not found: {concept_id}")
 
-        # Clamp confidence to [0.0, 1.0] (Audit #35)
         try:
             conf = max(0.0, min(1.0, float(confidence)))
         except (TypeError, ValueError):
             conf = 1.0
 
         if conf == 0.0:
-            # Zero confidence: do not adjust mastery or exposure count
             return concept.mastery
         elif correct:
-            # Learn: move mastery toward 1.0
-            # Apply slight diminishing return with exposure to prevent oscillation (Audit #36)
             dampening = 1.0 / (1.0 + 0.02 * min(concept.exposure_count, 50))
             delta = LDG_LEARN_RATE * (1.0 - concept.mastery) * conf * dampening
             new_mastery = min(1.0, concept.mastery + delta)
         else:
-            # Decay: move mastery toward 0.0
             dampening = 1.0 / (1.0 + 0.02 * min(concept.exposure_count, 50))
             delta = LDG_DECAY_RATE * concept.mastery * conf * dampening
             new_mastery = max(0.0, concept.mastery - delta)
@@ -344,7 +407,6 @@ class LearningDependencyGraph:
             concept.error_count += 1
         concept.last_practiced = datetime.now().isoformat()
 
-        # Persist
         conn = self._conn()
         conn.execute(
             """UPDATE ldg_concepts
@@ -363,23 +425,15 @@ class LearningDependencyGraph:
         return concept.mastery
 
     def get_mastery(self, concept_id: str, default: float | None = None) -> float | None:
-        """Get current mastery score for a concept (0.0-1.0), or default (None) if untracked."""
         concept = self.get_concept(concept_id)
         if concept is None:
             return default
         return float(concept.mastery)
 
     def has_concept(self, concept_id: str) -> bool:
-        """Check if a concept exists in the graph."""
         return self.get_concept(concept_id) is not None
 
     def is_unlocked(self, concept_id: str) -> bool:
-        """Check if all prerequisites are mastered (>= threshold).
-
-        A concept is unlocked when every existing prerequisite has mastery >= threshold.
-        If no prerequisites exist, the concept is always unlocked.
-        Missing/orphaned prerequisites are logged and skipped to prevent deadlock (Audit #110).
-        """
         prereqs = self.get_prerequisites(concept_id)
         if not prereqs:
             return True
@@ -396,15 +450,10 @@ class LearningDependencyGraph:
         return True
 
     def is_mastered(self, concept_id: str) -> bool:
-        """Check if a concept is mastered (mastery >= LDG_MASTERY_THRESHOLD)."""
         m = self.get_mastery(concept_id)
         return m is not None and m >= LDG_MASTERY_THRESHOLD
 
     def prune_orphaned_prerequisites(self) -> int:
-        """Remove any prerequisite edges referencing non-existent concepts.
-
-        Returns the number of removed orphaned edges (Audit #110).
-        """
         conn = self._conn()
         cursor = conn.execute(
             """DELETE FROM ldg_prerequisites
@@ -421,17 +470,6 @@ class LearningDependencyGraph:
     # ── Learning path ────────────────────────────────────────────────────
 
     def get_next_concept(self, subject: str = "") -> Concept | None:
-        """Get the next concept to teach.
-
-        Selection criteria (in priority order):
-          1. Unlocked (all prereqs mastered)
-          2. Lowest mastery among unlocked concepts
-          3. Lowest difficulty (easier to start)
-          4. Least recently practiced
-
-        If no concept is directly unlocked, falls back to the candidate whose
-        prerequisites are closest to mastery (Audit #109).
-        """
         candidates = self.list_concepts(subject=subject)
         if not candidates:
             return None
@@ -442,7 +480,7 @@ class LearningDependencyGraph:
                 f"No concepts directly unlocked for subject='{subject}'. "
                 "Selecting candidate closest to unlocking (RECOVERY_MODE)."
             )
-            # Fallback: score candidates by how close their prerequisites are to mastery
+
             def _prereq_mastery_score(cand: Concept) -> tuple[float, float]:
                 prereqs = self.get_prerequisites(cand.id)
                 existing_prereqs = [p for p in prereqs if self.has_concept(p)]
@@ -466,31 +504,18 @@ class LearningDependencyGraph:
                 chosen.recovery_reason = "No directly unlocked concepts; initiating recovery review."
             return chosen
 
-        # Sort: lowest mastery first, then lowest difficulty, then oldest practice
         unlocked.sort(key=lambda c: (
             c.mastery,
             c.difficulty,
-            -(c.exposure_count),  # prefer concepts not yet practiced
+            -(c.exposure_count),
         ))
         return unlocked[0]
 
     def get_learning_path(self, goal_concept: str) -> list[Concept]:
-        """Get the full learning path from roots to a goal concept.
-
-        Uses topological sort on prerequisite edges with cycle detection
-        and graceful fallback resolution (Audit #33 & #110).
-
-        Args:
-            goal_concept: Target concept ID
-
-        Returns:
-            Ordered list of concepts from prerequisites to goal
-        """
         all_concepts = {c.id: c for c in self.list_concepts()}
         if goal_concept not in all_concepts:
             return []
 
-        # Collect all ancestors of goal using BFS with visited set
         ancestors = set()
         queue = [goal_concept]
         visited_bfs = {goal_concept}
@@ -500,7 +525,6 @@ class LearningDependencyGraph:
             prereqs = self.get_prerequisites(current)
             for p in prereqs:
                 if p not in all_concepts:
-                    # Audit #110: Skip missing prerequisites
                     logger.warning(
                         f"Missing prerequisite '{p}' ignored in learning path for '{goal_concept}'"
                     )
@@ -511,7 +535,6 @@ class LearningDependencyGraph:
                     visited_bfs.add(p)
                     queue.append(p)
 
-        # Kahn's algorithm on the ancestor subgraph
         in_degree = {cid: 0 for cid in ancestors}
         dependents: dict[str, list[str]] = {cid: [] for cid in ancestors}
 
@@ -521,12 +544,11 @@ class LearningDependencyGraph:
                     in_degree[cid] = in_degree.get(cid, 0) + 1
                     dependents[prereq].append(cid)
 
-        # BFS topological sort
         ready_queue = [cid for cid in ancestors if in_degree[cid] == 0]
         sorted_ancestors = []
 
         while ready_queue:
-            ready_queue.sort()  # deterministic order
+            ready_queue.sort()
             node = ready_queue.pop(0)
             sorted_ancestors.append(node)
             for dep in dependents.get(node, []):
@@ -534,14 +556,12 @@ class LearningDependencyGraph:
                 if in_degree[dep] == 0:
                     ready_queue.append(dep)
 
-        # Audit #33: Cycle detection & graceful fallback
         if len(sorted_ancestors) < len(ancestors):
             remaining = [cid for cid in ancestors if cid not in sorted_ancestors]
             logger.warning(
                 f"Curriculum cycle detected in learning path for '{goal_concept}'. "
                 f"Unresolved cycle nodes: {remaining}. Resolving with fallback topological ordering."
             )
-            # Break cycle gracefully by sorting remaining nodes by (in_degree, difficulty, concept_id)
             while remaining:
                 remaining.sort(key=lambda cid: (
                     in_degree.get(cid, 0),
@@ -554,39 +574,29 @@ class LearningDependencyGraph:
                     if dep in in_degree:
                         in_degree[dep] = max(0, in_degree[dep] - 1)
 
-        # Add the goal concept at the end if not already included
         if goal_concept not in sorted_ancestors:
             sorted_ancestors.append(goal_concept)
 
         return [all_concepts[cid] for cid in sorted_ancestors if cid in all_concepts]
 
     def get_weak_concepts(self, top_n: int = 5, subject: str = "") -> list[Concept]:
-        """Get the concepts with lowest mastery scores.
-
-        Useful for targeted practice and review.
-        """
         concepts = self.list_concepts(subject=subject)
-        # Sort by mastery ascending, then by exposure (less practiced = more urgent)
         concepts.sort(key=lambda c: (c.mastery, c.exposure_count))
         return concepts[:top_n]
 
     def get_mastered_concepts(self, subject: str = "") -> list[Concept]:
-        """Get concepts where mastery >= threshold."""
         concepts = self.list_concepts(subject=subject)
         return [c for c in concepts if c.mastery >= LDG_MASTERY_THRESHOLD]
 
     def get_concepts_in_progress(self, subject: str = "") -> list[Concept]:
-        """Get concepts with 0 < mastery < threshold."""
         concepts = self.list_concepts(subject=subject)
         return [c for c in concepts if 0.0 < c.mastery < LDG_MASTERY_THRESHOLD]
 
     def get_not_started_concepts(self, subject: str = "") -> list[Concept]:
-        """Get concepts with mastery == initial (never attempted)."""
         concepts = self.list_concepts(subject=subject)
         return [c for c in concepts if c.mastery <= LDG_INITIAL_MASTERY + 0.01]
 
     def get_progress_stats(self, subject: str = "") -> dict:
-        """Get overall progress statistics for a subject."""
         concepts = self.list_concepts(subject=subject)
         if not concepts:
             return {
@@ -613,7 +623,6 @@ class LearningDependencyGraph:
         }
 
     def reset_concept(self, concept_id: str) -> None:
-        """Reset a concept to initial mastery (for retrying)."""
         conn = self._conn()
         conn.execute(
             """UPDATE ldg_concepts
@@ -628,7 +637,6 @@ class LearningDependencyGraph:
         logger.info(f"Reset concept: {concept_id}")
 
     def reset_all(self) -> None:
-        """Reset all concepts to initial mastery. Use with caution."""
         conn = self._conn()
         conn.execute(
             """UPDATE ldg_concepts
@@ -642,7 +650,6 @@ class LearningDependencyGraph:
         logger.warning("Reset ALL concepts to initial mastery.")
 
     def delete_concept(self, concept_id: str) -> None:
-        """Remove a concept and its prerequisite edges."""
         conn = self._conn()
         conn.execute("DELETE FROM ldg_prerequisites WHERE concept_id = ? OR prereq_id = ?",
                      (concept_id, concept_id))
@@ -654,15 +661,12 @@ class LearningDependencyGraph:
         logger.info(f"Deleted concept: {concept_id}")
 
 
-# ── Curriculum loader ────────────────────────────────────────────────────
-
 def load_curriculum(graph: LearningDependencyGraph, curriculum_path: str | Path) -> int:
     from core.curriculum.loader import load_curriculum as _load
     return _load(graph, curriculum_path)
 
 
 def get_ldg(db_path: str | Path | None = None) -> LearningDependencyGraph:
-    """Get the active LearningDependencyGraph instance."""
     try:
         from core.orchestrator import _get_ldg
         ldg = _get_ldg()
@@ -671,4 +675,3 @@ def get_ldg(db_path: str | Path | None = None) -> LearningDependencyGraph:
     except Exception:
         logger.debug("Could not reuse existing LDG, creating new instance", exc_info=True)
     return LearningDependencyGraph(db_path=db_path)
-

@@ -2,19 +2,20 @@
 import json
 import logging
 from pathlib import Path
+
 from core.knowledge_graph import LearningDependencyGraph
 
 logger = logging.getLogger('gayatri.curriculum')
 
 class CurriculumProvider:
-    def __init__(self, subject: str, board: str = 'default', grade: str = 'default', 
+    def __init__(self, subject: str, board: str = 'default', grade: str = 'default',
                  language: str = 'en', version: str = 'v1'):
         self.subject = subject
         self.board = board
         self.grade = grade
         self.language = language
         self.version = version
-        
+
         # Determine paths
         # Data is in data/curriculum/<subject>/<grade>.json
         from core.config import BASE_DIR, DATA_DIR
@@ -37,9 +38,9 @@ class CurriculumProvider:
         from core.curriculum.validator import CurriculumValidator
         CurriculumValidator().validate_or_raise(self.file_path)
 
-        with open(self.file_path, 'r', encoding='utf-8') as f:
+        with open(self.file_path, encoding='utf-8') as f:
             data = json.load(f)
-            
+
         concepts_added = 0
         for concept_data in data.get('concepts', []):
             graph.add_concept(
@@ -61,14 +62,14 @@ class CurriculumProvider:
 
         logger.info(f'Loaded curriculum {self.subject} ({self.grade}): {concepts_added} concepts')
         return concepts_added
-        
+
     @staticmethod
     def list_subjects() -> list[str]:
         # For now, just a hardcoded list or scan directories
         base_dir = Path(__file__).parent.parent.parent / 'data' / 'curriculum'
         if not base_dir.exists():
             return []
-        
+
         subjects = []
         for d in base_dir.iterdir():
             if d.is_dir():

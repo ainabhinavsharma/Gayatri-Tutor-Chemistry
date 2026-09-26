@@ -5,11 +5,10 @@ Processes NCERT textbook JSON data into schema-compliant DocumentChunk objects.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from pathlib import Path
 
-from core.rag.schema import DocumentChunk, SourceMetadata
+from core.rag.schema import DocumentChunk
 
 logger = logging.getLogger("gayatri.rag.ingester")
 
@@ -31,7 +30,11 @@ class NCERTIngester:
             return []
 
         try:
-            from core.security.validation import validate_file_extension, validate_file_size, validate_json
+            from core.security.validation import (
+                validate_file_extension,
+                validate_file_size,
+                validate_json,
+            )
             validate_file_extension(path, allowed_extensions={".json"})
             validate_file_size(path.stat().st_size)
 

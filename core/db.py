@@ -9,11 +9,11 @@ import logging
 import shutil
 import sqlite3
 import time
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-
-from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger("gayatri.db")
 

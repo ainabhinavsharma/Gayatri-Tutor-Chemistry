@@ -7,17 +7,14 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Any, Optional
+from typing import Any
 
 from core.assessment.balancing import EquationBalancingEngine
 from core.assessment.schema import (
     AssertionReasoningQuestion,
-    EquationBalancingQuestion,
     MCQQuestion,
-    NumericalQuestion,
     Question,
     QuestionType,
-    ReactionCompletionQuestion,
 )
 
 logger = logging.getLogger("gayatri.assessment.grader")

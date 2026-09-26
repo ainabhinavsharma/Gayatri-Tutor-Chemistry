@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QColor
 from PySide6.QtWebChannel import QWebChannel
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QMainWindow
 
 from app.bridge import Bridge
 from core.config import BASE_DIR
 
-
-from PySide6.QtWebEngineCore import QWebEnginePage
 
 class SecureWebPage(QWebEnginePage):
     """Enforces navigation hardening by only accepting local trusted UI assets."""
@@ -40,8 +40,9 @@ class MainWindow(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setWindowTitle("Gayatri AI")
 
-        from PySide6.QtGui import QIcon
         import sys
+
+        from PySide6.QtGui import QIcon
         meipass = getattr(sys, "_MEIPASS", None)
         icon_candidates = [
             BASE_DIR / "gai3.ico",
@@ -63,20 +64,20 @@ class MainWindow(QMainWindow):
         # WebChannel + Bridge
         self._channel = QWebChannel()
         self._bridge = Bridge()
-        
+
         # Sub-bridges
         from app.bridge.chat import ChatBridge
-        from app.bridge.settings import SettingsBridge
-        from app.bridge.provider import ProviderBridge
         from app.bridge.model import ModelBridge
+        from app.bridge.provider import ProviderBridge
+        from app.bridge.settings import SettingsBridge
         from app.bridge.window import WindowBridge
-        
+
         self._chat_bridge = ChatBridge(self._bridge)
         self._settings_bridge = SettingsBridge(self._bridge)
         self._provider_bridge = ProviderBridge(self._bridge)
         self._model_bridge = ModelBridge(self._bridge)
         self._window_bridge = WindowBridge(self._bridge)
-        
+
         # Register them
         self._channel.registerObject("bridge", self._bridge) # Facade for backwards compat
         self._channel.registerObject("chat_bridge", self._chat_bridge)
@@ -112,8 +113,9 @@ class MainWindow(QMainWindow):
 
     def _on_web_loaded(self, ok: bool):
         """Called when QWebEngineView finishes loading HTML and assets."""
-        from PySide6.QtCore import QTimer
         import time
+
+        from PySide6.QtCore import QTimer
 
         # Ensure splash is displayed for a minimum of 2.4 seconds
         elapsed = time.time() - getattr(self, "_start_time", time.time())

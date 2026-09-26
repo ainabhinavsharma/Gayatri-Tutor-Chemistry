@@ -244,10 +244,10 @@ class TutorEngine:
                     if review_mastery is not None and review_mastery < LDG_MASTERY_THRESHOLD:
                         next_concept = self.ldg.get_concept(review_id)
                         break
-                
+
                 if not next_concept:
                     next_concept = self.ldg.get_next_concept(ctx.subject)
-                    
+
                     if next_concept is None:
                         ctx.metadata['recovery_mode'] = RecoveryMode.EMPTY_CURRICULUM.value
                     elif not self.ldg.is_unlocked(next_concept.id):
@@ -256,7 +256,7 @@ class TutorEngine:
                         ctx.metadata['recovery_mode'] = RecoveryMode.NORMAL.value
                 else:
                     ctx.metadata['recovery_mode'] = RecoveryMode.NORMAL.value
-                
+
                 if next_concept:
                     # Advance context
                     ctx.current_concept_id = next_concept.id

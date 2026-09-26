@@ -138,7 +138,7 @@ class ProviderRegistry:
                 try:
                     models = provider.list_models()
                     matching = [
-                        m for m in models 
+                        m for m in models
                         if m.speed_tier == tier
                         and (not required_capabilities or all(c in m.capabilities for c in required_capabilities))
                         and (m.context_length >= min_context_length)

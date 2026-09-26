@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from core.profile import UserProfile
 
@@ -27,7 +26,7 @@ class StudentAdapter:
     """Adapts teaching style based on student profile and historical performance."""
 
     @staticmethod
-    def adapt(profile: Optional[UserProfile] = None, mastery_score: float = 0.5) -> AdaptationStrategy:
+    def adapt(profile: UserProfile | None = None, mastery_score: float = 0.5) -> AdaptationStrategy:
         """Calculate adaptation strategy."""
         grade = getattr(profile, "target_class", "11") if profile else "11"
         pref_diff = getattr(profile, "preferred_difficulty", "adaptive") if profile else "adaptive"

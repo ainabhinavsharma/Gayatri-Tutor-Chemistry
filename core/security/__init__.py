@@ -3,9 +3,9 @@ Core Security package (Phase 12).
 Provides secret management, cryptographic signature verification,
 student authorization guards, and log sanitization.
 """
-from core.security.authorization import StudentAuthorizationGuard, SecurityAccessDeniedError
+from core.security.authorization import SecurityAccessDeniedError, StudentAuthorizationGuard
 
 __all__ = [
-    "StudentAuthorizationGuard",
     "SecurityAccessDeniedError",
+    "StudentAuthorizationGuard",
 ]

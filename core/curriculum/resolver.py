@@ -5,10 +5,8 @@ active session concept state, and curriculum manifest (P3-T01 to P3-T04).
 """
 from __future__ import annotations
 
-import re
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger("gayatri.curriculum.resolver")
 
@@ -207,9 +205,9 @@ class ConceptResolver:
         cls,
         user_message: str = "",
         active_concept_id: str = "",
-        recent_context: Optional[list[str]] = None,
+        recent_context: list[str] | None = None,
         student_id: str = "",
-        state_manager: Optional[object] = None,
+        state_manager: object | None = None,
     ) -> ResolvedConcept:
         """Resolve domain, chapter, topic, subtopic, concept_id dynamically (Section 13).
 

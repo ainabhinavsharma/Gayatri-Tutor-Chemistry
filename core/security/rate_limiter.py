@@ -14,12 +14,11 @@ import contextlib
 import logging
 import threading
 import time
-from typing import Dict, Iterator, Optional, Tuple
+from collections.abc import Iterator
 
 from core.config import (
     AGENT_TIMEOUT_S,
     MAX_CONCURRENT_REQUESTS,
-    MAX_INPUT_CHARS,
     RATE_LIMIT_REQUESTS_PER_MIN,
     RATE_LIMIT_WINDOW_S,
 )
@@ -56,7 +55,7 @@ class SlidingWindowRateLimiter:
         self.max_requests = max_requests
         self.window_s = window_s
         self._lock = threading.RLock()
-        self._timestamps: Dict[str, collections.deque] = collections.defaultdict(collections.deque)
+        self._timestamps: dict[str, collections.deque] = collections.defaultdict(collections.deque)
 
     def _prune(self, key: str, now: float) -> collections.deque:
         """Remove timestamps older than the current sliding window."""
@@ -71,7 +70,7 @@ class SlidingWindowRateLimiter:
         allowed, _ = self.check(key)
         return allowed
 
-    def check(self, key: str) -> Tuple[bool, int]:
+    def check(self, key: str) -> tuple[bool, int]:
         """Check rate limit for key.
 
         Returns (allowed, retry_after_seconds).
@@ -113,7 +112,7 @@ class SlidingWindowRateLimiter:
 
             dq.append(now)
 
-    def reset(self, key: Optional[str] = None) -> None:
+    def reset(self, key: str | None = None) -> None:
         """Reset rate limit history for a specific key or all keys."""
         with self._lock:
             if key is not None:
@@ -196,7 +195,7 @@ class ResourceGovernor:
 
 # Global singleton
 _governor_lock = threading.RLock()
-_governor: Optional[ResourceGovernor] = None
+_governor: ResourceGovernor | None = None
 
 
 def get_governor() -> ResourceGovernor:

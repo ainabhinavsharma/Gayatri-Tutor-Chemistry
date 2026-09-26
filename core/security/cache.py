@@ -17,8 +17,8 @@ import hashlib
 import logging
 import threading
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from core.security.validation import (
     validate_concept_id,
@@ -66,7 +66,7 @@ class CacheEntry:
     student_id: str
     session_id: str
     created_at: float
-    expires_at: Optional[float] = None
+    expires_at: float | None = None
 
     def is_expired(self, now: float) -> bool:
         if self.expires_at is None:
@@ -77,14 +77,14 @@ class CacheEntry:
 class IsolatedCacheManager:
     """Thread-safe cache manager guaranteeing cross-student isolation."""
 
-    def __init__(self, default_ttl_s: Optional[int] = None):
+    def __init__(self, default_ttl_s: int | None = None):
         self.default_ttl_s = default_ttl_s
-        self._store: Dict[str, CacheEntry] = {}
+        self._store: dict[str, CacheEntry] = {}
         self._lock = threading.RLock()
         self._hits = 0
         self._misses = 0
 
-    def get(self, key: StudentCacheKey) -> Optional[Any]:
+    def get(self, key: StudentCacheKey) -> Any | None:
         """Retrieve a cached value, ensuring strict 6-dimensional identity match and TTL."""
         key_str = key.build_key()
         now = time.time()
@@ -117,7 +117,7 @@ class IsolatedCacheManager:
         self,
         key: StudentCacheKey,
         value: Any,
-        ttl_seconds: Optional[int] = None,
+        ttl_seconds: int | None = None,
     ) -> None:
         """Store a value under the 6-dimensional isolated cache key."""
         key_str = key.build_key()
@@ -193,7 +193,7 @@ class IsolatedCacheManager:
 
 # Global singleton
 _cache_lock = threading.RLock()
-_cache_manager: Optional[IsolatedCacheManager] = None
+_cache_manager: IsolatedCacheManager | None = None
 
 
 def get_cache_manager() -> IsolatedCacheManager:

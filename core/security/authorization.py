@@ -6,7 +6,7 @@ and log data sanitization to prevent data leakage (P12-T01 through P12-T03).
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any
 
 
 class SecurityAccessDeniedError(PermissionError):
@@ -31,7 +31,7 @@ class StudentAuthorizationGuard:
             )
 
     @classmethod
-    def sanitize_log_record(cls, record: Union[str, Dict[str, Any]]) -> Union[str, Dict[str, Any]]:
+    def sanitize_log_record(cls, record: str | dict[str, Any]) -> str | dict[str, Any]:
         """Sanitize sensitive credentials, tokens, and passwords from logs (P12-T03)."""
         if isinstance(record, str):
             from core.errors import sanitize_message

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class DeadEndScenario(str, Enum):
@@ -46,7 +46,7 @@ class NextAction:
     action_type: str = "prompt"  # "prompt" | "retry" | "navigate" | "assessment" | "review" | "mode_switch"
     is_recovery: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -57,8 +57,8 @@ class DeadEndResolver:
     def resolve_actions(
         scenario: DeadEndScenario | str,
         path: ActionPath | str,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> List[NextAction]:
+        context: dict[str, Any] | None = None,
+    ) -> list[NextAction]:
         """Resolve a non-empty list of NextActions for a given scenario and path.
 
         Invariant: Every state must return at least 1 valid NextAction with non-empty
@@ -71,7 +71,7 @@ class DeadEndResolver:
         concept_name = ctx.get("concept_name") or "Thermodynamics"
         concept_id = ctx.get("concept_id") or "thermo.first_law"
 
-        actions: List[NextAction] = []
+        actions: list[NextAction] = []
 
         # 1. NEW_STUDENT
         if sc_val == DeadEndScenario.NEW_STUDENT.value:
@@ -337,11 +337,11 @@ class DeadEndResolver:
     @classmethod
     def ensure_next_actions(
         cls,
-        current_actions: Optional[List[Dict[str, Any]]],
+        current_actions: list[dict[str, Any]] | None,
         scenario: DeadEndScenario | str = DeadEndScenario.ACTIVE_LEARNING,
         path: ActionPath | str = ActionPath.SUCCESS,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        context: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Guarantee that a list of next actions has at least one valid action."""
         if current_actions and len(current_actions) > 0:
             # Validate that every action has non-empty label and prompt

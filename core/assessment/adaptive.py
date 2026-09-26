@@ -5,7 +5,6 @@ Selects questions dynamically based on student topic mastery and recent accuracy
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from core.assessment.schema import Question
 
@@ -20,7 +19,7 @@ class AdaptiveTestSelector:
         available_questions: list[Question],
         mastery_score: float = 0.5,
         recent_correctness: bool = True,
-    ) -> Optional[Question]:
+    ) -> Question | None:
         """Select question matching student's current mastery level."""
         if not available_questions:
             return None

@@ -15,8 +15,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.agents.registry import agent_registry
-from core.agents.runtime import AgentContext, AgentRuntime
+from core.agents.runtime import AgentContext
 from core.config import DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE, ExecutionMode
 from core.conversation import Conversation, ConversationStore
 from core.privacy import get_redactor
@@ -357,7 +356,7 @@ class Orchestrator:
              task = opts.task_type.lower()
              if task in ["math", "code", "code_review", "research_agent"]:
                  raise ValueError(f"Legacy task type '{opts.task_type}' is rejected.")
-        
+
         mode_val = opts.mode
         try:
             return AppMode(mode_val).value
@@ -379,10 +378,10 @@ class Orchestrator:
             user_message = _redact_pii(user_message)
             conv = self._get_conversation(session_id)
             conv.mode = mode
-        
+
         except ValueError as e:
             from core.errors import sanitize_error
-            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
             sanitized = sanitize_error(e, category="orchestrator_submit")
             latency = (time.time() - start) * 1000
             actions = DeadEndResolver.resolve_actions(DeadEndScenario.ACTIVE_LEARNING, ActionPath.FAILURE)
@@ -396,14 +395,14 @@ class Orchestrator:
                 next_actions=[a.to_dict() for a in actions],
             )
 
-        from core.security.rate_limiter import get_governor, RateLimitExceededError
+        from core.security.rate_limiter import RateLimitExceededError, get_governor
         governor = get_governor()
 
         try:
             governor.check_turn(student_id, session_id)
         except RateLimitExceededError as rle:
             latency = (time.time() - start) * 1000
-            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
             actions = DeadEndResolver.resolve_actions(DeadEndScenario.ACTIVE_LEARNING, ActionPath.RECOVERY)
             return TurnResult(
                 text=str(rle),
@@ -425,13 +424,13 @@ class Orchestrator:
 
         resp_text = ""
         agent_name = mode
-        
+
         try:
             with governor.concurrency_guard():
                 from core.mode import AppMode
                 if mode == AppMode.CHEMISTRY_TUTOR.value:
-                    from core.tutor.state import TutorStateManager, generate_turn_id
                     from core.tutor.lifecycle import TurnLifecycleManager, TurnStage
+                    from core.tutor.state import generate_turn_id
 
                     student_id = getattr(opts, "student_id", None) or session_id
                     turn_id, _ = generate_turn_id(student_id=student_id, session_id=session_id)
@@ -486,8 +485,8 @@ class Orchestrator:
 
                 conv.add("user", user_message, agent_name=agent_name)
                 conv.add("assistant", resp_text, agent_name=agent_name)
-                
-                from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+
+                from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
                 tutor_ctx = self.get_tutor_engine().get_or_create_context(session_id) if self.get_tutor_engine() else None
                 resolved_context = {
                     "concept_name": tutor_ctx.current_concept_name if tutor_ctx else "Thermodynamics",
@@ -496,7 +495,7 @@ class Orchestrator:
                 }
                 scenario = DeadEndScenario.ACTIVE_LEARNING if mode == AppMode.CHEMISTRY_TUTOR.value else DeadEndScenario.MODE_SWITCH
                 actions = DeadEndResolver.resolve_actions(scenario, ActionPath.SUCCESS, resolved_context)
-                
+
                 return TurnResult(
                     text=resp_text,
                     model_used="local",
@@ -509,7 +508,7 @@ class Orchestrator:
                 )
         except Exception as exc:
             from core.errors import sanitize_error
-            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
             sanitized = sanitize_error(exc, category="orchestrator_submit")
             conv.add("user", user_message)
             latency = (time.time() - start) * 1000
@@ -539,12 +538,12 @@ class Orchestrator:
             user_message = _redact_pii(user_message)
             conv = self._get_conversation(session_id)
             conv.mode = mode
-        
+
         except ValueError as e:
             yield str(e), True
             return
 
-        from core.security.rate_limiter import get_governor, RateLimitExceededError
+        from core.security.rate_limiter import RateLimitExceededError, get_governor
         governor = get_governor()
 
         try:
@@ -563,13 +562,13 @@ class Orchestrator:
 
         agent_name = mode
         buffer = []
-        
+
         try:
             with governor.concurrency_guard():
                 from core.mode import AppMode
                 if mode == AppMode.CHEMISTRY_TUTOR.value:
-                    from core.tutor.state import TutorStateManager, generate_turn_id
                     from core.tutor.lifecycle import TurnLifecycleManager, TurnStage
+                    from core.tutor.state import generate_turn_id
 
                     student_id = getattr(opts, "student_id", None) or session_id
                     turn_id, _ = generate_turn_id(student_id=student_id, session_id=session_id)

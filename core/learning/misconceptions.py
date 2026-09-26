@@ -8,14 +8,14 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tutor.state import TutorStateManager
 
 
 # Controlled Misconception Catalog (P4-T03)
-THERMODYNAMICS_MISCONCEPTIONS: Dict[str, str] = {
+THERMODYNAMICS_MISCONCEPTIONS: dict[str, str] = {
     'THERMO_SIGN_CONVENTION': 'Confusing work/heat sign convention. In gas expansion against external pressure, work is done BY the system on surroundings, so work is negative (w < 0).',
     'HEAT_VS_INTERNAL_ENERGY': 'Failing to distinguish between heat transfer (q) and internal energy (delta U).',
     'STATE_VS_PATH_FUNCTION': 'Treating q or w as state functions instead of path functions.',
@@ -25,7 +25,7 @@ THERMODYNAMICS_MISCONCEPTIONS: Dict[str, str] = {
     'GIBBS_SIGN_CONFUSION': 'Misunderstanding spontaneous criteria (delta G < 0 vs delta G > 0).',
 }
 
-INORGANIC_MISCONCEPTIONS: Dict[str, str] = {
+INORGANIC_MISCONCEPTIONS: dict[str, str] = {
     'PERIODIC_TREND_CONFUSION': 'Incorrectly predicting ionic radius, ionization energy, or electron gain enthalpy trends.',
     'OXIDATION_STATE_ERROR': 'Miscalculating transition metal or p-block oxidation numbers.',
     'ELECTRONIC_CONFIGURATION_ERROR': 'Errors in Aufbau principle exceptions (e.g. Cr, Cu, anomalous d-block configurations).',
@@ -36,19 +36,19 @@ INORGANIC_MISCONCEPTIONS: Dict[str, str] = {
     'METALLURGY_PROCESS_CONFUSION': 'Confusing calcination with roasting or leaching in ore extraction.',
 }
 
-BONDING_MISCONCEPTIONS: Dict[str, str] = {
+BONDING_MISCONCEPTIONS: dict[str, str] = {
     'VSEPR_GEOMETRY_CONFUSION': 'Confusing electron pair geometry with molecular shape (ignoring lone pairs in VSEPR).',
     'HYBRIDIZATION_CALC_ERROR': 'Miscalculating steric number or hybridization state in molecules or polyatomic ions.',
     'BOND_POLARITY_VS_DIPOLE': 'Equating polar bonds with net molecular dipole moment without considering spatial symmetry.',
 }
 
-EQUILIBRIUM_MISCONCEPTIONS: Dict[str, str] = {
+EQUILIBRIUM_MISCONCEPTIONS: dict[str, str] = {
     'LE_CHATELIER_CATALYST_CONFUSION': 'Believing a catalyst changes the equilibrium position or numerical value of K rather than only accelerating attainment of equilibrium.',
     'KP_KC_RELATION_ERROR': 'Confusing delta n_g in Kp = Kc(RT)^deltan or including liquid/solid stoichiometric coefficients in gaseous mole change.',
     'PH_BUFFER_CAPACITY_CONFUSION': 'Believing buffer solution pH never changes under any circumstances, or confusing acidic and basic buffer composition.',
 }
 
-ALL_MISCONCEPTIONS: Dict[str, str] = {
+ALL_MISCONCEPTIONS: dict[str, str] = {
     **THERMODYNAMICS_MISCONCEPTIONS,
     **INORGANIC_MISCONCEPTIONS,
     **BONDING_MISCONCEPTIONS,
@@ -67,7 +67,7 @@ class StudentMisconceptionRecord:
     resolved: bool = False
     remediation_notes: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'student_id': self.student_id,
             'concept_id': self.concept_id,
@@ -81,7 +81,7 @@ class StudentMisconceptionRecord:
 
 
 # Targeted Remediation Guidance Catalog (P4-T03)
-REMEDIATION_GUIDANCE: Dict[str, str] = {
+REMEDIATION_GUIDANCE: dict[str, str] = {
     'THERMO_SIGN_CONVENTION': 'Recall IUPAC convention: Work done ON system is +w; work done BY system is -w. Heat absorbed by system is +q; heat released is -q.',
     'HEAT_VS_INTERNAL_ENERGY': 'Clarify that heat (q) is energy in transit across a boundary, while internal energy (U) is a state function of the system.',
     'STATE_VS_PATH_FUNCTION': 'Emphasize that state functions depend only on initial and final states, whereas q and w depend on the specific path taken.',
@@ -120,7 +120,7 @@ class MisconceptionTracker:
     @classmethod
     def identify_misconception_from_error(
         cls, concept_id: str, student_answer: str, error_type: str = ""
-    ) -> Optional[str]:
+    ) -> str | None:
         """Identify a controlled misconception code based on concept_id, error_type, or student answer content."""
         answer_lower = student_answer.lower()
         error_lower = error_type.lower()
@@ -223,7 +223,7 @@ class MisconceptionTracker:
 
         return None
 
-    def __init__(self, state_manager: Optional[TutorStateManager] = None):
+    def __init__(self, state_manager: TutorStateManager | None = None):
         self.state_manager = state_manager
         if state_manager:
             self._ensure_table_exists(state_manager.conn)
@@ -248,7 +248,7 @@ class MisconceptionTracker:
         student_id: str,
         concept_id: str,
         misconception_code: str,
-        state_manager: Optional[TutorStateManager] = None,
+        state_manager: TutorStateManager | None = None,
     ) -> StudentMisconceptionRecord:
         """Record or increment occurrence of a misconception for a student."""
         sm = state_manager or self.state_manager
@@ -302,9 +302,9 @@ class MisconceptionTracker:
     def get_active_misconceptions(
         self,
         student_id: str,
-        concept_id: Optional[str] = None,
-        state_manager: Optional[TutorStateManager] = None,
-    ) -> List[StudentMisconceptionRecord]:
+        concept_id: str | None = None,
+        state_manager: TutorStateManager | None = None,
+    ) -> list[StudentMisconceptionRecord]:
         """Fetch unresolved misconceptions for a student (optionally filtered by concept)."""
         sm = state_manager or self.state_manager
         if not sm:
@@ -342,7 +342,7 @@ class MisconceptionTracker:
         student_id: str,
         concept_id: str,
         misconception_code: str,
-        state_manager: Optional[TutorStateManager] = None,
+        state_manager: TutorStateManager | None = None,
     ) -> None:
         """Mark a misconception as resolved after successful remediation."""
         sm = state_manager or self.state_manager

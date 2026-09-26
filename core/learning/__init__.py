@@ -4,33 +4,33 @@ Provides evidence-driven mastery calculation, difficulty policy,
 misconception tracking, spaced review scheduling, concept selection,
 and event stream filtering.
 """
-from core.learning.mastery import MasteryCalculator, MasteryWeights
-from core.learning.policy import DifficultyPolicy, DifficultyDecision
-from core.learning.misconceptions import (
-    MisconceptionTracker,
-    THERMODYNAMICS_MISCONCEPTIONS,
-    INORGANIC_MISCONCEPTIONS,
-    ALL_MISCONCEPTIONS,
-)
-from core.learning.selector import ConceptSelector, ConceptSelectionResult
-from core.learning.scheduler import SpacedReviewScheduler, ReviewScheduleResult
-from core.learning.progress import ProgressService, get_status_label
 from core.learning.events import LearningEventStream
+from core.learning.mastery import MasteryCalculator, MasteryWeights
+from core.learning.misconceptions import (
+    ALL_MISCONCEPTIONS,
+    INORGANIC_MISCONCEPTIONS,
+    THERMODYNAMICS_MISCONCEPTIONS,
+    MisconceptionTracker,
+)
+from core.learning.policy import DifficultyDecision, DifficultyPolicy
+from core.learning.progress import ProgressService, get_status_label
+from core.learning.scheduler import ReviewScheduleResult, SpacedReviewScheduler
+from core.learning.selector import ConceptSelectionResult, ConceptSelector
 
 __all__ = [
+    "ALL_MISCONCEPTIONS",
+    "INORGANIC_MISCONCEPTIONS",
+    "THERMODYNAMICS_MISCONCEPTIONS",
+    "ConceptSelectionResult",
+    "ConceptSelector",
+    "DifficultyDecision",
+    "DifficultyPolicy",
+    "LearningEventStream",
     "MasteryCalculator",
     "MasteryWeights",
-    "DifficultyPolicy",
-    "DifficultyDecision",
     "MisconceptionTracker",
-    "THERMODYNAMICS_MISCONCEPTIONS",
-    "INORGANIC_MISCONCEPTIONS",
-    "ALL_MISCONCEPTIONS",
-    "ConceptSelector",
-    "ConceptSelectionResult",
-    "SpacedReviewScheduler",
-    "ReviewScheduleResult",
     "ProgressService",
+    "ReviewScheduleResult",
+    "SpacedReviewScheduler",
     "get_status_label",
-    "LearningEventStream",
 ]

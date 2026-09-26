@@ -1,14 +1,16 @@
-"""Gayatri AI — Concept-Aware RAG Retriever & Evidence Control (Phase 7).
+"""Gayatri AI — RAG 2.0: Hybrid Retrieval Engine (Phase 4).
 
-Performs similarity queries combined with active concept context (P7-T01),
-enforces source provenance priority (P7-T02 & P7-T03), and provides observable RAG status (P7-T04).
+Combines Vector Similarity + BM25 Lexical Keyword Search + Metadata Filters
+using Reciprocal Rank Fusion (RRF) and generates EvidenceCard representations.
 """
 from __future__ import annotations
 
 import logging
-from typing import Optional
+import math
+import re
+from typing import Any
 
-from core.rag.schema import ConfidenceLevel, RAGContext, RAGStatus, RetrievalResult
+from core.rag.schema import ConfidenceLevel, DocumentChunk, EvidenceCard, RAGContext, RAGStatus, RetrievalResult
 from core.rag.store import RAGStore
 
 logger = logging.getLogger("gayatri.rag.retriever")
@@ -16,6 +18,7 @@ logger = logging.getLogger("gayatri.rag.retriever")
 # Policy thresholds
 HIGH_CONFIDENCE_THRESHOLD = 0.45
 MEDIUM_CONFIDENCE_THRESHOLD = 0.20
+RRF_K_CONSTANT = 60
 
 SOURCE_PRIORITY_WEIGHTS = {
     "NCERT": 10.0,
@@ -25,10 +28,37 @@ SOURCE_PRIORITY_WEIGHTS = {
 }
 
 
-class NCERTRetriever:
-    """Concept-aware retriever for querying NCERT knowledge with evidence priority and error observation (Section 19)."""
+class BM25LexicalScorer:
+    """Simple, fast in-memory BM25 lexical keyword scorer."""
 
-    def __init__(self, store: Optional[RAGStore] = None):
+    @staticmethod
+    def tokenize(text: str) -> list[str]:
+        return [w.lower() for w in re.findall(r"\b[a-zA-Z0-9_\-\+]+\b", text)]
+
+    @classmethod
+    def score_chunk(cls, query: str, chunk_text: str) -> float:
+        q_tokens = set(cls.tokenize(query))
+        c_tokens = cls.tokenize(chunk_text)
+        if not q_tokens or not c_tokens:
+            return 0.0
+
+        score = 0.0
+        c_len = len(c_tokens)
+        for qt in q_tokens:
+            tf = c_tokens.count(qt)
+            if tf > 0:
+                # BM25 term weighting component
+                idf = math.log((100 + 1) / (1 + 1))
+                tf_score = (tf * 2.2) / (tf + 1.2 * (0.25 + 0.75 * (c_len / 50)))
+                score += idf * tf_score
+
+        return round(score, 4)
+
+
+class NCERTRetriever:
+    """Hybrid Retriever combining Vector Search, BM25 Lexical Search, and RRF Reranking."""
+
+    def __init__(self, store: RAGStore | None = None):
         self.store = store or RAGStore()
         if store is None:
             try:
@@ -39,7 +69,7 @@ class NCERTRetriever:
 
     def retrieve(self, query: str, top_k: int = 3) -> RAGContext:
         """Legacy retriever wrapper."""
-        return self.retrieve_concept_aware(query=query, top_k=top_k)
+        return self.retrieve_hybrid(query=query, top_k=top_k)
 
     def retrieve_concept_aware(
         self,
@@ -53,58 +83,95 @@ class NCERTRetriever:
         question: str = "",
         concept: str = "",
     ) -> RAGContext:
-        """Multi-factor retrieval combining question, domain, chapter, topic, concept, and learning objective (Section 19)."""
+        """Concept-aware retrieval calling hybrid RRF retrieval."""
         q = (query or question).strip()
         cid = concept_id or concept
-        if not q:
-            return RAGContext(
-                query=q,
-                results=[],
-                confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_EMPTY,
-            )
+        return self.retrieve_hybrid(
+            query=q,
+            concept=cid,
+            chapter=chapter,
+            topic=topic,
+            top_k=top_k,
+        )
 
-        # Build enriched context query from all 6 factors (Section 19)
-        context_parts = [p for p in [domain, chapter, topic, cid, learning_objective] if p]
-        enriched_query = f"{q} {' '.join(context_parts)}".strip()
+    def retrieve_hybrid(
+        self,
+        query: str,
+        concept: str = "",
+        chapter: str = "",
+        topic: str = "",
+        difficulty: str = "",
+        content_type: str = "",
+        top_k: int = 3,
+    ) -> RAGContext:
+        """Hybrid RAG combining Vector Search + BM25 Lexical + Metadata Filters via RRF."""
+        q = query.strip()
+        if not q:
+            return RAGContext(query=q, results=[], confidence=ConfidenceLevel.LOW, status=RAGStatus.RAG_EMPTY)
 
         try:
-            matches = self.store.search_similar(enriched_query, top_k=max(1, top_k * 2))
+            # 1. Vector Candidate Retrieval
+            vector_candidates = self.store.search_similar(q, top_k=max(1, top_k * 3))
         except Exception as e:
             logger.error(f"RAG Store search error: {e}")
-            return RAGContext(
-                query=q,
-                results=[],
-                confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_ERROR,
-                error_message=str(e),
-            )
+            return RAGContext(query=q, results=[], confidence=ConfidenceLevel.LOW, status=RAGStatus.RAG_ERROR, error_message=str(e))
 
-        if not matches:
-            return RAGContext(
-                query=q,
-                results=[],
-                confidence=ConfidenceLevel.LOW,
-                status=RAGStatus.RAG_EMPTY,
-            )
+        if not vector_candidates:
+            return RAGContext(query=q, results=[], confidence=ConfidenceLevel.LOW, status=RAGStatus.RAG_EMPTY)
 
-        # Process and rank results by source priority (NCERT > APPROVED_CURRICULUM > FALLBACK) & score (Section 19)
+        # 2. Metadata Filtering & BM25 Scoring
+        filtered_candidates: list[tuple[DocumentChunk, float, float]] = []
+        for chunk, vec_score in vector_candidates:
+            # Metadata filter checks
+            if chapter and chunk.chapter and chapter.lower() not in chunk.chapter.lower():
+                continue
+            if topic and chunk.topic and topic.lower() not in chunk.topic.lower():
+                continue
+            if concept and getattr(chunk, "concept", "") and concept.lower() not in getattr(chunk, "concept", "").lower():
+                continue
+            if difficulty and getattr(chunk, "difficulty", "") and difficulty.lower() != getattr(chunk, "difficulty", "").lower():
+                continue
+            if content_type and getattr(chunk, "content_type", "") and content_type.lower() != getattr(chunk, "content_type", "").lower():
+                continue
+
+            bm25_score = BM25LexicalScorer.score_chunk(q, chunk.text)
+            filtered_candidates.append((chunk, vec_score, bm25_score))
+
+        # Fallback to unfiltered candidates if metadata filter was too restrictive
+        if not filtered_candidates:
+            filtered_candidates = [(c, vs, BM25LexicalScorer.score_chunk(q, c.text)) for c, vs in vector_candidates]
+
+        # 3. Reciprocal Rank Fusion (RRF)
+        # Sort candidates by Vector Rank and Lexical Rank
+        vec_sorted = sorted(filtered_candidates, key=lambda x: x[1], reverse=True)
+        lex_sorted = sorted(filtered_candidates, key=lambda x: x[2], reverse=True)
+
+        vec_ranks = {c.chunk_id: rank + 1 for rank, (c, _, _) in enumerate(vec_sorted)}
+        lex_ranks = {c.chunk_id: rank + 1 for rank, (c, _, _) in enumerate(lex_sorted)}
+
         results: list[RetrievalResult] = []
-        for chunk, score in matches:
-            if score >= HIGH_CONFIDENCE_THRESHOLD:
+        for chunk, vec_score, _ in filtered_candidates:
+            v_rank = vec_ranks[chunk.chunk_id]
+            l_rank = lex_ranks[chunk.chunk_id]
+            rrf_score = (1.0 / (RRF_K_CONSTANT + v_rank)) + (1.0 / (RRF_K_CONSTANT + l_rank))
+
+            # Provenance weight booster
+            prov_boost = SOURCE_PRIORITY_WEIGHTS.get(chunk.provenance_type, 1.0) / 10.0
+            final_score = vec_score + (rrf_score * prov_boost)
+
+            if vec_score >= HIGH_CONFIDENCE_THRESHOLD or rrf_score > 0.030:
                 conf = ConfidenceLevel.HIGH
-            elif score >= MEDIUM_CONFIDENCE_THRESHOLD:
+            elif vec_score >= MEDIUM_CONFIDENCE_THRESHOLD or rrf_score > 0.015:
                 conf = ConfidenceLevel.MEDIUM
             else:
                 conf = ConfidenceLevel.LOW
 
-            results.append(RetrievalResult(chunk=chunk, score=score, confidence=conf))
+            results.append(RetrievalResult(chunk=chunk, score=round(vec_score, 4), rrf_score=round(rrf_score, 4), confidence=conf))
 
-        # Sort by (source_priority_weight, similarity_score) descending
         results.sort(
             key=lambda r: (
                 SOURCE_PRIORITY_WEIGHTS.get(getattr(r.chunk, "provenance_type", "NCERT"), 1.0),
-                r.score,
+                r.rrf_score + r.score,
             ),
             reverse=True,
         )
@@ -118,22 +185,34 @@ class NCERTRetriever:
         else:
             overall_confidence = ConfidenceLevel.LOW
 
-        logger.info(
-            f"Concept-aware RAG for '{q[:30]}...' (concept={cid}): "
-            f"{len(final_results)} chunks, top_score={top_score:.4f}, confidence={overall_confidence.value}"
-        )
+        # 4. Generate Structured EvidenceCard
+        evidence_card = None
+        if final_results:
+            top_chunk = final_results[0].chunk
+            evidence_card = EvidenceCard(
+                concept=top_chunk.concept or top_chunk.topic or "Chemistry Concept",
+                definition=top_chunk.text[:200],
+                intuition=f"Key authoritative evidence from {top_chunk.chapter}",
+                formula="delta G = delta H - T delta S" if "entropy" in top_chunk.text.lower() or "gibbs" in top_chunk.text.lower() else "",
+                misconceptions=[],
+                examples=[f"See {top_chunk.chapter} Section {top_chunk.section}"],
+                prerequisites=[],
+                source=top_chunk.source_id,
+                page=top_chunk.page,
+                confidence=overall_confidence.value,
+            )
 
         return RAGContext(
             query=q,
             results=final_results,
             confidence=overall_confidence,
             status=RAGStatus.RAG_OK,
+            evidence_card=evidence_card,
         )
 
     def retrieve_atomic(self, concept_id: str, query: str = "") -> str:
-        """Retrieve an ultra-compact atomic knowledge card (< 75 tokens) for SLM context efficiency."""
+        """Retrieve ultra-compact atomic card."""
         import json
-        from pathlib import Path
         from core.config import BASE_DIR
 
         atomic_dir = BASE_DIR / "data" / "rag" / "atomic"
@@ -145,7 +224,7 @@ class NCERTRetriever:
 
         for json_file in atomic_dir.glob("*.json"):
             try:
-                with open(json_file, "r", encoding="utf-8") as f:
+                with open(json_file, encoding="utf-8") as f:
                     data = json.load(f)
                     for card in data.get("cards", []):
                         card_cid = card.get("concept_id", "").upper().strip()
@@ -166,7 +245,6 @@ class NCERTRetriever:
         if not matched_card:
             return ""
 
-        # Format compact atomic evidence (< 75 tokens)
         lines = [
             "<ncert_evidence>",
             f"[CONCEPT: {matched_card.get('concept_name', matched_card.get('concept_id'))}]",
@@ -180,7 +258,7 @@ class NCERTRetriever:
         return "\n".join(lines)
 
 
-_global_retriever: Optional[NCERTRetriever] = None
+_global_retriever: NCERTRetriever | None = None
 
 
 def get_ncert_retriever() -> NCERTRetriever:
@@ -188,4 +266,3 @@ def get_ncert_retriever() -> NCERTRetriever:
     if _global_retriever is None:
         _global_retriever = NCERTRetriever()
     return _global_retriever
-

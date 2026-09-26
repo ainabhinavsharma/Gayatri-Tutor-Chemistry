@@ -10,17 +10,16 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("gayatri.tutor.adaptive")
 
 # Default paths
 from core.config import DATA_DIR
+
 DEFAULT_STUDENT_FILE = DATA_DIR / "student_profile.json"
 DEFAULT_EVENT_LOG = DATA_DIR / "events.jsonl"
 
@@ -48,9 +47,9 @@ class StudentProfile:
     target: str = "chemistry_foundation"
     current_topic: str = "Thermodynamics"
     current_concept: str = "THERMO_FIRST_LAW"
-    mastery: Dict[str, float] = field(default_factory=dict)
-    misconceptions: List[str] = field(default_factory=list)
-    history: List[Dict[str, Any]] = field(default_factory=list)
+    mastery: dict[str, float] = field(default_factory=dict)
+    misconceptions: list[str] = field(default_factory=list)
+    history: list[dict[str, Any]] = field(default_factory=list)
     active_hint_level: int = 0
     current_mode: str = "EXPLAIN"
 
@@ -108,14 +107,14 @@ class EventLogger:
         event_type: str,
         student_id: str,
         concept_id: str,
-        details: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+        details: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Record an event to the local JSONL event log."""
         record = {
             "event": event_type,
             "student_id": student_id,
             "concept_id": concept_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             **(details or {}),
         }
         try:
@@ -125,7 +124,7 @@ class EventLogger:
             logger.error(f"Failed to append event log: {exc}")
         return record
 
-    def get_recent_events(self, student_id: str | None = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_recent_events(self, student_id: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Retrieve recent events from the event log with optional filtering."""
         if not self.log_path.exists():
             return []
@@ -171,9 +170,9 @@ class AdaptiveLearningEngine:
     def decide_next_action(
         concept_id: str,
         student: StudentProfile,
-        prerequisites: List[str],
-        prereq_masteries: Dict[str, float],
-    ) -> Dict[str, Any]:
+        prerequisites: list[str],
+        prereq_masteries: dict[str, float],
+    ) -> dict[str, Any]:
         """Apply Section 24 Adaptive Learning Decision Rules.
 
         Rules:

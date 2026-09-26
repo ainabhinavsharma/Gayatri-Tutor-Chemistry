@@ -7,13 +7,12 @@ from __future__ import annotations
 
 import json
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from core.assessment.grader import AssessmentGrader
-from core.assessment.schema import MCQQuestion, NumericalQuestion, Question, QuestionType
-from core.learning.mastery import MasteryCalculator
+from core.assessment.schema import MCQQuestion, NumericalQuestion, Question
 from core.learning.misconceptions import MisconceptionTracker
 from core.tutor.state import LearningEvent, TutorStateManager, generate_turn_id
 
@@ -32,7 +31,7 @@ class QuestionBankItem:
     rubric: str = ""
     hint: str = ""
     explanation: str = ""
-    common_misconceptions: List[str] = field(default_factory=list)
+    common_misconceptions: list[str] = field(default_factory=list)
     source: str = "NCERT"
 
     def to_question_schema(self) -> Question:
@@ -69,7 +68,7 @@ class QuestionBankItem:
 
 
 # Default Sample Question Bank (P6-T01 NCERT Aligned)
-SAMPLE_QUESTION_BANK: List[QuestionBankItem] = [
+SAMPLE_QUESTION_BANK: list[QuestionBankItem] = [
     QuestionBankItem(
         id="thermo.hess.001",
         concept_id="thermo.hess_law",
@@ -292,7 +291,7 @@ SAMPLE_QUESTION_BANK: List[QuestionBankItem] = [
 class AssessmentManager:
     """Manages assessment lifecycle, grading, persistence, and evidence recording."""
 
-    def __init__(self, state_manager: TutorStateManager, questions: Optional[List[QuestionBankItem]] = None):
+    def __init__(self, state_manager: TutorStateManager, questions: list[QuestionBankItem] | None = None):
         self.state_manager = state_manager
         self.questions = questions or SAMPLE_QUESTION_BANK
         self.question_map = {q.id: q for q in self.questions}
@@ -300,7 +299,7 @@ class AssessmentManager:
     def create_assessment_session(
         self,
         student_id: str,
-        concepts: List[str],
+        concepts: list[str],
         question_count: int = 5,
     ) -> str:
         """Create a new assessment session record (P6-T02) and persist to assessment & assessment_question."""
@@ -413,7 +412,7 @@ class AssessmentManager:
             tracker = MisconceptionTracker(self.state_manager)
             tracker.record_misconception(student_id, item.concept_id, detected_misconception)
 
-        from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+        from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
         actions = DeadEndResolver.resolve_actions(
             DeadEndScenario.ASSESSMENT,
             ActionPath.SUCCESS,
@@ -438,7 +437,7 @@ class AssessmentManager:
         )
         attempts = cursor.fetchall()
         if not attempts:
-            from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+            from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
             actions = DeadEndResolver.resolve_actions(DeadEndScenario.ASSESSMENT, ActionPath.FAILURE)
             return {
                 "assessment_id": assessment_id,
@@ -453,7 +452,7 @@ class AssessmentManager:
 
         now = datetime.now().isoformat()
 
-        concept_scores: Dict[str, List[float]] = {}
+        concept_scores: dict[str, list[float]] = {}
         for att in attempts:
             cid = att["concept_id"]
             if cid not in concept_scores:
@@ -520,7 +519,7 @@ class AssessmentManager:
             )
             self.state_manager.record_learning_event(event)
 
-        from core.tutor.deadend import DeadEndResolver, DeadEndScenario, ActionPath
+        from core.tutor.deadend import ActionPath, DeadEndResolver, DeadEndScenario
         actions = DeadEndResolver.resolve_actions(
             DeadEndScenario.ASSESSMENT,
             ActionPath.SUCCESS,
@@ -538,7 +537,7 @@ class AssessmentManager:
             "next_actions": [a.to_dict() for a in actions],
         }
 
-    def get_assessment(self, assessment_id: str) -> Optional[dict]:
+    def get_assessment(self, assessment_id: str) -> dict | None:
         """Fetch assessment session record from assessment table."""
         cursor = self.state_manager.conn.execute(
             "SELECT * FROM assessment WHERE assessment_id = ?",
@@ -547,7 +546,7 @@ class AssessmentManager:
         row = cursor.fetchone()
         return dict(row) if row else None
 
-    def get_assessment_questions(self, assessment_id: str) -> List[dict]:
+    def get_assessment_questions(self, assessment_id: str) -> list[dict]:
         """Fetch all questions for an assessment from assessment_question table."""
         cursor = self.state_manager.conn.execute(
             "SELECT * FROM assessment_question WHERE assessment_id = ? ORDER BY question_id",
@@ -555,7 +554,7 @@ class AssessmentManager:
         )
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_assessment_attempts(self, assessment_id: str) -> List[dict]:
+    def get_assessment_attempts(self, assessment_id: str) -> list[dict]:
         """Fetch all attempts for an assessment from assessment_attempt table."""
         cursor = self.state_manager.conn.execute(
             "SELECT * FROM assessment_attempt WHERE assessment_id = ? ORDER BY submitted_at",
@@ -563,7 +562,7 @@ class AssessmentManager:
         )
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_assessment_score(self, assessment_id: str) -> Optional[dict]:
+    def get_assessment_score(self, assessment_id: str) -> dict | None:
         """Fetch score record for an assessment from score table."""
         cursor = self.state_manager.conn.execute(
             "SELECT * FROM score WHERE assessment_id = ?",

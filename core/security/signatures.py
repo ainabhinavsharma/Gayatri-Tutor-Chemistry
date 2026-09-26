@@ -103,7 +103,7 @@ class ManifestSigner:
         clean_manifest = {k: v for k, v in manifest.items() if k != "signature"}
         data = canonicalize_json(clean_manifest)
         sig = cls.sign_bytes(data, private_key_b64)
-        
+
         signed_manifest = dict(clean_manifest)
         signed_manifest["signature"] = {
             "algorithm": "ed25519",

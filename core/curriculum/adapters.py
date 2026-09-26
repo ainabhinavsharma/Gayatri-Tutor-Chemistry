@@ -29,7 +29,7 @@ class BaseCurriculumAdapter(ABC):
     def _load_data(self) -> None:
         if not self.file_path.exists():
             raise FileNotFoundError(f"Curriculum specification file not found: {self.file_path}")
-        with open(self.file_path, "r", encoding="utf-8-sig") as f:
+        with open(self.file_path, encoding="utf-8-sig") as f:
             self._data = json.load(f)
 
     @property
